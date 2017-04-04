@@ -45,11 +45,13 @@ import javax.swing.JPasswordField;
 public final class UserPanel extends JPanel {
 
   private final ClientContext clientContext;
+  private static Connector con;
 
   public UserPanel(ClientContext clientContext) {
     super(new GridBagLayout());
     this.clientContext = clientContext;
     initialize();
+    con = new Connector();
   }
 
   private void initialize() {
@@ -181,7 +183,6 @@ public final class UserPanel extends JPanel {
             if (TextValidator.isValidUserName(username.getText()) && TextValidator
                 .isValidPassword(password.getText())) {
               //needs to pass through DB to authenticate
-              Connector con = new Connector();
               if (con.verifyAccount(username.getText(), password.getText())) {
                 clientContext.user.signInUser(data);
                 userSignedInLabel.setText("Hello " + data);

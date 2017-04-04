@@ -14,4 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-java -cp ./third_party/junit4.jar:./third_party/commons-dbcp2-2.1.1.jar:./third_party/mysql-connector-java-5.1.41-bin.jar:./third_party/commons-pool2-2.4.2.jar:./third_party/commons-logging-1.2.jar:./bin codeu.chat.TestRunner
+mkdir -p bin
+javac -Xlint $(find * | grep "\\.java$") -d ./bin -sourcepath ./src -cp ./third_party/junit4.jar:./third_party/commons-dbcp2-2.1.1.jar:./third_party/mysql-connector-java-5.1.41-bin.jar:./third_party/commons-pool2-2.4.2.jar:./third_party/commons-logging-1.2.jar:./bin
+javac -Xlint $(find * | grep "\\.java$") -d ./bin -sourcepath ./test -cp ./third_party/junit4.jar:./third_party/commons-dbcp2-2.1.1.jar:./third_party/mysql-connector-java-5.1.41-bin.jar:./third_party/commons-pool2-2.4.2.jar:./third_party/commons-logging-1.2.jar:./bin

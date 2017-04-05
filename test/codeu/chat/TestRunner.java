@@ -22,8 +22,14 @@ import java.io.*;
 public final class TestRunner {
 
   private static boolean loading = true;
-  private static int frameSpeed = 70;
+  private static int frameSpeed = 60;
 
+  /**
+   * updated to a different thread as not to interfere
+   * with the loading message animation
+   *
+   * @param msg: the message to be displayed in the loading
+   */
   public static synchronized void main(String[] args) {
     Thread th = new Thread() {
       @Override
@@ -63,6 +69,13 @@ public final class TestRunner {
     th.start();
   }
 
+  /**
+   * give the user a loading screen while tests are running
+   * created due to the unpredictability of how long it will
+   * take for the SQL server to respond
+   *
+   * @param msg: the message to be displayed in the loading
+   */
   private static synchronized void loading(String msg) {
     Thread th = new Thread() {
       @Override
@@ -76,7 +89,6 @@ public final class TestRunner {
             System.out.write(data.getBytes());
             Thread.sleep(frameSpeed);
           }
-
         } catch (IOException e) {
           e.printStackTrace();
         } catch (InterruptedException e) {

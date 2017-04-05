@@ -10,8 +10,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 
+//Created to test the implementation of the methods in database.Connector.java
 public final class DatabaseTest {
-
 
   @Test
   public void testAddAndDeleteUser() {
@@ -42,6 +42,18 @@ public final class DatabaseTest {
     con.closeConnection();
   }
 
+  @Test
+  public void testUserExists() {
+    Connector con = new Connector();
+    String randomUN = UUID.randomUUID().toString();
+    String randomPW = UUID.randomUUID().toString();
+    assertTrue(con.addAccount(randomUN, randomPW));
+    assertTrue(con.verifyAccountExists(randomUN));
+    assertFalse(con.verifyAccountExists(randomUN+"1"));
+    assertTrue(con.deleteAccount(randomUN));
+    con.closeConnection();
+  }
+
 
   @Test
   public void testGetAllUsers(){
@@ -49,7 +61,7 @@ public final class DatabaseTest {
     String randomUN = UUID.randomUUID().toString();
     String randomPW = UUID.randomUUID().toString();
     List<String> addedUserNames = new LinkedList<>();
-    int iterationsToTest = 1;
+    int iterationsToTest = 2;
     for(int i=0; i<iterationsToTest; i++) {
       addedUserNames.add(randomUN + i);
       assertTrue(con.addAccount(randomUN + i, randomPW));

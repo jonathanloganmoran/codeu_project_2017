@@ -38,7 +38,7 @@ public class Connector {
    * print all the current useNnames
    *
    */
-  public List<String> getAllUsers() {
+  public synchronized List<String> getAllUsers() {
 
     String sqlSelectUsername = "select username from " + tableName;
     LinkedList<String> userNames = new LinkedList<>();
@@ -65,7 +65,7 @@ public class Connector {
    * @param password
    * @return true if the insertion is successful and complete; false, if the insertion fails
    */
-  public boolean addAccount(String username, String password) {
+  public synchronized boolean addAccount(String username, String password) {
 
     String sqlInsertAccount = "insert into "+tableName + "(username, password)" + "values(?,?)";
     try (Connection conn = ds.getConnection()) {
@@ -87,7 +87,7 @@ public class Connector {
    *
    * @return true if the data has been cleaned
    */
-  public boolean dropAllAccounts() {
+  public synchronized boolean dropAllAccounts() {
 
     String sqlDrop = "truncate table " + tableName;
     try (Connection conn = ds.getConnection()) {
@@ -111,7 +111,7 @@ public class Connector {
    * @param password
    * @return true if the account is verified, else, false, if the account is not valid
    */
-  public boolean verifyAccount(String username, String password) {
+  public synchronized boolean verifyAccount(String username, String password) {
 
     String sqlSelectPassword = "select password from " + tableName + " where username = ?";
     try (Connection conn = ds.getConnection()) {
@@ -138,12 +138,40 @@ public class Connector {
   }
 
   /**
+   * verify if the account username input by users matches an account in the
+   * database
+   *
+   * @param username
+   * @return true if the account exists, false if the account does not exist
+   */
+  public synchronized boolean verifyAccountExists(String username) {
+
+    String sqlSelectPassword = "select password from " + tableName + " where username = ?";
+    try (Connection conn = ds.getConnection()) {
+      try (PreparedStatement selectPassword = conn.prepareStatement(sqlSelectPassword)) {
+        // the account exists
+        selectPassword.setString(1, username);
+        try (ResultSet resultPassword = selectPassword.executeQuery()) {
+          if (resultPassword.next()) {
+            return true;
+          }
+        }
+      }
+    } catch (SQLException e) {
+      e.printStackTrace();
+      return false;
+    }
+    //System.err.println("the account does not exist");
+    return false;
+  }
+
+  /**
    * delete the existing account; deletion requires the user to sign in first
    * 
    * @param username
    * @return false if the deletion fails; true if succeeds
    */
-  public boolean deleteAccount(String username) {
+  public synchronized boolean deleteAccount(String username) {
 
     String sqlDeleteAccount = "DELETE  FROM " + tableName + " WHERE username = ?";
     try (Connection conn = ds.getConnection()) {
@@ -164,7 +192,7 @@ public class Connector {
    * @return true if the update succeeds, else, false;
    */
 
-  public boolean updatePassword(String username, String newPassword) {
+  public synchronized boolean updatePassword(String username, String newPassword) {
     String sqlUpdate = "UPDATE "+tableName+" SET password = ? WHERE username = ?";
     try (Connection conn = ds.getConnection()) {
       try (PreparedStatement update = conn.prepareStatement(sqlUpdate)){
@@ -181,7 +209,7 @@ public class Connector {
    * when all has been done with database, call close to end the connection.
    * can restart by creating a new instance of connector
    */
-  public void closeConnection() {
+  public synchronized void closeConnection() {
     try {
       ds.close();
     }

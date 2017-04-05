@@ -18,6 +18,8 @@ import codeu.chat.client.ClientContext;
 import codeu.chat.common.User;
 import codeu.chat.util.TextValidator;
 import database.Connector;
+import java.util.LinkedList;
+import java.util.List;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -51,7 +53,7 @@ public final class UserPanel extends JPanel {
     super(new GridBagLayout());
     this.clientContext = clientContext;
     initialize();
-    con = new Connector();
+
   }
 
   private void initialize() {
@@ -155,7 +157,15 @@ public final class UserPanel extends JPanel {
     this.add(listShowPanel, listPanelC);
     this.add(buttonPanel, buttonPanelC);
     this.add(currentPanel, currentPanelC);
-    //TextValidator validator = new TextValidator();
+
+    //load existing users from database
+    con = new Connector();
+    List<String> usersToAdd = con.getAllUsers();
+    for(String s : usersToAdd) {
+      clientContext.user.addUser(s);
+    }
+    UserPanel.this.getAllUsers(listModel);
+
 
     userUpdateButton.addActionListener(new ActionListener() {
       @Override
@@ -164,17 +174,19 @@ public final class UserPanel extends JPanel {
       }
     });
 
+    //updated to verify password with database as well
     userSignInButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         if (userList.getSelectedIndex() != -1) {
           final String data = userList.getSelectedValue();
-          JTextField username = new JTextField();
+          JTextField username = new JTextField(data);
           JTextField password = new JPasswordField();
           Object[] message = {
               "Username:", username,
               "Password:", password
           };
+
           final int option = JOptionPane
               .showConfirmDialog(null, message, "Sign-In", JOptionPane.OK_CANCEL_OPTION,
                   JOptionPane.PLAIN_MESSAGE);
@@ -184,8 +196,8 @@ public final class UserPanel extends JPanel {
                 .isValidPassword(password.getText())) {
               //needs to pass through DB to authenticate
               if (con.verifyAccount(username.getText(), password.getText())) {
-                clientContext.user.signInUser(data);
-                userSignedInLabel.setText("Hello " + data);
+                clientContext.user.signInUser(username.getText());
+                userSignedInLabel.setText("Hello " + username.getText());
               } else {
                 JOptionPane.showMessageDialog(UserPanel.this,
                     "Not able to sign in. Invalid field for username or password.",
@@ -194,7 +206,7 @@ public final class UserPanel extends JPanel {
               }
             } else {
               JOptionPane.showMessageDialog(UserPanel.this,
-                  "Not able to sign in. Invalid format of username or password entered. "
+                  "Not able to sign in. Invalid format of username or password entered.\n"
                       + "Alphanumeric characters only, with no spaces. Please try again.",
                   "Failure to Authenticate",
                   JOptionPane.ERROR_MESSAGE);
@@ -204,6 +216,7 @@ public final class UserPanel extends JPanel {
       }
     });
 
+    //updated to add to database as well
     userAddButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -219,11 +232,19 @@ public final class UserPanel extends JPanel {
         if (option == JOptionPane.OK_OPTION) {
           if (TextValidator.isValidUserName(username.getText()) && TextValidator
               .isValidPassword(password.getText())) {
-            clientContext.user.addUser(username.getText());
-            UserPanel.this.getAllUsers(listModel);
+            if(!con.verifyAccountExists(username.getText())) {
+              con.addAccount(username.getText(), password.getText());
+              clientContext.user.addUser(username.getText());
+              UserPanel.this.getAllUsers(listModel);
+            } else {
+              JOptionPane.showMessageDialog(UserPanel.this,
+                  "User not created. User already exists. Please choose different name.",
+                  "User Not Created",
+                  JOptionPane.ERROR_MESSAGE);
+            }
           } else {
             JOptionPane.showMessageDialog(UserPanel.this,
-                "User not created. Alphanumeric characters only, with no spaces. Please try again.",
+                "User not created. Alphanumeric characters only, with no spaces.\nPlease try again.",
                 "User Not Created",
                 JOptionPane.ERROR_MESSAGE);
           }

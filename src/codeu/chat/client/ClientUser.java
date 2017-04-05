@@ -31,7 +31,6 @@ public final class ClientUser {
   private static final Collection<Uuid> EMPTY = Arrays.asList(new Uuid[0]);
   private final Controller controller;
   private final View view;
-  //private final TextValidator validator = new TextValidator();
 
   private User current = null;
 
@@ -90,6 +89,7 @@ public final class ClientUser {
       System.out.format("Error: user not created - %s.\n",
           (validInputs) ? "server failure" : "bad input value");
     } else {
+
       LOG.info("New user complete, Name= \"%s\" UUID=%s", user.name, user.id);
       updateUsers();
     }
@@ -132,7 +132,7 @@ public final class ClientUser {
 
   public static String getUserInfoString(User user) {
     return (user == null) ? "Null user" :
-        String.format(" User: %s\n   Id: %s\n   created: %s\n", user.name, user.id, user.creation);
+        String.format(" User: %s\n   Id: %s\n", user.name, user.id); // removed "    created: %s"
   }
 
   public String showUserInfo(String uname) {

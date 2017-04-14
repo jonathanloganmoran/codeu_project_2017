@@ -1,0 +1,3 @@
+
+ALTER TABLE `CodeU_2017DB`.`User` 
+ADD COLUMN `salt` VARCHAR(45) NOT NULL AFTER `password`

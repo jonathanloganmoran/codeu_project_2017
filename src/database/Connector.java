@@ -1,11 +1,16 @@
 package database;
 
+import codeu.chat.common.Conversation;
+import codeu.chat.common.Message;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Scanner;
 import org.apache.commons.dbcp2.BasicDataSource;
 
 /**
@@ -18,32 +23,66 @@ import org.apache.commons.dbcp2.BasicDataSource;
 public class Connector {
 
   private BasicDataSource ds;
-  private static String tableName = "UserAccount";
-  private static final String dbName = "CodeU_2017DB";
-  private static final String hostname = "ec2-176-34-225-252.eu-west-1.compute.amazonaws.com";
-  private static final String DBusername = "group34";
-  private static final String DBpassword = "codeu2017";
+  private static String user;
+  private static String conversation;
+  private static String message;
+  /*constants*/
+  final private String SQL_SELECT_USERNAMES = String.format("SELECT username FROM "+user);
+  final private String SQL_INSERT_ACCOUNT = String.format("INSERT INTO %s (username, password) VALUES(?,?)",user);
+  final private String SQL_DROP = String.format("TRUNCATE TABLE %s", user);
+  final private String SQL_SELECT_PASSWORD = String.format("SELECT PASSSWORD FROM %s WHERE username = ?",user);
+  final private String SQL_UPDATE = String.format("UPDATE %s SET password = ? WHERE username = ?",user);
+  final private String SQL_DELETE_USER = String.format("DELETE FROM %s WHERE username = ?",user);
 
   public Connector() {
 
     ds = new BasicDataSource();
     ds.setDriverClassName("com.mysql.jdbc.Driver");
-    ds.setUsername(DBusername);
-    ds.setPassword(DBpassword);
-    ds.setUrl("jdbc:mysql://" + hostname + ":3306/" + dbName);
 
+    try(Scanner in = new Scanner(new FileReader("databaseInfo"))){
+      user = in.next();
+      conversation = in.next();
+      message = in.next();
+
+      ds.setUrl(String.format("jdbc:mysql:%s//:3306/%s", in.next(),in.next()));
+      ds.setUsername(in.next());
+      ds.setPassword(in.next());
+
+    } catch (FileNotFoundException e) {
+      e.printStackTrace();
+    }
   }
 
+  /**
+   * Conversation
+   */
+  boolean addConversation(){
+    return true;
+  }
+
+  List<Conversation>getAllConversations(){
+    return null;
+  }
+
+  /**
+   * Messages
+   */
+  List<Message>getAllMessages(Conversation con){
+    return null;
+  }
+
+  boolean writeMessage(Message message){
+   return true;
+  }
   /**
    * print all the current useNnames
    *
    */
   public List<String> getAllUsers() {
 
-    String sqlSelectUsername = "select username from " + tableName;
     LinkedList<String> userNames = new LinkedList<>();
     try (Connection conn = ds.getConnection()) {
-      try (PreparedStatement getUsers = conn.prepareStatement(sqlSelectUsername)) {
+      try (PreparedStatement getUsers = conn.prepareStatement(SQL_SELECT_USERNAMES)) {
         try (ResultSet users = getUsers.executeQuery()) {
           while (users.next()) {
             userNames.add(users.getString("username"));
@@ -67,9 +106,8 @@ public class Connector {
    */
   public boolean addAccount(String username, String password) {
 
-    String sqlInsertAccount = "insert into "+tableName + "(username, password)" + "values(?,?)";
     try (Connection conn = ds.getConnection()) {
-      try(PreparedStatement insertAccount = conn.prepareStatement(sqlInsertAccount)) {
+      try(PreparedStatement insertAccount = conn.prepareStatement(SQL_INSERT_ACCOUNT)) {
         insertAccount.setString(1, username);
         insertAccount.setString(2, password);
         insertAccount.executeUpdate();
@@ -89,11 +127,9 @@ public class Connector {
    */
   public boolean dropAllAccounts() {
 
-    String sqlDrop = "truncate table " + tableName;
     try (Connection conn = ds.getConnection()) {
-      try (PreparedStatement dropAll = conn.prepareStatement(sqlDrop)) {
+      try (PreparedStatement dropAll = conn.prepareStatement(SQL_DROP)) {
         dropAll.executeUpdate();
-        System.out.println("the table has been cleared");
         return true;
       }
     }
@@ -113,9 +149,9 @@ public class Connector {
    */
   public boolean verifyAccount(String username, String password) {
 
-    String sqlSelectPassword = "select password from " + tableName + " where username = ?";
+
     try (Connection conn = ds.getConnection()) {
-      try (PreparedStatement selectPassword = conn.prepareStatement(sqlSelectPassword)) {
+      try (PreparedStatement selectPassword = conn.prepareStatement(SQL_SELECT_PASSWORD)) {
         // the account exists, check password
         selectPassword.setString(1, username);
         try (ResultSet resultPassword = selectPassword.executeQuery()) {
@@ -145,9 +181,9 @@ public class Connector {
    */
   public boolean deleteAccount(String username) {
 
-    String sqlDeleteAccount = "DELETE  FROM " + tableName + " WHERE username = ?";
+
     try (Connection conn = ds.getConnection()) {
-      try (PreparedStatement deleteAccount = conn.prepareStatement(sqlDeleteAccount)) {
+      try (PreparedStatement deleteAccount = conn.prepareStatement(SQL_DELETE_USER)) {
         deleteAccount.setString(1, username);
         if (deleteAccount.executeUpdate() == 1) return true;
         else return false;
@@ -165,9 +201,9 @@ public class Connector {
    */
 
   public boolean updatePassword(String username, String newPassword) {
-    String sqlUpdate = "UPDATE "+tableName+" SET password = ? WHERE username = ?";
+
     try (Connection conn = ds.getConnection()) {
-      try (PreparedStatement update = conn.prepareStatement(sqlUpdate)){
+      try (PreparedStatement update = conn.prepareStatement(SQL_UPDATE)){
         update.setString(1,newPassword);
         update.setString(2,username);
         update.executeUpdate();

@@ -2,7 +2,7 @@ package database;
 
 import codeu.chat.common.Conversation;
 import codeu.chat.common.Message;
-import codeu.chat.common.User;
+import codeu.chat.common.Uuid;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.security.MessageDigest;
@@ -13,7 +13,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
@@ -30,57 +29,48 @@ public class Connector {
 
   private BasicDataSource ds;
   final private static String USER = "User";
-  final private static String CONVERSATION ="Conversation" ;
+  final private static String CONVERSATION = "Conversation";
   final private static String MESSAGE = "Message";
   final private static String HOST_NAME = "ec2-176-34-225-252.eu-west-1.compute.amazonaws.com";
   final private static String DB_NAME = "CodeU_2017DB";
-  /* SQL queries */
+  /* SQL user queries */
   final static private String SQL_SELECT_USERNAMES = String.format("SELECT username FROM %s", USER);
-  final static private String SQL_INSERT_ACCOUNT = String.format("INSERT INTO %s (username, password, salt) VALUES(?,?,?)", USER);
+  final static private String SQL_INSERT_ACCOUNT = String
+      .format("INSERT INTO %s (username, password, salt, Uuid) VALUES(?,?,?,?)", USER);
   final static private String SQL_DROP = String.format("TRUNCATE TABLE %s", USER);
-  final static private String SQL_SELECT_PASSWORD = String.format("SELECT password FROM %s WHERE username = ?", USER);
-  final static private String SQL_UPDATE = String.format("UPDATE %s SET password = ? WHERE username = ?", USER);
-  final static private String SQL_DELETE_USER = String.format("DELETE FROM %s WHERE username = ?", USER);
-  final static private String SQL_SELECT_SALT = String.format("SELECT salt FROM %s WHERE username = ?", USER);
+  final static private String SQL_SELECT_PASSWORD = String
+      .format("SELECT password FROM %s WHERE username = ?", USER);
+  final static private String SQL_UPDATE = String
+      .format("UPDATE %s SET password = ? WHERE username = ?", USER);
+  final static private String SQL_DELETE_USER = String
+      .format("DELETE FROM %s WHERE username = ?", USER);
+  final static private String SQL_SELECT_SALT = String
+      .format("SELECT salt FROM %s WHERE username = ?", USER);
+  /* SQL Conversation Queries */
+
   /* Encryption */
   private static final Random ram = new SecureRandom();
   static final private char[] CHARS = "1234567890-=qwertyuiopasdfghjkl,./nbvcxz".toCharArray();
-  static final char[]  DIGITS = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+  static final char[] DIGITS = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c',
+      'd', 'e', 'f'};
+
   public Connector() {
 
     ds = new BasicDataSource();
     ds.setDriverClassName("com.mysql.jdbc.Driver");
 
-    try (Scanner in = new Scanner(new FileReader("databaseInfo"))) {
-
-      ds.setUrl(String.format("jdbc:mysql:%s//:3306/%s", HOST_NAME, DB_NAME));
+    try (Scanner in = new Scanner(new FileReader("third_party/databaseInfo"))) {
+      ds.setUrl(String.format("jdbc:mysql://%s:3306/%s", HOST_NAME, DB_NAME));
       ds.setUsername(in.next());
       ds.setPassword(in.next());
-
-    }
-    catch (FileNotFoundException e) {
+    } catch (FileNotFoundException e) {
       e.printStackTrace();
     }
   }
 
-  // Conversation
-  boolean addConversation(){
-    return true;
-  }
-  List<Conversation>getAllConversations(){
-    return null;
-  }
-  // Messages
-  List<Message>getAllMessages(Conversation con){
-    return null;
-  }
-  boolean writeMessage(Message message){
-    return true;
-  }
-
   /** Generate salt for new user
    *
-   * @return salt
+   * @return salt  the code assigned to each password
    */
   private String generateSalt() {
 
@@ -102,6 +92,7 @@ public class Connector {
     String formattedPassword = salt + password;
     StringBuilder code = new StringBuilder();
     try {
+
       // Introduce the algorithm
       MessageDigest sha = MessageDigest.getInstance("SHA-256");
       // Mess up the byte converted from formattedPassword
@@ -143,7 +134,6 @@ public class Connector {
       e.printStackTrace();
       return  null;
     }
-
   }
 
   /** AddAccount is to add the new account to the database.
@@ -152,7 +142,7 @@ public class Connector {
    * @param password password of the account made by user
    * @return true if the insertion is successful and complete; false, if the insertion fails
    */
-  public boolean addAccount(String username, String password) {
+  public boolean addAccount(String username, String password, String uuid) {
 
     String salt = generateSalt();
     String codedPassword = encryptPassword(password,salt);
@@ -161,6 +151,7 @@ public class Connector {
         insertAccount.setString(1, username);
         insertAccount.setString(2, codedPassword);
         insertAccount.setString(3, salt);
+        insertAccount.setString(4, uuid);
         insertAccount.executeUpdate();
         return true;
       }

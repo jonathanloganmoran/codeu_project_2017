@@ -23,20 +23,18 @@ public final class DatabaseTest {
   @Test
   public void testAddAndDeleteUser() {
     Connector con = new Connector();
-    String randomUN = UUID.randomUUID().toString();
-    String randomPW = UUID.randomUUID().toString();
-    assertTrue(
-        con.addAccount(randomUN, randomPW, uuidGenerator.make().toString())
-        && con.addAccount(
-            UUID.randomUUID().toString(),UUID.randomUUID().toString(), uuidGenerator.make().toString())
-        && con.addAccount(
-            UUID.randomUUID().toString(), UUID.randomUUID().toString(), uuidGenerator.make().toString())
-        && con.addAccount(
-            UUID.randomUUID().toString(), UUID.randomUUID().toString(), uuidGenerator.make().toString())
-        && con.addAccount(
-            UUID.randomUUID().toString(), UUID.randomUUID().toString(), uuidGenerator.make().toString())
-    );
-
+    String randomUN = UUID.randomUUID().toString().substring(0,6);
+    String randomPW = UUID.randomUUID().toString().substring(0,6);
+    assertTrue(con.addAccount(randomUN, randomPW, uuidGenerator.make().toString()));
+    assertTrue(con.addAccount(randomUN+"1", randomPW, uuidGenerator.make().toString()));
+    assertTrue(con.addAccount(randomUN+"2", randomPW, uuidGenerator.make().toString()));
+    assertTrue(con.addAccount(randomUN+"3", randomPW, uuidGenerator.make().toString()));
+    assertTrue(con.addAccount(randomUN+"4", randomPW, uuidGenerator.make().toString()));
+    assertTrue(con.deleteAccount(randomUN));
+    assertTrue(con.deleteAccount(randomUN+"1"));
+    assertTrue(con.deleteAccount(randomUN+"2"));
+    assertTrue(con.deleteAccount(randomUN+"3"));
+    assertTrue(con.deleteAccount(randomUN+"4"));
   }
 
   @Test
@@ -64,11 +62,6 @@ public final class DatabaseTest {
     assertFalse(con.verifyAccount(randomUN, randomPW));
     assertTrue(con.addAccount(randomUN, randomPW,uuidGenerator.make().toString()));
   }
-  @Test
-  public void testDropAll(){
-    assertTrue(con.dropAllAccounts());
-  }
-
 
   @Test
   public void testGetAllUsers(){

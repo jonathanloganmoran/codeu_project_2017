@@ -306,7 +306,7 @@ public class Connector {
     }
   }
 
-  /** when all has been done with database, call close to end the connection.
+  /** When all has been done with database, call close to end the connection.
    *  can restart by creating a new instance of connector
    */
   public synchronized void closeConnection() {

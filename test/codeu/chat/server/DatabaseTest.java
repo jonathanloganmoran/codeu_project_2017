@@ -2,7 +2,10 @@ package codeu.chat.server;
 
 import static org.junit.Assert.*;
 
+import codeu.chat.common.Uuid;
+import codeu.chat.common.Uuids;
 import database.Connector;
+import java.util.Random;
 import java.util.UUID;
 import org.junit.Test;
 import java.util.Collection;
@@ -13,18 +16,27 @@ import java.util.List;
 //Created to test the implementation of the methods in database.Connector.java
 public final class DatabaseTest {
 
+  private static final database.Connector con = new database.Connector();
+  private static final RandomUuidGenerator uuidGenerator = new RandomUuidGenerator(
+      Uuids.NULL, System.currentTimeMillis());
+
   @Test
   public void testAddAndDeleteUser() {
     Connector con = new Connector();
     String randomUN = UUID.randomUUID().toString();
     String randomPW = UUID.randomUUID().toString();
-    assertTrue(con.addAccount(randomUN, randomPW));
-    assertTrue(con.deleteAccount(randomUN));
-    randomUN = UUID.randomUUID().toString();
-    randomPW = UUID.randomUUID().toString();
-    assertTrue(con.addAccount(randomUN, randomPW));
-    assertTrue(con.deleteAccount(randomUN));
-    con.closeConnection();
+    assertTrue(
+        con.addAccount(randomUN, randomPW, uuidGenerator.make().toString())
+        && con.addAccount(
+            UUID.randomUUID().toString(),UUID.randomUUID().toString(), uuidGenerator.make().toString())
+        && con.addAccount(
+            UUID.randomUUID().toString(), UUID.randomUUID().toString(), uuidGenerator.make().toString())
+        && con.addAccount(
+            UUID.randomUUID().toString(), UUID.randomUUID().toString(), uuidGenerator.make().toString())
+        && con.addAccount(
+            UUID.randomUUID().toString(), UUID.randomUUID().toString(), uuidGenerator.make().toString())
+    );
+
   }
 
   @Test
@@ -32,7 +44,7 @@ public final class DatabaseTest {
     Connector con = new Connector();
     String randomUN = UUID.randomUUID().toString();
     String randomPW = UUID.randomUUID().toString();
-    assertTrue(con.addAccount(randomUN, randomPW));
+    con.addAccount(randomUN, randomPW,uuidGenerator.make().toString());
     assertTrue(con.verifyAccount(randomUN, randomPW));
     assertFalse(con.verifyAccount(randomUN, randomPW + "1"));
     assertFalse(con.verifyAccount(randomUN, randomPW + " "));
@@ -47,11 +59,14 @@ public final class DatabaseTest {
     Connector con = new Connector();
     String randomUN = UUID.randomUUID().toString();
     String randomPW = UUID.randomUUID().toString();
-    assertTrue(con.addAccount(randomUN, randomPW));
-    assertTrue(con.verifyAccountExists(randomUN));
-    assertFalse(con.verifyAccountExists(randomUN+"1"));
+    con.addAccount(randomUN, randomPW,uuidGenerator.make().toString());
     assertTrue(con.deleteAccount(randomUN));
-    con.closeConnection();
+    assertFalse(con.verifyAccount(randomUN, randomPW));
+    assertTrue(con.addAccount(randomUN, randomPW,uuidGenerator.make().toString()));
+  }
+  @Test
+  public void testDropAll(){
+    assertTrue(con.dropAllAccounts());
   }
 
 
@@ -64,7 +79,7 @@ public final class DatabaseTest {
     int iterationsToTest = 2;
     for(int i=0; i<iterationsToTest; i++) {
       addedUserNames.add(randomUN + i);
-      assertTrue(con.addAccount(randomUN + i, randomPW));
+      assertTrue(con.addAccount(randomUN + i, randomPW,uuidGenerator.make().toString()));
     }
     List<String> allUsers = con.getAllUsers();
     assertTrue(allUsers.containsAll(addedUserNames));
@@ -79,7 +94,7 @@ public final class DatabaseTest {
     Connector con = new Connector();
     String randomUN = UUID.randomUUID().toString();
     String randomPW = UUID.randomUUID().toString();
-    assertTrue(con.addAccount(randomUN, randomPW));
+    assertTrue(con.addAccount(randomUN, randomPW,uuidGenerator.make().toString()));
     assertTrue(con.verifyAccount(randomUN, randomPW));
     assertTrue(con.updatePassword(randomUN, randomPW+"1"));
     assertFalse(con.verifyAccount(randomUN, randomPW));

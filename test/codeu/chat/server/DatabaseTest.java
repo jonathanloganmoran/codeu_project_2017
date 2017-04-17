@@ -16,7 +16,6 @@ import java.util.List;
 //Created to test the implementation of the methods in database.Connector.java
 public final class DatabaseTest {
 
-
   private static final database.Connector con = new database.Connector();
   private static final RandomUuidGenerator uuidGenerator = new RandomUuidGenerator(
       Uuids.NULL, System.currentTimeMillis());

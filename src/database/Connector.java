@@ -253,7 +253,7 @@ public class Connector {
           if (resultPassword.next()){
             return true;
           }
-          return true;
+          return false;
         }
       }
     } catch (SQLException e) {

@@ -117,7 +117,7 @@ public class Connector {
    *
    * @return a list of usernames
    */
-  public List<String> getAllUsers() {
+  public synchronized List<String> getAllUsers() {
 
     List<String> userNames = new ArrayList<>();
     try (Connection conn = ds.getConnection()) {
@@ -142,7 +142,7 @@ public class Connector {
    * @param password password of the account made by user
    * @return true if the insertion is successful and complete; false, if the insertion fails
    */
-  public boolean addAccount(String username, String password, String uuid) {
+    public synchronized boolean addAccount(String username, String password, String uuid) {
 
     String salt = generateSalt();
     String codedPassword = encryptPassword(password,salt);
@@ -166,7 +166,7 @@ public class Connector {
    *
    * @return true if the data has been cleaned
    */
-  public boolean dropAllAccounts() {
+  public synchronized boolean dropAllAccounts() {
 
     try (Connection conn = ds.getConnection()) {
       try (PreparedStatement dropAll = conn.prepareStatement(SQL_DROP)) {
@@ -212,7 +212,7 @@ public class Connector {
    * @param password the password that is used to compare to the one in database
    * @return true if the account is verified, else, false, if the account is not valid
    */
-  public boolean verifyAccount(String username, String password) {
+  public synchronized boolean verifyAccount(String username, String password) {
 
     try (Connection conn = ds.getConnection()) {
       try (PreparedStatement selectPassword = conn.prepareStatement(SQL_SELECT_PASSWORD)) {
@@ -222,6 +222,7 @@ public class Connector {
           if (resultPassword.next()) {
             // Get the stored password from database
             String passwordInDB = resultPassword.getString(1);
+
             // Encrypt password:
             String salt = acquireSalt(username);
             String codedPassword = encryptPassword(password,salt);
@@ -230,7 +231,7 @@ public class Connector {
               System.err.println("the password does not match");
               return false;
             }
-            System.out.println("the account exists");
+            //System.out.println("the account exists");
             return true;
           }
         }
@@ -249,7 +250,7 @@ public class Connector {
    * @param username the account name that is being dropped
    * @return false if the deletion fails; true if succeeds
    */
-  public boolean deleteAccount(String username) {
+  public synchronized boolean deleteAccount(String username) {
 
     try (Connection conn = ds.getConnection()) {
       try (PreparedStatement deleteAccount = conn.prepareStatement(SQL_DELETE_USER)) {
@@ -274,8 +275,8 @@ public class Connector {
    * @return true if the update succeeds, else, false;
    */
 
-  public boolean updatePassword(String username, String newPassword) {
 
+  public synchronized boolean updatePassword(String username, String newPassword) {
     try (Connection conn = ds.getConnection()) {
       try (PreparedStatement update = conn.prepareStatement(SQL_UPDATE)) {
         update.setString(1, newPassword);
@@ -293,7 +294,7 @@ public class Connector {
   /** when all has been done with database, call close to end the connection.
    *  can restart by creating a new instance of connector
    */
-  public void closeConnection() {
+  public synchronized void closeConnection() {
     try {
       ds.close();
     }

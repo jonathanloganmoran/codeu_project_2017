@@ -227,10 +227,10 @@ public class Connector {
             String codedPassword = encryptPassword(password,salt);
             // Verify;
             if (!passwordInDB.equals(codedPassword)) {
-              System.err.println("the password does not match");
+              //the password does not match
               return false;
             }
-            System.out.println("the account exists");
+            //"the account exists"
             return true;
           }
         }
@@ -240,7 +240,6 @@ public class Connector {
       e.printStackTrace();
       return false;
     }
-    System.err.println("the account does not exist");
     return false;
   }
 

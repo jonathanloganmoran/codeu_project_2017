@@ -30,7 +30,7 @@ public final class DatabaseTest {
             UUID.randomUUID().toString(), UUID.randomUUID().toString(), uuidGenerator.make().toString())
         && con.addAccount(
             UUID.randomUUID().toString(), UUID.randomUUID().toString(), uuidGenerator.make().toString())
-        );
+    );
 
   }
 
@@ -51,6 +51,10 @@ public final class DatabaseTest {
     assertTrue(con.deleteAccount(randomUN));
     assertFalse(con.verifyAccount(randomUN, randomPW));
     assertTrue(con.addAccount(randomUN, randomPW,uuidGenerator.make().toString()));
+  }
+  @Test
+  public void testDropAll(){
+    assertTrue(con.dropAllAccounts());
   }
 
   /*@Test

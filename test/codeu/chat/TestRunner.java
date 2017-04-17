@@ -17,23 +17,85 @@ package codeu.chat;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
+import java.io.*;
 
 public final class TestRunner {
-  public static void main(String[] args) {
-     final Result result =
-         JUnitCore.runClasses(
-             codeu.chat.common.SecretTest.class,
-             codeu.chat.common.UuidTest.class,
-             codeu.chat.common.UuidsTest.class,
-             codeu.chat.relay.ServerTest.class,
-             codeu.chat.server.BasicControllerTest.class,
-             codeu.chat.server.DatabaseTest.class,
-             codeu.chat.server.RawControllerTest.class,
-             codeu.chat.util.store.StoreTest.class
-         );
-      for (final Failure failure : result.getFailures()) {
-         System.out.println(failure.toString());
+
+  private static boolean loading = true;
+  private static int frameSpeed = 60;
+
+  /**
+   * updated to a different thread as not to interfere
+   * with the loading message animation
+   *
+   * @param msg: the message to be displayed in the loading
+   */
+  public static synchronized void main(String[] args) {
+    Thread th = new Thread() {
+      @Override
+      public void run() {
+        try {
+          loading("Testing In Progress ... ");
+          final Result result =
+              JUnitCore.runClasses(
+                  codeu.chat.common.SecretTest.class,
+                  codeu.chat.common.UuidTest.class,
+                  codeu.chat.common.UuidsTest.class,
+                  codeu.chat.relay.ServerTest.class,
+                  codeu.chat.server.BasicControllerTest.class,
+                  codeu.chat.server.DatabaseTest.class,
+                  codeu.chat.server.RawControllerTest.class,
+                  codeu.chat.util.store.StoreTest.class
+              );
+          loading = false;
+          Thread.sleep(frameSpeed*2);
+          int numFailures = 0;
+          for (final Failure failure : result.getFailures()) {
+            numFailures++;
+          }
+          String results = "\rResult:                     "
+              + (result.wasSuccessful() ? "\n\tPassed\n"
+              : "\n\tFailed " + numFailures + " test(s):\n");
+          System.out.write(results.getBytes());
+          for (final Failure failure : result.getFailures()) {
+            System.out.println("\t\t"+failure.toString());
+          }
+          System.out.println();
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
       }
-      System.out.println(result.wasSuccessful());
-   }
+    };
+    th.start();
+  }
+
+  /**
+   * give the user a loading screen while tests are running
+   * created due to the unpredictability of how long it will
+   * take for the SQL server to respond
+   *
+   * @param msg: the message to be displayed in the loading
+   */
+  private static synchronized void loading(String msg) {
+    Thread th = new Thread() {
+      @Override
+      public void run() {
+        try {
+          System.out.write("\r|".getBytes());
+          int x =0;
+          while(loading) {
+            String anim= "|/-\\";
+            String data = "\r" + msg + anim.charAt(++x % anim.length());
+            System.out.write(data.getBytes());
+            Thread.sleep(frameSpeed);
+          }
+        } catch (IOException e) {
+          e.printStackTrace();
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+      }
+    };
+    th.start();
+  }
 }

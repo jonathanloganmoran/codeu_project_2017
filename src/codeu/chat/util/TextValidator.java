@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 public final class TextValidator {
 
   private static final Pattern validUserNamePattern = Pattern.compile("[a-zA-Z0-9]+");
+  private static final Pattern validPasswordPattern = Pattern.compile("[a-zA-Z0-9]+");
 
   /**
    * @param username – the string to be validated
@@ -18,6 +19,20 @@ public final class TextValidator {
     if (username == null) {
       return false;
     } else if (username.length() != 0 && validUserNamePattern.matcher(username).matches()) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  /**
+   * @param password – the string to be validated
+   * @return – whether or not the string was valid for password type input
+   */
+  public static boolean isValidPassword(String password) {
+    if (password == null) {
+      return false;
+    } else if (password.length() != 0 && validPasswordPattern.matcher(password).matches()) {
       return true;
     } else {
       return false;

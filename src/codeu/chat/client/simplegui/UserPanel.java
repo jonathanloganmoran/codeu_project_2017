@@ -102,7 +102,7 @@ public final class UserPanel extends JPanel {
     listShowPanel.add(userListScrollPane);
     userListScrollPane.setPreferredSize(new Dimension(150, 150));
 
-    // Current User panel
+    // Current User panel.
     final JPanel currentPanel = new JPanel();
     final GridBagConstraints currentPanelC = new GridBagConstraints();
 
@@ -111,7 +111,7 @@ public final class UserPanel extends JPanel {
     currentPanel.add(userInfoScrollPane);
     userInfoScrollPane.setPreferredSize(new Dimension(245, 85));
 
-    // Button bar
+    // Button bar.
     final JPanel buttonPanel = new JPanel();
     final GridBagConstraints buttonPanelC = new GridBagConstraints();
 
@@ -158,7 +158,7 @@ public final class UserPanel extends JPanel {
     this.add(buttonPanel, buttonPanelC);
     this.add(currentPanel, currentPanelC);
 
-    //load existing users from database
+    // Load existing users from database.
     con = new Connector();
     List<String> usersToAdd = con.getAllUsers();
     for(String s : usersToAdd) {
@@ -174,7 +174,7 @@ public final class UserPanel extends JPanel {
       }
     });
 
-    //updated to verify password with database as well
+    // Updated to verify password with database as well.
     userSignInButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -182,6 +182,7 @@ public final class UserPanel extends JPanel {
           final String data = userList.getSelectedValue();
           JTextField username = new JTextField(data);
           JTextField password = new JPasswordField();
+          // Must be an object array, holds both Strings and JTextFields
           Object[] message = {
               "Username:", username,
               "Password:", password
@@ -191,10 +192,10 @@ public final class UserPanel extends JPanel {
               .showConfirmDialog(null, message, "Sign-In", JOptionPane.OK_CANCEL_OPTION,
                   JOptionPane.PLAIN_MESSAGE);
           if (option == JOptionPane.OK_OPTION) {
-            //needs to be valid format
+            // Needs to be valid format.
             if (TextValidator.isValidUserName(username.getText()) && TextValidator
                 .isValidPassword(password.getText())) {
-              //needs to pass through DB to authenticate
+              // Needs to pass through DB to authenticate.
               if (con.verifyAccount(username.getText(), password.getText())) {
                 clientContext.user.signInUser(username.getText());
                 userSignedInLabel.setText("Hello " + username.getText());
@@ -207,7 +208,7 @@ public final class UserPanel extends JPanel {
             } else {
               JOptionPane.showMessageDialog(UserPanel.this,
                   "Not able to sign in. Invalid format of username or password entered.\n"
-                      + "Alphanumeric characters only, with no spaces. Please try again.",
+                      + "Please try again.",
                   "Failure to Authenticate",
                   JOptionPane.ERROR_MESSAGE);
             }
@@ -216,12 +217,13 @@ public final class UserPanel extends JPanel {
       }
     });
 
-    //updated to add to database as well
+    // Updated to add to database as well.
     userAddButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         JTextField username = new JTextField();
         JTextField password = new JPasswordField();
+        // Must be an object array, holds both Strings and JTextFields
         Object[] message = {
             "Username:", username,
             "Password:", password
@@ -233,8 +235,8 @@ public final class UserPanel extends JPanel {
           if (TextValidator.isValidUserName(username.getText()) && TextValidator
               .isValidPassword(password.getText())) {
             if(!con.verifyAccountExists(username.getText())) {
-              con.addAccount(username.getText(), password.getText());
-              clientContext.user.addUser(username.getText());
+              // Account added to program and to database in clientContext.user.
+              clientContext.user.addUser(username.getText(), password.getText());
               UserPanel.this.getAllUsers(listModel);
             } else {
               JOptionPane.showMessageDialog(UserPanel.this,

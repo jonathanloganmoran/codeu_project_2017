@@ -91,19 +91,18 @@ public class Connector {
     String formattedPassword = salt + password;
     StringBuilder code = new StringBuilder();
     try {
-      // Introduce the algorithm
       MessageDigest sha = MessageDigest.getInstance("SHA-256");
-      // Mess up the byte converted from formattedPassword
+      // Mess up the byte converted from formattedPassword.
       byte[] hashedBytes = sha.digest(formattedPassword.getBytes());
 
       for (int i = 0; i < hashedBytes.length; i++) {
-        // Get each byte from input string and
+        // Get each byte from input string.
         byte b = hashedBytes[i];
-        // First half byte is mapped into char c in the hash table
+        // First half byte is mapped into char c in the hash table.
         char c = DIGITS[(b & 0xf0) >> 4];
-        // Add the code to the string
+        // Add the code to the string.
         code.append(c);
-        // Second half is also mapped into hash table and value appends to the code
+        // Second half is also mapped into hash table and value appends to the code.
         code.append(DIGITS[b & 0x0f]);
       }
     }
@@ -214,30 +213,53 @@ public class Connector {
 
     try (Connection conn = ds.getConnection()) {
       try (PreparedStatement selectPassword = conn.prepareStatement(SQL_SELECT_PASSWORD)) {
-        // The account exists, check password
+        // The account exists, check password.
         selectPassword.setString(1, username);
         try (ResultSet resultPassword = selectPassword.executeQuery()) {
           if (resultPassword.next()) {
-            // Get the stored password from database
+            // Get the stored password from database.
             String passwordInDB = resultPassword.getString(1);
-            // Encrypt password:
+            // Encrypt password.
             String salt = acquireSalt(username);
             String codedPassword = encryptPassword(password,salt);
-            // Verify;
+            // Verify.
             if (!passwordInDB.equals(codedPassword)) {
-              //the password does not match
+              // The password does not match.
               return false;
             }
             return true;
           }
         }
       }
-    }
-    catch (SQLException e) {
+    } catch (SQLException e) {
       e.printStackTrace();
       return false;
     }
     return false;
+  }
+
+  /** Verify if the account username is in the database
+   *
+   * @param username the username that is being verified
+   * @return true if the account is valid, if the account is not valid
+   */
+  @SuppressWarnings("unused")
+  public synchronized boolean verifyAccountExists(String username) {
+
+    try (Connection conn = ds.getConnection()) {
+      try (PreparedStatement selectPassword = conn.prepareStatement(SQL_SELECT_PASSWORD)) {
+        selectPassword.setString(1, username);
+        try (ResultSet resultPassword = selectPassword.executeQuery()) {
+          if (resultPassword.next()){
+            return true;
+          }
+          return true;
+        }
+      }
+    } catch (SQLException e) {
+      e.printStackTrace();
+      return false;
+    }
   }
 
   /** Delete the existing account; deletion requires the user to sign in first

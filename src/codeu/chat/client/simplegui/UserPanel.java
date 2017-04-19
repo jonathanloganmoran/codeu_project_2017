@@ -232,17 +232,18 @@ public final class UserPanel extends JPanel {
         if (option == JOptionPane.OK_OPTION) {
           if (TextValidator.isValidUserName(username.getText()) && TextValidator
               .isValidPassword(password.getText())) {
-            if(!con.verifyAccountExists(username.getText())) {
-              con.addAccount(username.getText(), password.getText());
+            if(con.addAccount(username.getText(), password.getText(), dsa){
               clientContext.user.addUser(username.getText());
               UserPanel.this.getAllUsers(listModel);
-            } else {
+            }
+            else {
               JOptionPane.showMessageDialog(UserPanel.this,
                   "User not created. User already exists. Please choose different name.",
                   "User Not Created",
                   JOptionPane.ERROR_MESSAGE);
             }
-          } else {
+          }
+          else {
             JOptionPane.showMessageDialog(UserPanel.this,
                 "User not created. Alphanumeric characters only, with no spaces.\nPlease try again.",
                 "User Not Created",

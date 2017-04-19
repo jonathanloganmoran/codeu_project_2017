@@ -73,10 +73,11 @@ public class Connector {
    */
   private String generateSalt() {
 
-    int index = ram.nextInt(CHARS.length);
+
     char[] arr = new char[8];
     // Generate the salt
     for (int i = 0; i < arr.length; i++) {
+      int index = ram.nextInt(CHARS.length);
       arr[i] = CHARS[index];
     }
     return new String(arr);

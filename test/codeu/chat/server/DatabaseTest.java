@@ -16,14 +16,13 @@ import java.util.List;
 //Created to test the implementation of the methods in database.Connector.java
 public final class DatabaseTest {
 
-  //private static final database.Connector con = new database.Connector();
   private static final database.Connector con = new database.Connector();
   private static final RandomUuidGenerator uuidGenerator = new RandomUuidGenerator(
       Uuids.NULL, System.currentTimeMillis());
 
   @Test
-  public void testAddAndDeleteUser() {
-    Connector con = new Connector();
+  public void testAddUser() {
+
     String randomUN = UUID.randomUUID().toString();
     String randomPW = UUID.randomUUID().toString();
     assertTrue(
@@ -37,13 +36,11 @@ public final class DatabaseTest {
         && con.addAccount(
             UUID.randomUUID().toString(), UUID.randomUUID().toString(), uuidGenerator.make().toString())
     );
-    con.closeConnection();
-
   }
 
   @Test
   public void testAddVerifyAndDeleteUser() {
-    Connector con = new Connector();
+
     String randomUN = UUID.randomUUID().toString();
     String randomPW = UUID.randomUUID().toString();
     con.addAccount(randomUN, randomPW,uuidGenerator.make().toString());
@@ -53,24 +50,22 @@ public final class DatabaseTest {
     assertTrue(con.deleteAccount(randomUN));
     assertFalse(con.verifyAccount(randomUN, randomPW));
     assertFalse(con.verifyAccount(randomUN, randomPW + "1"));
-    con.closeConnection();
   }
 
   @Test
   public void testUserExists() {
-    Connector con = new Connector();
+
     String randomUN = UUID.randomUUID().toString();
     String randomPW = UUID.randomUUID().toString();
     con.addAccount(randomUN, randomPW,uuidGenerator.make().toString());
     assertTrue(con.deleteAccount(randomUN));
     assertFalse(con.verifyAccount(randomUN, randomPW));
     assertTrue(con.addAccount(randomUN, randomPW,uuidGenerator.make().toString()));
-    con.closeConnection();
   }
 
   @Test
   public void testGetAllUsers(){
-    Connector con = new Connector();
+
     String randomUN = UUID.randomUUID().toString();
     String randomPW = UUID.randomUUID().toString();
     List<String> addedUserNames = new LinkedList<>();
@@ -84,12 +79,11 @@ public final class DatabaseTest {
     for(int i=0; i<iterationsToTest; i++) {
       assertTrue(con.deleteAccount(randomUN + i));
     }
-    con.closeConnection();
   }
 
   @Test
   public void testUpdatePassword() {
-    Connector con = new Connector();
+
     String randomUN = UUID.randomUUID().toString();
     String randomPW = UUID.randomUUID().toString();
     assertTrue(con.addAccount(randomUN, randomPW,uuidGenerator.make().toString()));
@@ -98,7 +92,6 @@ public final class DatabaseTest {
     assertFalse(con.verifyAccount(randomUN, randomPW));
     assertTrue(con.verifyAccount(randomUN, randomPW+"1"));
     assertTrue(con.deleteAccount(randomUN));
-    con.closeConnection();
   }
 
   @Test

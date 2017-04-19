@@ -16,7 +16,7 @@ import java.util.List;
 //Created to test the implementation of the methods in database.Connector.java
 public final class DatabaseTest {
 
-
+  //private static final database.Connector con = new database.Connector();
   private static final database.Connector con = new database.Connector();
   private static final RandomUuidGenerator uuidGenerator = new RandomUuidGenerator(
       Uuids.NULL, System.currentTimeMillis());
@@ -37,6 +37,7 @@ public final class DatabaseTest {
         && con.addAccount(
             UUID.randomUUID().toString(), UUID.randomUUID().toString(), uuidGenerator.make().toString())
     );
+    con.closeConnection();
 
   }
 
@@ -64,12 +65,8 @@ public final class DatabaseTest {
     assertTrue(con.deleteAccount(randomUN));
     assertFalse(con.verifyAccount(randomUN, randomPW));
     assertTrue(con.addAccount(randomUN, randomPW,uuidGenerator.make().toString()));
+    con.closeConnection();
   }
-  @Test
-  public void testDropAll(){
-    assertTrue(con.dropAllAccounts());
-  }
-
 
   @Test
   public void testGetAllUsers(){
@@ -101,6 +98,12 @@ public final class DatabaseTest {
     assertFalse(con.verifyAccount(randomUN, randomPW));
     assertTrue(con.verifyAccount(randomUN, randomPW+"1"));
     assertTrue(con.deleteAccount(randomUN));
+    con.closeConnection();
+  }
+
+  @Test
+  public void testDropAll(){
+    assertTrue(con.dropAllAccounts());
     con.closeConnection();
   }
 }

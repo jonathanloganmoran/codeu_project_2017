@@ -263,7 +263,7 @@ public class Connector {
    * @return true if the account is valid, if the account is not valid
    */
   @SuppressWarnings("unused, and not sure if we will need this -> might delete")
-  public synchronized boolean AccountExists(String username) {
+  public synchronized boolean accountExists(String username) {
 
     try (Connection conn = ds.getConnection()) {
       try (PreparedStatement selectPassword = conn.prepareStatement(SQL_SELECT_PASSWORD)) {

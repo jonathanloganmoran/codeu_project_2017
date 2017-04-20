@@ -319,7 +319,7 @@ public class Connector {
 
         try (ResultSet salt = selectSalt.executeQuery()){
           if(salt.next()){
-            assignedSalt = salt.toString();
+            assignedSalt = salt.getString(1);
           }
           else{
             return false;

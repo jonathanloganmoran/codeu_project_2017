@@ -89,24 +89,23 @@ public class Connector {
    * @param salt code assigned to each password
    * @return encoded password
    */
-  private static String encryptPassword(String password, String salt) throws EncryptFailException{
+  public static String encryptPassword(String password, String salt) throws EncryptFailException{
 
     String formattedPassword = salt + password;
     StringBuilder code = new StringBuilder();
     try {
-      // Introduce the algorithm
       MessageDigest sha = MessageDigest.getInstance("SHA-256");
-      // Mess up the byte converted from formattedPassword
+      // Mess up the byte converted from formattedPassword.
       byte[] hashedBytes = sha.digest(formattedPassword.getBytes());
 
       for (int i = 0; i < hashedBytes.length; i++) {
-        // Get each byte from input string and
+        // Get each byte from input string.
         byte b = hashedBytes[i];
-        // First half byte is mapped into char c in the hash table
+        // First half byte is mapped into char c in the hash table.
         char c = DIGITS[(b & 0xf0) >> 4];
-        // Add the code to the string
+        // Add the code to the string.
         code.append(c);
-        // Second half is also mapped into hash table and value appends to the code
+        // Second half is also mapped into hash table and value appends to the code.
         code.append(DIGITS[b & 0x0f]);
       }
       return code.toString();
@@ -194,7 +193,7 @@ public class Connector {
    * @param username username from account
    * @return salt
    */
-  private String acquireSalt(String username) throws UserNotFoundException,SaltCannotRetrieveException {
+  public String acquireSalt(String username) throws UserNotFoundException,SaltCannotRetrieveException {
 
     try (Connection conn = ds.getConnection()) {
       try (PreparedStatement selectSalt = conn.prepareStatement(SQL_SELECT_SALT)) {
@@ -227,11 +226,11 @@ public class Connector {
 
     try (Connection conn = ds.getConnection()) {
       try (PreparedStatement selectPassword = conn.prepareStatement(SQL_SELECT_PASSWORD)) {
-        // The account exists, check password
+        // The account exists, check password.
         selectPassword.setString(1, username);
         try (ResultSet resultPassword = selectPassword.executeQuery()) {
           if (resultPassword.next()) {
-            // Get the stored password from database
+            // Get the stored password from database.
             String passwordInDB = resultPassword.getString(1);
             // Encrypt password:
             try {
@@ -244,24 +243,42 @@ public class Connector {
               }
               return true;
             }
-            catch (UserNotFoundException e){
-              return false;
-            }
-            catch(SaltCannotRetrieveException e){
-              return false;
-            }
-            catch (EncryptFailException e){
-              return false;
-            }
+            catch (UserNotFoundException e){return false;}
+            catch(SaltCannotRetrieveException e){return false;}
+            catch (EncryptFailException e){return false;}
           }
         }
       }
-    }
-    catch (SQLException e) {
+    } catch (SQLException e) {
       e.printStackTrace();
       return false;
     }
     return false;
+  }
+
+
+  /** Verify if the account username is in the database
+   *
+   * @param username the username that is being verified
+   * @return true if the account is valid, if the account is not valid
+   */
+  @SuppressWarnings("unused, and not sure if we will need this -> might delete")
+  public synchronized boolean AccountExists(String username) {
+
+    try (Connection conn = ds.getConnection()) {
+      try (PreparedStatement selectPassword = conn.prepareStatement(SQL_SELECT_PASSWORD)) {
+        selectPassword.setString(1, username);
+        try (ResultSet resultPassword = selectPassword.executeQuery()) {
+          if (resultPassword.next()){
+            return true;
+          }
+          return false;
+        }
+      }
+    } catch (SQLException e) {
+      e.printStackTrace();
+      return false;
+    }
   }
 
   /**
@@ -296,11 +313,30 @@ public class Connector {
   public synchronized boolean updatePassword(String username, String newPassword) {
 
     try (Connection conn = ds.getConnection()) {
+      String assignedSalt = "";
+      try (PreparedStatement selectSalt = conn.prepareStatement(SQL_SELECT_SALT)){
+        selectSalt.setString(1,username);
+
+        try (ResultSet salt = selectSalt.executeQuery()){
+          if(salt.next()){
+            assignedSalt = salt.toString();
+          }
+          else{
+            return false;
+          }
+        }
+      }
       try (PreparedStatement update = conn.prepareStatement(SQL_UPDATE)) {
-        update.setString(1, newPassword);
-        update.setString(2, username);
-        update.executeUpdate();
-        return true;
+        try {
+          String encryptedPassword = encryptPassword(newPassword, assignedSalt);
+          update.setString(1, encryptedPassword);
+          update.setString(2, username);
+          update.executeUpdate();
+          return true;
+        }
+        catch(EncryptFailException e){
+          return false;
+        }
       }
     }
     catch (SQLException e) {
@@ -309,7 +345,7 @@ public class Connector {
     }
   }
 
-  /** when all has been done with database, call close to end the connection.
+  /** When all has been done with database, call close to end the connection.
    *  can restart by creating a new instance of connector
    */
   public synchronized void closeConnection() {

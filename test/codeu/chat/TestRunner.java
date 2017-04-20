@@ -22,7 +22,7 @@ import java.io.*;
 public final class TestRunner {
 
   private static boolean loading = true;
-  private static int frameSpeed = 60;
+  private static int FRAME_SPEED = 60;
 
   /**
    * updated to a different thread as not to interfere
@@ -38,24 +38,28 @@ public final class TestRunner {
           loading("Testing In Progress ... ");
           final Result result =
               JUnitCore.runClasses(
-                  codeu.chat.common.SecretTest.class,
-                  codeu.chat.common.UuidTest.class,
-                  codeu.chat.common.UuidsTest.class,
-                  codeu.chat.relay.ServerTest.class,
-                  codeu.chat.server.BasicControllerTest.class,
-                  codeu.chat.server.DatabaseTest.class,
-                  codeu.chat.server.RawControllerTest.class,
-                  codeu.chat.util.store.StoreTest.class
+                  //codeu.chat.common.SecretTest.class,
+                  //codeu.chat.common.UuidTest.class,
+                  //codeu.chat.common.UuidsTest.class,
+                  //codeu.chat.relay.ServerTest.class,
+                  //codeu.chat.server.BasicControllerTest.class,
+                  codeu.chat.server.DatabaseTest.class//,
+                  //codeu.chat.server.RawControllerTest.class,
+                  //codeu.chat.util.store.StoreTest.class
               );
           loading = false;
-          Thread.sleep(frameSpeed*2);
+          Thread.sleep(FRAME_SPEED*2);
           int numFailures = 0;
           for (final Failure failure : result.getFailures()) {
             numFailures++;
           }
-          String results = "\rResult:                     "
-              + (result.wasSuccessful() ? "\n\tPassed\n"
-              : "\n\tFailed " + numFailures + " test(s):\n");
+          // Print the results of the test.
+          String results = "\rResult:                     ";
+          if(result.wasSuccessful()){
+            results += "\n\tPassed\n";
+          } else {
+            results += "\n\tFailed " + numFailures + " test(s):\n";
+          }
           System.out.write(results.getBytes());
           for (final Failure failure : result.getFailures()) {
             System.out.println("\t\t"+failure.toString());
@@ -70,9 +74,9 @@ public final class TestRunner {
   }
 
   /**
-   * give the user a loading screen while tests are running
+   * Give the user a loading screen while tests are running
    * created due to the unpredictability of how long it will
-   * take for the SQL server to respond
+   * take for the SQL server to respond.
    *
    * @param msg: the message to be displayed in the loading
    */
@@ -87,7 +91,7 @@ public final class TestRunner {
             String anim= "|/-\\";
             String data = "\r" + msg + anim.charAt(++x % anim.length());
             System.out.write(data.getBytes());
-            Thread.sleep(frameSpeed);
+            Thread.sleep(FRAME_SPEED);
           }
         } catch (IOException e) {
           e.printStackTrace();

@@ -67,26 +67,29 @@ public class Connector {
     }
   }
 
-  /** Generate salt for new user
-   *
+  /**
+   * Generate salt for new user
    * @return salt  the code assigned to each password
    */
   private String generateSalt() {
 
-    int index = ram.nextInt(CHARS.length);
+
     char[] arr = new char[8];
     // Generate the salt
     for (int i = 0; i < arr.length; i++) {
+      int index = ram.nextInt(CHARS.length);
       arr[i] = CHARS[index];
     }
     return new String(arr);
   }
 
-  /** Public method that is used to encode the password
-   *
+  /**
+   * Public method that is used to encode the password
    * @param password plain text password
+   * @param salt code assigned to each password
+   * @return encoded password
    */
-  private static String encryptPassword(String password, String salt) {
+  private static String encryptPassword(String password, String salt) throws EncryptFailException{
 
     String formattedPassword = salt + password;
     StringBuilder code = new StringBuilder();
@@ -105,13 +108,15 @@ public class Connector {
         // Second half is also mapped into hash table and value appends to the code.
         code.append(DIGITS[b & 0x0f]);
       }
+      return code.toString();
     }
-    catch (NoSuchAlgorithmException e) {e.printStackTrace(); return null;}
-    return code.toString();
+    catch (NoSuchAlgorithmException e) {
+      throw new EncryptFailException("the password is not encrypted");
+    }
   }
 
-  /** Print all the current usernames
-   *
+  /**
+   * Print all the current usernames
    * @return a list of usernames
    */
   public synchronized List<String> getAllUsers() {
@@ -129,38 +134,44 @@ public class Connector {
     }
     catch (SQLException e) {
       e.printStackTrace();
-      return  null;
+      return null;
     }
   }
 
-  /** AddAccount is to add the new account to the database.
-   * 
+  /**
+   * AddAccount is to add the new account to the database.
    * @param username name of the account that is being added
    * @param password password of the account made by user
+   * @param uuid id assigned to each user
    * @return true if the insertion is successful and complete; false, if the insertion fails
    */
     public synchronized boolean addAccount(String username, String password, String uuid) {
 
     String salt = generateSalt();
-    String codedPassword = encryptPassword(password,salt);
-    try (Connection conn = ds.getConnection()) {
-      try (PreparedStatement insertAccount = conn.prepareStatement(SQL_INSERT_ACCOUNT)) {
-        insertAccount.setString(1, username);
-        insertAccount.setString(2, codedPassword);
-        insertAccount.setString(3, salt);
-        insertAccount.setString(4, uuid);
-        insertAccount.executeUpdate();
-        return true;
+    try {
+      String codedPassword = encryptPassword(password, salt);
+
+      try (Connection conn = ds.getConnection()) {
+        try (PreparedStatement insertAccount = conn.prepareStatement(SQL_INSERT_ACCOUNT)) {
+          insertAccount.setString(1, username);
+          insertAccount.setString(2, codedPassword);
+          insertAccount.setString(3, salt);
+          insertAccount.setString(4, uuid);
+          insertAccount.executeUpdate();
+          return true;
+        }
       }
     }
+    catch (EncryptFailException e){
+      return false;
+    }
     catch (SQLException e) {
-      e.printStackTrace();
       return false;
     }
   }
 
-  /** Clean all the data inside the database
-   *
+  /**
+   * Clean all the data inside the database
    * @return true if the data has been cleaned
    */
   public synchronized boolean dropAllAccounts() {
@@ -177,34 +188,36 @@ public class Connector {
     }
   }
 
-  /** Acquire the existing salt from database
-   *
+  /**
+   * Acquire the existing salt from database
    * @param username username from account
    * @return salt
    */
-  private String acquireSalt(String username) {
+  private String acquireSalt(String username) throws UserNotFoundException,SaltCannotRetrieveException {
 
     try (Connection conn = ds.getConnection()) {
       try (PreparedStatement selectSalt = conn.prepareStatement(SQL_SELECT_SALT)) {
         selectSalt.setString(1, username);
         try (ResultSet resultSalt = selectSalt.executeQuery()) {
           if (resultSalt.next()) {
-            // Get the stored password from database
+            // Get the stored salt from database
             return resultSalt.getString(1);
+          }
+          else{
+            throw new UserNotFoundException("The User is not found");
           }
         }
       }
     }
     catch (SQLException e) {
       e.printStackTrace();
-      return null;
+      throw new SaltCannotRetrieveException("the salt cannot be retrieved");
     }
-    return null;
   }
 
-  /** Verify if the account username and password input by users match what has been recorded in
+  /**
+   * Verify if the account username and password input by users match what has been recorded in
    *  database
-   * 
    * @param username the username that is being verified
    * @param password the password that is used to compare to the one in database
    * @return true if the account is verified, else, false, if the account is not valid
@@ -219,15 +232,20 @@ public class Connector {
           if (resultPassword.next()) {
             // Get the stored password from database.
             String passwordInDB = resultPassword.getString(1);
-            // Encrypt password.
-            String salt = acquireSalt(username);
-            String codedPassword = encryptPassword(password,salt);
-            // Verify.
-            if (!passwordInDB.equals(codedPassword)) {
-              // The password does not match.
-              return false;
+            // Encrypt password:
+            try {
+              String salt = acquireSalt(username);
+              String codedPassword = encryptPassword(password, salt);
+              // Verify;
+              if (!passwordInDB.equals(codedPassword)) {
+                //the password does not match
+                return false;
+              }
+              return true;
             }
-            return true;
+            catch (UserNotFoundException e){return false;}
+            catch(SaltCannotRetrieveException e){return false;}
+            catch (EncryptFailException e){return false;}
           }
         }
       }
@@ -238,13 +256,14 @@ public class Connector {
     return false;
   }
 
+
   /** Verify if the account username is in the database
    *
    * @param username the username that is being verified
    * @return true if the account is valid, if the account is not valid
    */
-  @SuppressWarnings("unused")
-  public synchronized boolean verifyAccountExists(String username) {
+  @SuppressWarnings("unused, and not sure if we will need this -> might delete")
+  public synchronized boolean accountExists(String username) {
 
     try (Connection conn = ds.getConnection()) {
       try (PreparedStatement selectPassword = conn.prepareStatement(SQL_SELECT_PASSWORD)) {
@@ -262,8 +281,8 @@ public class Connector {
     }
   }
 
-  /** Delete the existing account; deletion requires the user to sign in first
-   * 
+  /**
+   * Delete the existing account; deletion requires the user to sign in first
    * @param username the account name that is being dropped
    * @return false if the deletion fails; true if succeeds
    */
@@ -284,20 +303,40 @@ public class Connector {
     }
   }
 
-  /** update the existing account's password we assume that the change of password can only happen
-   *  after the user has logged in
-   * 
+  /**
+   * Update the existing account's password we assume that the change of password can only happen
+   * after the user has logged in
    * @param username the username of account whose password is being updated
    * @param newPassword the new password
    * @return true if the update succeeds, else, false;
    */
   public synchronized boolean updatePassword(String username, String newPassword) {
+
     try (Connection conn = ds.getConnection()) {
+      String assignedSalt = "";
+      try (PreparedStatement selectSalt = conn.prepareStatement(SQL_SELECT_SALT)){
+        selectSalt.setString(1,username);
+
+        try (ResultSet salt = selectSalt.executeQuery()){
+          if(salt.next()){
+            assignedSalt = salt.getString(1);
+          }
+          else{
+            return false;
+          }
+        }
+      }
       try (PreparedStatement update = conn.prepareStatement(SQL_UPDATE)) {
-        update.setString(1, newPassword);
-        update.setString(2, username);
-        update.executeUpdate();
-        return true;
+        try {
+          String encryptedPassword = encryptPassword(newPassword, assignedSalt);
+          update.setString(1, encryptedPassword);
+          update.setString(2, username);
+          update.executeUpdate();
+          return true;
+        }
+        catch(EncryptFailException e){
+          return false;
+        }
       }
     }
     catch (SQLException e) {

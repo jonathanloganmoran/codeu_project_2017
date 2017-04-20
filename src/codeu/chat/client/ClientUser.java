@@ -19,7 +19,6 @@ import codeu.chat.common.Uuid;
 import codeu.chat.util.Logger;
 import codeu.chat.util.TextValidator;
 import codeu.chat.util.store.Store;
-import database.Connector;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -32,7 +31,6 @@ public final class ClientUser {
   private static final Collection<Uuid> EMPTY = Arrays.asList(new Uuid[0]);
   private final Controller controller;
   private final View view;
-  private static Connector con = new Connector();;
 
   private User current = null;
 
@@ -82,23 +80,6 @@ public final class ClientUser {
     printUser(current);
   }
 
-  // addUser with 2 string parameters adds to database as well
-  public void addUser(String name, String password) {
-    final boolean validInputs = isValidName(name);
-
-    final User user = (validInputs) ? controller.newUser(name) : null;
-
-    if (user == null) {
-      System.out.format("Error: user not created - %s.\n",
-          (validInputs) ? "server failure" : "bad input value");
-    } else {
-      con.addAccount(user.name, password, user.id.toString());
-      LOG.info("New user complete, Name= \"%s\" UUID=%s", user.name, user.id);
-      updateUsers();
-    }
-  }
-
-  // addUser with 1 string parameter only adds to program
   public void addUser(String name) {
     final boolean validInputs = isValidName(name);
 
@@ -108,6 +89,7 @@ public final class ClientUser {
       System.out.format("Error: user not created - %s.\n",
           (validInputs) ? "server failure" : "bad input value");
     } else {
+
       LOG.info("New user complete, Name= \"%s\" UUID=%s", user.name, user.id);
       updateUsers();
     }

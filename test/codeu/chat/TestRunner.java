@@ -30,7 +30,7 @@ public final class TestRunner {
    *
    * @param msg: the message to be displayed in the loading
    */
-  public static synchronized void main(String[] args) {
+  public static synchronized void main(String[] msg) {
     Thread th = new Thread() {
       @Override
       public void run() {

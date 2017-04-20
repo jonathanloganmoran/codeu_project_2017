@@ -7,11 +7,6 @@ hs_err_pid*
 # Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
 
 # User-specific stuff:
-.idea/*
-.idea/vcs.xml
-.idea/codeu_project_2017.iml
-.idea/misc.xml
-.idea/modules.xml
 .idea/**/workspace.xml
 .idea/**/tasks.xml
 .idea/dictionaries

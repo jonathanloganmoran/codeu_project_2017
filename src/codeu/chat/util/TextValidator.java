@@ -4,7 +4,7 @@ import java.util.regex.Pattern;
 
 /**
  * Class used to determine whether or not certain inputs are valid for different fields throughout
- * the program.
+ * the program
  */
 public final class TextValidator {
 

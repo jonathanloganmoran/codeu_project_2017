@@ -89,7 +89,7 @@ public class Connector {
    * @param salt code assigned to each password
    * @return encoded password
    */
-  public static String encryptPassword(String password, String salt) throws EncryptFailException{
+  private static String encryptPassword(String password, String salt) throws EncryptFailException{
 
     String formattedPassword = salt + password;
     StringBuilder code = new StringBuilder();
@@ -193,7 +193,7 @@ public class Connector {
    * @param username username from account
    * @return salt
    */
-  public String acquireSalt(String username) throws UserNotFoundException,SaltCannotRetrieveException {
+  private String acquireSalt(String username) throws UserNotFoundException,SaltCannotRetrieveException {
 
     try (Connection conn = ds.getConnection()) {
       try (PreparedStatement selectSalt = conn.prepareStatement(SQL_SELECT_SALT)) {

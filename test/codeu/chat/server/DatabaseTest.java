@@ -20,7 +20,6 @@ public final class DatabaseTest {
   private static final RandomUuidGenerator uuidGenerator = new RandomUuidGenerator(
       Uuids.NULL, System.currentTimeMillis());
 
-  /*
     @Test
     public void testAddAndDeleteUser() {
       Connector con = new Connector();
@@ -80,47 +79,32 @@ public final class DatabaseTest {
         assertTrue(con.deleteAccount(randomUN + i));
       }
     }
-  */
+
   @Test
   public void testUpdatePassword() {
-    assertTrue(con.dropAllAccounts());
     String password = "hello";
     String username = "shuaill";
     String uuid = "12345";
     assertTrue(con.addAccount(username, password, uuid));
     assertTrue(con.verifyAccount(username, password));
 
-/*
-    assertTrue(con.updatePassword("shuai", "hello1"));
-    try {
-      String salt = con.acquireSalt("shuai");
-      System.out.println("the salt is "+ salt);
-      String encrypted = con.encryptPassword("hello1", salt);
-      System.out.println("the udpated password is:" + encrypted);
-    } catch (Exception e) {
-      e.fillInStackTrace();
-    }
-    assertTrue(con.verifyAccount("shuai", "hello1"));
+    assertTrue(con.updatePassword(username, password+1));
+    assertTrue(con.verifyAccount(username, password+1));
 
-    /*assertTrue(con.dropAllAccounts());
     String randomUN = UUID.randomUUID().toString();
     String randomPW = UUID.randomUUID().toString();
     assertTrue(con.addAccount(randomUN, randomPW,uuidGenerator.make().toString()));
     assertTrue(con.verifyAccount(randomUN, randomPW));
     assertTrue(con.updatePassword(randomUN, randomPW+"1"));
     assertFalse(con.verifyAccount(randomUN, randomPW));
-
-    //failed test
     assertTrue(con.verifyAccount(randomUN, randomPW+"1"));
+    assertTrue(con.deleteAccount(randomUN));
 
-    //assertTrue(con.deleteAccount(randomUN));
-    */
   }
 
-  /*@Test
+  @Test
   public void testDropAll(){
     assertTrue(con.dropAllAccounts());
     con.closeConnection();
   }
-*/
 }

@@ -8,9 +8,7 @@ import java.util.List;
 import jdk.internal.cmm.SystemResourcePressureImpl;
 import org.junit.Test;
 import static org.junit.Assert.*;
-
 import static org.junit.Assert.assertEquals;
-
 public class TestConnector {
   Connector conn = new Connector();
 

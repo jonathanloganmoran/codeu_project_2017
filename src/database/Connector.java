@@ -63,12 +63,11 @@ public class Connector {
 
   /* Encryption */
   private static final Random ram = new SecureRandom();
-  static final private char[] CHARS = "1234567890-=qwertyuiopasdfghjkl,./nbvcxz".toCharArray();
+  static final private char[] CHARS = "1234567890abcdefghijklmnopqrstuvwxyz-=1,./;'[]".toCharArray();
   static final char[] DIGITS = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c',
       'd', 'e', 'f'};
 
   public Connector() {
-
     ds = new BasicDataSource();
     ds.setDriverClassName("com.mysql.jdbc.Driver");
     try (Scanner in = new Scanner(new FileReader("third_party/databaseInfo"))) {
@@ -362,8 +361,7 @@ public class Connector {
     }
     return false;
   }
-
-
+  
   /** Verify if the account username is in the database
    *
    * @param username the username that is being verified

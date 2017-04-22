@@ -1,3 +1,5 @@
+package codeu.chat.util.store;
+
 // Copyright 2017 Google Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,21 +13,20 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+public interface StoreAccessor<KEY,VALUE> {
 
-package codeu.chat.util.store;
 
-public interface StoreAccessor<KEY, VALUE> {
+    VALUE first(KEY key);
 
-  VALUE first(KEY key);
+    Iterable<VALUE> all();
 
-  Iterable<VALUE> all();
+    Iterable<VALUE> at(KEY key);
 
-  Iterable<VALUE> at(KEY key);
+    Iterable<VALUE> after(KEY start);
 
-  Iterable<VALUE> after(KEY start);
+    Iterable<VALUE> before(KEY end);
 
-  Iterable<VALUE> before(KEY end);
+    Iterable<VALUE> range(KEY start, KEY end);
 
-  Iterable<VALUE> range(KEY start, KEY end);
+  }
 
-}

@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.Timestamp;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -26,38 +27,49 @@ import org.apache.commons.dbcp2.BasicDataSource;
 
 public class Connector {
 
+  /* Database */
   private BasicDataSource ds;
-  final private static String USER = "User";
-  final private static String CONVERSATION = "Conversation";
-  final private static String MESSAGE = "Message";
-  final private static String HOST_NAME = "ec2-176-34-225-252.eu-west-1.compute.amazonaws.com";
-  final private static String DB_NAME = "CodeU_2017DB";
-  /* SQL user queries */
-  final static private String SQL_SELECT_USERNAMES = String.format("SELECT username FROM %s", USER);
-  final static private String SQL_INSERT_ACCOUNT = String
+  private static final String USER = "User";
+  private static final String CONVERSATION = "Conversation";
+  private static final String MESSAGE = "Message";
+  private static final String HOST_NAME = "ec2-176-34-225-252.eu-west-1.compute.amazonaws.com";
+  private static final String DB_NAME = "CodeU_2017DB";
+
+  /* SQL User Queries */
+  private static final String SQL_SELECT_USERNAMES = String.format("SELECT username FROM %s", USER);
+  private static final String SQL_INSERT_ACCOUNT = String
       .format("INSERT INTO %s (username, password, salt, Uuid) VALUES(?,?,?,?)", USER);
-  final static private String SQL_DROP = String.format("TRUNCATE TABLE %s", USER);
+  private static final String SQL_DROP = String.format("TRUNCATE TABLE %s", USER);
   final static private String SQL_SELECT_PASSWORD = String
       .format("SELECT password FROM %s WHERE username = ?", USER);
-  final static private String SQL_UPDATE = String
+  private static final String SQL_UPDATE = String
       .format("UPDATE %s SET password = ? WHERE username = ?", USER);
-  final static private String SQL_DELETE_USER = String
+  private static final String SQL_DELETE_USER = String
       .format("DELETE FROM %s WHERE username = ?", USER);
-  final static private String SQL_SELECT_SALT = String
+  private static final String SQL_SELECT_SALT = String
       .format("SELECT salt FROM %s WHERE username = ?", USER);
+
   /* SQL Conversation Queries */
+  private static final String SQL_INSERT_CONVERSATON = String
+      .format("INSERT INTO %s (Uuid, id_user, title) VALUES(?,?,?)", CONVERSATION);
+  private static final String SQL_SELECT_CONVERSATION = String.format(
+      "SELECT * FROM %s ORDER BY creation_time ASC", CONVERSATION);
+
+  /* SQL Message Queries */
+  private static final String SQL_INSERT_MESSAGE = String
+      .format("INSERT INTO %s (Uuid, content, id_user, id_conversation) VALUES(?,?,?,?)", MESSAGE);
+  private static final String SQL_SELECT_MESSAGES = String.format(
+      "SELECT * FROM %s WHERE id_conversation = ? ORDER BY creation_time ASC", MESSAGE);
 
   /* Encryption */
   private static final Random ram = new SecureRandom();
-  static final private char[] CHARS = "1234567890-=qwertyuiopasdfghjkl,./nbvcxz".toCharArray();
+  static final private char[] CHARS = "1234567890abcdefghijklmnopqrstuvwxyz-=1,./;'[]".toCharArray();
   static final char[] DIGITS = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c',
       'd', 'e', 'f'};
 
   public Connector() {
-
     ds = new BasicDataSource();
     ds.setDriverClassName("com.mysql.jdbc.Driver");
-
     try (Scanner in = new Scanner(new FileReader("third_party/databaseInfo"))) {
       ds.setUrl(String.format("jdbc:mysql://%s:3306/%s", HOST_NAME, DB_NAME));
       ds.setUsername(in.next());
@@ -68,11 +80,105 @@ public class Connector {
   }
 
   /**
+   * Add conversation into the table in database
+   * @param uuid id of the conversation
+   * @param userid user who owns the conversation
+   * @param title the name of the conversation, unique
+   * @return true if the conversation is added to the table
+   */
+  public synchronized boolean addConversation(String uuid, String userid, String title){
+
+    try(Connection conn = ds.getConnection()) {
+      try(PreparedStatement addConversation = conn.prepareStatement(SQL_INSERT_CONVERSATON)){
+        addConversation.setString(1,uuid);
+        addConversation.setString(2,userid);
+        addConversation.setString(3,title);
+        addConversation.executeUpdate();
+        return true;
+      }
+    }
+    catch (SQLException e) {
+      return false;
+    }
+  }
+
+  /**
+   * Insert message into the given conversation table
+   * @param uuid id of message
+   * @param user_id user who writes the message
+   * @param conversation_id the conversation where the message resides
+   * @param content the content of the message
+   * @return true if the message is added
+   */
+  public synchronized boolean addMessage(String uuid, String user_id, String conversation_id, String content){
+
+    try(Connection conn = ds.getConnection()) {
+      try(PreparedStatement addMessage = conn.prepareStatement(SQL_INSERT_MESSAGE)){
+        addMessage.setString(1,uuid);
+        addMessage.setString(2,content);
+        addMessage.setString(3,user_id);
+        addMessage.setString(4,conversation_id);
+        addMessage.executeUpdate();
+        return true;
+      }
+    }
+    catch (SQLException e) {
+      e.printStackTrace();
+      return false;
+    }
+  }
+
+  /**
+   * Acquire all the conversations ordered by creation time from database
+   * @return List<String> a list of conversations
+   */
+  public synchronized List<String> getConversations(){
+    List<String> conversationList = new ArrayList<>();
+    try(Connection conn = ds.getConnection()) {
+      try (PreparedStatement getConversation = conn.prepareStatement(SQL_SELECT_CONVERSATION)) {
+        ResultSet conversation = getConversation.executeQuery();
+        while(conversation.next()){
+          conversationList.add(conversation.getString("title"));
+        }
+      }
+    }
+    catch (SQLException e) {
+      e.printStackTrace();
+    }
+    finally {
+      return conversationList;
+    }
+  }
+
+  /**
+   * Acquire all the messages ordered by cretaion time in the conversation , given conversation id
+   * @param conversation_id
+   * @return List<String> a list of messages
+   */
+  public synchronized List<String> getMessages(String conversation_id){
+    List<String> messageList = new ArrayList<>();
+    try(Connection conn = ds.getConnection()) {
+      try (PreparedStatement getMessage = conn.prepareStatement(SQL_SELECT_MESSAGES)) {
+        getMessage.setString(1,conversation_id);
+        ResultSet messages = getMessage.executeQuery();
+        while(messages.next()){
+          messageList.add(messages.getString("content"));
+        }
+      }
+    }
+    catch (SQLException e) {
+        e.printStackTrace();
+      }
+    finally {
+      return messageList;
+    }
+  }
+
+  /**
    * Generate salt for new user
    * @return salt  the code assigned to each password
    */
   private String generateSalt() {
-
 
     char[] arr = new char[8];
     // Generate the salt
@@ -255,8 +361,7 @@ public class Connector {
     }
     return false;
   }
-
-
+  
   /** Verify if the account username is in the database
    *
    * @param username the username that is being verified
@@ -345,8 +450,9 @@ public class Connector {
     }
   }
 
-  /** When all has been done with database, call close to end the connection.
-   *  can restart by creating a new instance of connector
+  /**
+   * When all has been done with database, call close to end the connection.
+   * can restart by creating a new instance of connector
    */
   public synchronized void closeConnection() {
     try {

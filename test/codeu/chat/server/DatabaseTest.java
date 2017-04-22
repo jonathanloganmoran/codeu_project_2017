@@ -1,7 +1,6 @@
 package codeu.chat.server;
 
 import static org.junit.Assert.*;
-
 import codeu.chat.common.Uuid;
 import codeu.chat.common.Uuids;
 import database.Connector;
@@ -30,7 +29,6 @@ public final class DatabaseTest {
       assertFalse(con.addAccount("user1","das","12345"));
 
       String randomUN = UUID.randomUUID().toString().substring(0,6);
-
       String randomPW = UUID.randomUUID().toString().substring(0,6);
       assertTrue(con.addAccount(randomUN, randomPW, uuidGenerator.make().toString()));
       assertTrue(con.addAccount(randomUN+"1", randomPW, uuidGenerator.make().toString()));
@@ -44,7 +42,7 @@ public final class DatabaseTest {
       assertTrue(con.deleteAccount(randomUN+"3"));
       assertTrue(con.deleteAccount(randomUN+"4"));
     }
-/*
+    /*
     @Test
     public void testDropAll(){
       assertTrue(con.dropAllAccounts());
@@ -101,10 +99,8 @@ public final class DatabaseTest {
       String uuid = "12346";
       assertTrue(con.addAccount(username, password, uuid));
       assertTrue(con.verifyAccount(username, password));
-
       assertTrue(con.updatePassword(username, password+1));
       assertTrue(con.verifyAccount(username, password+1));
-
       String randomUN = UUID.randomUUID().toString();
       String randomPW = UUID.randomUUID().toString();
       assertTrue(con.addAccount(randomUN, randomPW,uuidGenerator.make().toString()));
@@ -113,7 +109,6 @@ public final class DatabaseTest {
       assertFalse(con.verifyAccount(randomUN, randomPW));
       assertTrue(con.verifyAccount(randomUN, randomPW+"1"));
       assertTrue(con.deleteAccount(randomUN));
-
     }
 
     /*@Test

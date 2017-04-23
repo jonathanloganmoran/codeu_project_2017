@@ -158,7 +158,6 @@ public class Connector {
         }
         return conversationList;
       }
-
     }
     catch (SQLException e) {
       return conversationList;

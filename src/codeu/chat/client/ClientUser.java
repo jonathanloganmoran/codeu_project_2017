@@ -17,6 +17,7 @@ package codeu.chat.client;
 import codeu.chat.common.User;
 import codeu.chat.common.Uuid;
 import codeu.chat.util.Logger;
+import database.Connector;
 import codeu.chat.util.TextValidator;
 import codeu.chat.util.store.Store;
 import java.util.Arrays;
@@ -35,6 +36,7 @@ public final class ClientUser {
   private User current = null;
 
   private final Map<Uuid, User> usersById = new HashMap<>();
+  private static final database.Connector con = new database.Connector();
 
   // This is the set of users known to the server, sorted by name.
   private Store<String, User> usersByName = new Store<>(String.CASE_INSENSITIVE_ORDER);
@@ -80,6 +82,22 @@ public final class ClientUser {
     printUser(current);
   }
 
+  public void addUser(String name, String password) {
+    final boolean validInputs = isValidName(name);
+
+    final User user = (validInputs) ? controller.newUser(name) : null;
+
+
+    if (user == null) {
+      System.out.format("Error: user not created - %s.\n",
+          (validInputs) ? "server failure" : "bad input value");
+    } else {
+      con.addAccount(user.name, password, user.id.toString());
+      LOG.info("New user complete, Name= \"%s\" UUID=%s", user.name, user.id);
+      updateUsers();
+    }
+  }
+
   public void addUser(String name) {
     final boolean validInputs = isValidName(name);
 
@@ -89,11 +107,11 @@ public final class ClientUser {
       System.out.format("Error: user not created - %s.\n",
           (validInputs) ? "server failure" : "bad input value");
     } else {
-
       LOG.info("New user complete, Name= \"%s\" UUID=%s", user.name, user.id);
       updateUsers();
     }
   }
+
 
   public void showAllUsers() {
     updateUsers();

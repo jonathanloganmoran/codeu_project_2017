@@ -236,7 +236,7 @@ public final class UserPanel extends JPanel {
               .isValidPassword(password.getText())) {
             if(!con.accountExists(username.getText())) {
               // Account added to program and to database in clientContext.user.
-              clientContext.user.addUser(username.getText());
+              clientContext.user.addUser(username.getText(), password.getText());
               UserPanel.this.getAllUsers(listModel);
             } else {
               JOptionPane.showMessageDialog(UserPanel.this,

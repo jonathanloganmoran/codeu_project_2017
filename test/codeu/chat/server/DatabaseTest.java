@@ -21,12 +21,17 @@ public final class DatabaseTest {
 
     @Test
     public void testAddAndDeleteUser() {
-      assertTrue(con.addAccount("user1", "haha", "1234"));
-      assertTrue(con.addAccount("user3", "haha2", "1236"));
-      assertTrue(con.addAccount("user4", "haha3", "1237"));
-      assertTrue(con.addAccount("user5", "haha4", "1238"));
-      assertTrue(con.addAccount("user6", "haha5", "1239"));
-      assertFalse(con.addAccount("user1","das","12345"));
+
+      int iterationsToTest = 6;
+      for(int i=0; i<iterationsToTest; i++) {
+        assertTrue(con.addAccount("user"+i, "password", "12343431"+i));
+      }
+
+      assertFalse(con.addAccount(("user"+(iterationsToTest-1)), "password", "12343431"+(iterationsToTest-1)));
+
+      for(int i=0; i<iterationsToTest; i++) {
+        assertTrue(con.deleteAccount("user"+i));
+      }
 
       String randomUN = UUID.randomUUID().toString().substring(0,6);
       String randomPW = UUID.randomUUID().toString().substring(0,6);
@@ -65,7 +70,6 @@ public final class DatabaseTest {
 
     @Test
     public void testUserExists() {
-
       String randomUN = UUID.randomUUID().toString();
       String randomPW = UUID.randomUUID().toString();
       con.addAccount(randomUN, randomPW,uuidGenerator.make().toString());
@@ -76,7 +80,6 @@ public final class DatabaseTest {
 
     @Test
     public void testGetAllUsers(){
-
       String randomUN = UUID.randomUUID().toString();
       String randomPW = UUID.randomUUID().toString();
       List<String> addedUserNames = new LinkedList<>();
@@ -94,8 +97,8 @@ public final class DatabaseTest {
 
     @Test
     public void testUpdatePassword() {
-      String password = "hello";
-      String username = "shuaill";
+      String password = "password";
+      String username = "BEYonce";
       String uuid = "12346";
       assertTrue(con.addAccount(username, password, uuid));
       assertTrue(con.verifyAccount(username, password));
@@ -109,6 +112,7 @@ public final class DatabaseTest {
       assertFalse(con.verifyAccount(randomUN, randomPW));
       assertTrue(con.verifyAccount(randomUN, randomPW+"1"));
       assertTrue(con.deleteAccount(randomUN));
+      assertTrue(con.deleteAccount(username));
     }
 
     /*@Test

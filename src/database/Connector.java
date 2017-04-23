@@ -81,18 +81,34 @@ public class Connector {
   }
 
   /**
+   * For testing the time
+   */
+  public void time() {
+    try(Connection conn = ds.getConnection()){
+      PreparedStatement time = conn.prepareStatement(
+          "SELECT creation_time FROM Message");
+      ResultSet result = time.executeQuery();
+      while(result.next()){
+        System.out.println(result.getTimestamp("creation_time").getTime());
+      }
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+  }
+
+  /**
    * Add conversation into the table in database
    * @param uuid id of the conversation
-   * @param userid user who owns the conversation
+   * @param user_id user who owns the conversation
    * @param title the name of the conversation, unique
    * @return true if the conversation is added to the table
    */
-  public synchronized boolean addConversation(String uuid, String userid, String title){
+  public synchronized boolean addConversation(String uuid, String user_id, String title){
 
     try(Connection conn = ds.getConnection()) {
       try(PreparedStatement addConversation = conn.prepareStatement(SQL_INSERT_CONVERSATON)){
         addConversation.setString(1,uuid);
-        addConversation.setString(2,userid);
+        addConversation.setString(2,user_id);
         addConversation.setString(3,title);
         addConversation.executeUpdate();
         return true;
@@ -141,12 +157,11 @@ public class Connector {
         while(conversation.next()){
           conversationList.add(conversation.getString("title"));
         }
+        return conversationList;
       }
+
     }
     catch (SQLException e) {
-      e.printStackTrace();
-    }
-    finally {
       return conversationList;
     }
   }
@@ -165,14 +180,12 @@ public class Connector {
         while(messages.next()){
           messageList.add(messages.getString("content"));
         }
+        return messageList;
       }
     }
     catch (SQLException e) {
-        e.printStackTrace();
+        return messageList;
       }
-    finally {
-      return messageList;
-    }
   }
 
   /**

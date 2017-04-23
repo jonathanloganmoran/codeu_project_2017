@@ -4,9 +4,7 @@ package database.junitTest;
  * Created by shuai9532 on 4/21/17.
  */
 import database.Connector;
-import database.ConversationDuplicateException;
 import java.util.List;
-import jdk.internal.cmm.SystemResourcePressureImpl;
 import org.junit.Test;
 import static org.junit.Assert.*;
 

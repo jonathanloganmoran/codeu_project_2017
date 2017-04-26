@@ -1,3 +1,10 @@
+
+/**
+ * This history will not be changed very much unless there is a attribute change
+ * for example, add new tables, or add new columns; otherwise, this page remains
+ * the same
+ */
+
 4.14
 ALTER TABLE `CodeU_2017DB`.`User` 
 ADD COLUMN `salt` VARCHAR(45) NOT NULL AFTER `password`;
@@ -54,4 +61,4 @@ DROP FOREIGN KEY `Message_ibfk_2`,
 DROP FOREIGN KEY `Message_ibfk_1`
 
 ALTER TABLE `CodeU_2017DB`.`Conversation`
-DROP FOREIGN KEY `Conversation_ibfk_1`
+DROP FOREIGN KEY `Conversation_ibfk_1`;

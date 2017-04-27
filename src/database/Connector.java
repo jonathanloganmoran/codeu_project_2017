@@ -26,6 +26,13 @@ import sun.jvm.hotspot.debugger.win32.coff.COMDATSelectionTypes;
  * the databased hosted on a remote machine.
  */
 
+/**
+ * The conversation will remain, even though the creator has deleted the account;
+ * same as the messages sent by the user.
+ * In order to have different time for different messages for the same user, it will
+ * be safe to store message every time when user inputs a message
+ */
+
 public class Connector {
 
   /* Database */
@@ -89,7 +96,7 @@ public class Connector {
   }
 
   /**
-   * For testing the time
+   * For testing the time, trying to sort the time and conversation.
    */
   public void time() {
     try (Connection conn = dataSource.getConnection()) {
@@ -480,7 +487,7 @@ public class Connector {
   public synchronized boolean deleteAccount(String username) {
 
     try (Connection conn = dataSource.getConnection()) {
-      String user_id = "";
+      /*String user_id = "";
       try(PreparedStatement getUserId = conn.prepareStatement(SQL_SELECT_ID)){
         getUserId.setString(1,username);
         ResultSet id = getUserId.executeQuery();
@@ -494,7 +501,7 @@ public class Connector {
       // that means in the table of conversation and messages, the there is either has/no messge/con
       if(!(deleteMessage(user_id) && deleteConversation(user_id)))
         return false;
-
+      */
       try (PreparedStatement deleteAccount = conn.prepareStatement(SQL_DELETE_USER)) {
         deleteAccount.setString(1, username);
         if(deleteAccount.executeUpdate() > 0)

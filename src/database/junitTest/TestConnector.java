@@ -4,6 +4,7 @@ package database.junitTest;
  */
 import database.Connector;
 import java.util.List;
+import javax.print.DocFlavor.STRING;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
@@ -19,10 +20,17 @@ import static org.junit.Assert.assertEquals;
  */
 
 
-
 public class TestConnector {
   Connector conn = new Connector();
-
+  private static final String UUID_USER = "987654321";
+  private static final String PASSWORD = "0986283158712";
+  private static final String USERNAME = "shuaih";
+  private static final String UUID_MESSAGE_ONE = "3012937";
+  private static final String MESSAGE_ONE = "this is the first message";
+  private static final String UUID_MESSAGE_TWO = "301293734";
+  private static final String MESSAGE_TWO = "this is the second message";
+  private static final String UUID_CONVERSATION_ONE = "31203810";
+  private static final String CONVERSATION_TITLE = "the first conve";
 
   @Test
   public void test(){
@@ -41,11 +49,20 @@ public class TestConnector {
     assertTrue(conn.deleteAccount("shuai"));
     assertFalse(conn.deleteAccount("none"));
     assertFalse(conn.verifyAccount("shuai","newpass"));
+    assertTrue(conn.getConversations().get(0).equals(CONVERSATION_TITLE));
   }
 
   @Test
-  public void testAddConversation(){
-    assertFalse(conn.addConversation("235","1234","conversation2"));
+  public void secondTest(){
+    assertTrue(conn.addAccount(USERNAME,PASSWORD,UUID_USER));
+    assertTrue(conn.addConversation(UUID_CONVERSATION_ONE,UUID_USER, CONVERSATION_TITLE));
+    assertTrue(conn.addMessage(UUID_MESSAGE_ONE, UUID_USER, UUID_CONVERSATION_ONE, MESSAGE_ONE));
+    assertTrue(conn.addMessage(UUID_MESSAGE_TWO, UUID_USER, UUID_CONVERSATION_ONE, MESSAGE_TWO));
+    assertTrue(conn.getMessages(UUID_CONVERSATION_ONE).get(0).equals(MESSAGE_ONE));
+    assertTrue(conn.getMessages(UUID_CONVERSATION_ONE).get(1).equals(MESSAGE_TWO));
+    assertTrue(conn.updatePassword(USERNAME, "1"));
+    assertFalse(conn.verifyAccount(USERNAME, PASSWORD));
+    assertTrue(conn.verifyAccount(USERNAME, "1"));
   }
 
   @Test

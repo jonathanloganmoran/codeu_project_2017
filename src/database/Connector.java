@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.dbcp2.BasicDataSource;
 
 /**
@@ -82,6 +84,9 @@ public class Connector {
   private static final char[] DIGITS = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c',
       'd', 'e', 'f'};
 
+  /* Log*/
+  private static final Logger LOGGER = Logger.getLogger( Connector.class.getName() );
+
   public Connector() {
     dataSource = new BasicDataSource();
     dataSource.setDriverClassName("com.mysql.jdbc.Driver");
@@ -89,8 +94,9 @@ public class Connector {
       dataSource.setUrl(String.format("jdbc:mysql://%s:3306/%s", HOST_NAME, DB_NAME));
       dataSource.setUsername(in.next());
       dataSource.setPassword(in.next());
-    } catch (FileNotFoundException e) {
-      e.printStackTrace();
+    }
+    catch (FileNotFoundException e) {
+      LOGGER.log( Level.SEVERE, "the file that contains account of datavase does not exist");
     }
   }
 
@@ -107,7 +113,7 @@ public class Connector {
       }
     }
     catch (SQLException e) {
-      e.printStackTrace();
+      LOGGER.log( Level.FINE, "error occurred when converting the time");
     }
   }
 
@@ -130,6 +136,7 @@ public class Connector {
       }
     }
     catch (SQLException e) {
+      LOGGER.log( Level.WARNING, "you might have stored a conversation with the same name");
       return false;
     }
   }
@@ -155,7 +162,7 @@ public class Connector {
       }
     }
     catch (SQLException e) {
-      e.printStackTrace();
+      LOGGER.log( Level.FINE, "something wrong with the connection");
       return false;
     }
   }
@@ -185,9 +192,11 @@ public class Connector {
       }
     }
     catch (EncryptFailException e){
+      LOGGER.log( Level.SEVERE, "the encryption for the password fails" );
       return false;
     }
     catch (SQLException e) {
+      LOGGER.log( Level.FINE, "SQL exception is caught");
       return false;
     }
   }
@@ -251,9 +260,8 @@ public class Connector {
         }
       }
     }
-    catch (SQLException e) {
-      e.printStackTrace();
-      return null;
+    catch (SQLException e){
+      return userNames;
     }
   }
 
@@ -404,18 +412,26 @@ public class Connector {
               // Verify;
               if (!passwordInDB.equals(codedPassword)) {
                 //the password does not match
+                LOGGER.log( Level.SEVERE, "the password does not match" );
                 return false;
               }
               return true;
             }
-            catch (UserNotFoundException e) {return false;}
-            catch (SaltCannotRetrieveException e) {return false;}
-            catch (EncryptFailException e) {return false;}
+            catch (UserNotFoundException e) {
+              LOGGER.log( Level.FINE, "The account does not exist");
+              return false;
+            }
+            catch (SaltCannotRetrieveException e) {
+              LOGGER.log( Level.FINE, "the password conversion does not succeed");
+              return false;
+            }
+            catch (EncryptFailException e) {
+              return false;
+            }
           }
         }
       }
     } catch (SQLException e) {
-      e.printStackTrace();
       return false;
     }
     return false;
@@ -552,7 +568,6 @@ public class Connector {
       }
     }
     catch (SQLException e) {
-      e.printStackTrace();
       return false;
     }
   }

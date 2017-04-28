@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 import org.apache.commons.dbcp2.BasicDataSource;
-import sun.jvm.hotspot.debugger.win32.coff.COMDATSelectionTypes;
 
 /**
  * JDBC connector is needed to connects java program to the database.
@@ -106,7 +105,8 @@ public class Connector {
       while (result.next()) {
         System.out.println(result.getTimestamp("creation_time").getTime());
       }
-    } catch (SQLException e) {
+    }
+    catch (SQLException e) {
       e.printStackTrace();
     }
   }

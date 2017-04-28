@@ -10,16 +10,6 @@ import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 
 
-/**
- * Add a couple round-trip tests. That is, I want to see you
- * have some private static final UUID = ... and one for USER_ID
- * and MESSAGE_TITLE and so on such that you re-use them through
- * all tests. Then, in a few tests at the end, make sure you can
- * addConversation and then retrieve that very same conversation,
- * checking for String.equals().
- */
-
-
 public class TestConnector {
   Connector conn = new Connector();
   private static final String UUID_USER = "987654321";
@@ -39,17 +29,23 @@ public class TestConnector {
     assertFalse(conn.verifyAccount("shuai","hs"));
     assertFalse(conn.verifyAccount("shuai", ""));
     assertFalse(conn.verifyAccount("none","hs6898528"));
+
     assertTrue(conn.updatePassword("shuai","newpass"));
+
     assertTrue(conn.verifyAccount("shuai", "newpass"));
     assertFalse(conn.verifyAccount("shuai","hs"));
     assertFalse(conn.verifyAccount("shuai", ""));
     assertFalse(conn.verifyAccount("none","newpass"));
-    assertTrue(conn.addConversation("0000","1234","first conv"));
-    assertTrue(conn.addMessage("1111","1234","0000","first message"));
+
+    assertTrue(conn.addConversation("0000","1234",CONVERSATION_TITLE));
+    assertTrue(conn.addMessage("1111","1234","0000",MESSAGE_ONE));
+    assertTrue(conn.getConversations().get(0).equals(CONVERSATION_TITLE));
+    assertTrue(conn.getMessages("0000").get(0).equals(MESSAGE_ONE));
+
     assertTrue(conn.deleteAccount("shuai"));
     assertFalse(conn.deleteAccount("none"));
     assertFalse(conn.verifyAccount("shuai","newpass"));
-    assertTrue(conn.getConversations().get(0).equals(CONVERSATION_TITLE));
+
   }
 
   @Test
@@ -92,6 +88,7 @@ public class TestConnector {
     }
     assertFalse(conversationList.isEmpty());
   }
+
   @Test
   public  void testDrop(){
     assertTrue(conn.dropAllAccounts());

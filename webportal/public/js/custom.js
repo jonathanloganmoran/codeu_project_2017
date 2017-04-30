@@ -181,6 +181,26 @@ function attemptCreate() {
   xmlhttp.send();
 }
 
+/**
+* A method that will regenerate the list of users in the side panel.
+*/
+function updateUserList() {
+  var users_div = document.getElementById("users-div");
+  var xmlhttp = new XMLHttpRequest();
+  xmlhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+          users_div.innerHTML = this.responseText;
+      }
+  };
+  xmlhttp.open("GET", "updateUserListHandler.php", true);
+  xmlhttp.send();
+}
+
+// Update the user list every 5 seconds.
+window.setInterval(function(){
+  updateUserList();
+}, 15000);
+
 
 /**
 * Shortens username to maximum number of characters,

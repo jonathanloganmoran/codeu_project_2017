@@ -101,6 +101,45 @@ function signIn() {
 }
 
 /**
+* Attempts to validate an account
+*/
+function attemptSignIn() {
+  var msgbox = document.getElementById("sign-in-box");
+  var usernameInput = document.getElementById("username-sign-in-input");
+  var passwordInput = document.getElementById("password-sign-in-input");
+  var xmlhttp = new XMLHttpRequest();
+  xmlhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+          if(this.responseText == "valid"){
+            closeNav();
+            document.getElementById("welcome-message").innerHTML = "Hello,<br>" + shorten(usernameInput.value, 10);
+            usernameInput.value = '';
+            passwordInput.value = '';
+            msgbox.style.display = "none";
+          } else {
+            passwordInput.value = '';
+            var message = document.getElementById("message-to-sign-in");
+            message.innerHTML = "Invalid account details!";
+          }
+      }
+  };
+  xmlhttp.open("GET", "authenticateAccountHandler.php?u=" + usernameInput.value +"&p=" + passwordInput.value , true);
+  xmlhttp.send();
+}
+
+/**
+* Shortens username to maximum number of characters,
+* as defined by @param max.
+*/
+function shorten(username, max) {
+  if(username.length > max){
+    return username.substring(0,max-3)+"...";
+  } else {
+    return username;
+  }
+}
+
+/**
 * Closes the sign-in-box for the user to enter details
 */
 function closeSignIn() {
@@ -121,6 +160,7 @@ for (i = 0; i < allUNLinks.length; i++) {
   allUNLinks[i].addEventListener("click", signIn);
 }
 document.getElementById("cancel-button").addEventListener("click", closeSignIn);
+document.getElementById("sign-in-button").addEventListener("click", attemptSignIn);
 
 /**
 * Removes CodeU logo upon full page load

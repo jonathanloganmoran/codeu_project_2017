@@ -137,6 +137,18 @@ class SQLConnector {
     }
     return $messages;
   }
+
+  /**
+  * Returns true if account username and password match,
+  * False otherwise.
+  * Not currently functional.
+  */
+  public function authenticateAccount($username, $password) {
+    if($password === "password"){
+      return "valid";
+    }
+    return "invalid";
+  }
 }
 
 ?>

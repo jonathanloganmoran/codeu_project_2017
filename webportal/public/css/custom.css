@@ -189,6 +189,11 @@ button:hover {
   background-color: rgba(230, 242, 255,.85);
 }
 
+button:disabled {
+  background-color: rgba(230, 242, 255,.5);
+  cursor: default;
+}
+
 .lefted {
   float: left;
 }

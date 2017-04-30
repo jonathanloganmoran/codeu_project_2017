@@ -124,20 +124,44 @@ function addUNLinks(){
   }
 }
 
-// Add listeners
-addUNLinks();
-document.getElementById("cancel-sign-in-button").addEventListener("click", closeSignIn);
-document.getElementById("cancel-create-in-button").addEventListener("click", closeCreateIn);
-document.getElementById("create-account-link").addEventListener("click", createIn);
-document.getElementById("sign-in-button").addEventListener("click", attemptSignIn);
-document.getElementById("create-in-button").addEventListener("click", attemptCreate);
+/**
+*  Only allow user to send a message that is valid.
+*/
+function checkForEnableSubmit(){
+  // Can add more text validation here if necessary
+  if(document.getElementById("message-input").value.length > 0) {
+    document.getElementById("message-input-button").disabled = false;
+  } else {
+    document.getElementById("message-input-button").disabled = true;
+  }
+}
 
 /**
 *  Update the user list every x miliseconds.
+*  Will on average have to wait x/2 seconds before
+*  seeing the expected change.
 */
 window.setInterval(function(){
   updateUserList();
 }, 15000);
+
+/**
+*  Update the conversation list every x miliseconds.
+*  Will on average have to wait x/2 seconds before
+*  seeing the expected change.
+*/
+window.setInterval(function(){
+  updateConversationList();
+}, 5000);
+
+/**
+*  Update the conversation list every x miliseconds.
+*  Will on average have to wait x/2 seconds before
+*  seeing the expected change.
+*/
+window.setInterval(function(){
+  updateMessageList();
+}, 2500);
 
 /**
 * Attempts to validate an account
@@ -210,6 +234,37 @@ function updateUserList() {
 }
 
 /**
+* A method that will regenerate the list of conversations.
+*/
+function updateConversationList() {
+  var conv_div = document.getElementById("conversation-list");
+  var xmlhttp = new XMLHttpRequest();
+  xmlhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      conv_div.innerHTML = this.responseText;
+      // Will need to regenerate href paths for convs here
+    }
+  };
+  xmlhttp.open("GET", "updateConversationListHandler.php", true);
+  xmlhttp.send();
+}
+
+/**
+* A method that will regenerate the list of messages.
+*/
+function updateMessageList() {
+  var mess_div = document.getElementById("messages-div");
+  var xmlhttp = new XMLHttpRequest();
+  xmlhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      mess_div.innerHTML = this.responseText;
+    }
+  };
+  xmlhttp.open("GET", "updateMessagesHandler.php?c="+"testConversation", true);
+  xmlhttp.send();
+}
+
+/**
 * Shortens username to maximum number of characters,
 * as defined by @param max.
 */
@@ -259,3 +314,13 @@ $(window).on('load',function() {
     $("body").removeClass("preload");
   }, 1);
 });
+
+// Add listeners
+addUNLinks();
+checkForEnableSubmit();
+document.getElementById("cancel-sign-in-button").addEventListener("click", closeSignIn);
+document.getElementById("cancel-create-in-button").addEventListener("click", closeCreateIn);
+document.getElementById("create-account-link").addEventListener("click", createIn);
+document.getElementById("sign-in-button").addEventListener("click", attemptSignIn);
+document.getElementById("create-in-button").addEventListener("click", attemptCreate);
+$('#message-input').bind('input', checkForEnableSubmit);

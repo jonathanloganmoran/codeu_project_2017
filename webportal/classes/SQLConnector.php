@@ -128,7 +128,7 @@ class SQLConnector {
   */
   public function getMessages() {
     $messages = "";
-    for ($x = 0; $x <= 50; $x++) {
+    for ($x = 0; $x <= 15; $x++) {
       if($x & 1) {
         $messages .= "<div class='message-link animated wow flipInX bubble'>" . "Lorem ipsum dolor sit amet, consectetur adipiscing elit " . $x . ".</div><br>";
       } else {

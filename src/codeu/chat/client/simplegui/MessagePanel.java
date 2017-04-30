@@ -18,11 +18,14 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.*;
-
+import codeu.chat.common.Uuid;
+import codeu.chat.common.Uuids;
+import database.Connector;
 import codeu.chat.client.ClientContext;
 import codeu.chat.common.ConversationSummary;
 import codeu.chat.common.Message;
 import codeu.chat.common.User;
+import java.util.List;
 
 // NOTE: JPanel is serializable, but there is no need to serialize MessagePanel
 // without the @SuppressWarnings, the compiler will complain of no override for serialVersionUID
@@ -33,6 +36,8 @@ public final class MessagePanel extends JPanel {
   private final JLabel messageOwnerLabel = new JLabel("Owner:", JLabel.RIGHT);
   private final JLabel messageConversationLabel = new JLabel("Conversation:", JLabel.LEFT);
   private final DefaultListModel<String> messageListModel = new DefaultListModel<>();
+  private static final Connector connector = new Connector();
+  private static final Uuid STARTUP_UID = Uuids.fromString("00000000");
 
   private final ClientContext clientContext;
 
@@ -144,6 +149,15 @@ public final class MessagePanel extends JPanel {
     this.add(titlePanel, titlePanelC);
     this.add(listShowPanel, listPanelC);
     this.add(buttonPanel, buttonPanelC);
+
+    // Load existing messages from database.
+    List<String> messagesToAdd = connector.getMessages(STARTUP_UID.toString());
+    for(String s : messagesToAdd) {
+      clientContext.message.addMessage(
+          STARTUP_UID,
+          STARTUP_UID,
+          s);
+    }
 
     // User click Messages Add button - prompt for message body and add new Message to Conversation
     addButton.addActionListener(new ActionListener() {

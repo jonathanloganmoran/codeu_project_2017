@@ -87,7 +87,6 @@ public final class ClientUser {
 
     final User user = (validInputs) ? controller.newUser(name) : null;
 
-
     if (user == null) {
       System.out.format("Error: user not created - %s.\n",
           (validInputs) ? "server failure" : "bad input value");

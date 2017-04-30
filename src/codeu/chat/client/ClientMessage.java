@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import database.Connector;
 import codeu.chat.common.Conversation;
 import codeu.chat.common.ConversationSummary;
 import codeu.chat.common.Message;
@@ -33,6 +33,7 @@ public final class ClientMessage {
 
   private final static int MESSAGE_MAX_COUNT = 100;
   private final static int MESSAGE_FETCH_COUNT = 5;
+  private static final Connector connector = new Connector();
 
   private final Controller controller;
   private final View view;
@@ -107,6 +108,7 @@ public final class ClientMessage {
           (validInputs) ? "server error" : "bad input value");
     } else {
       LOG.info("New message:, Author= %s UUID= %s", author, message.id);
+      connector.addMessage(message.id.toString(), author.toString(), conversation.toString(), message.content);
       current = message;
     }
     updateMessages(false);

@@ -128,8 +128,8 @@ document.getElementById("cancel-button").addEventListener("click", closeSignIn);
 $(window).on('load',function() {
   decideIfSignOn();
   setTimeout(function() {
-    $("#message-panel").animate({ scrollTop: $('#message-panel').prop("scrollHeight")}, 1000);
-  }, 500);
+    $("#message-panel").animate({ scrollTop: $('#message-panel').prop("scrollHeight")}, 1);
+  }, 2);
   setTimeout(function(){
     // Animate loader off screen
     $(".se-pre-con").fadeOut("fast");

@@ -34,8 +34,25 @@ body {
   align-items: center;
 }
 
-#user-panel {
+.sidenav {
+  font-family: Karla, cursive;
+  height: 100%;
+  width: 0;
+  position: fixed;
+  z-index: 100;
+  top: 0;
+  left: 0;
+  background: rgba(0,0,0,0.92);
+  overflow-x: hidden;
+  transition: .2s;
+  padding-top: 60px;
+  overflow-y: hidden;
+  height: 100%;
+}
+
+#users-div {
   overflow-y: scroll;
+  height: 500px;
 }
 
 #conversation-panel {
@@ -319,19 +336,7 @@ img .message-image {
   text-align: right;
 }
 
-.sidenav {
-  font-family: Karla, cursive;
-  height: 100%;
-  width: 0;
-  position: fixed;
-  z-index: 100;
-  top: 0;
-  left: 0;
-  background: rgba(0,0,0,0.92);
-  overflow-x: hidden;
-  transition: .2s;
-  padding-top: 60px;
-}
+
 
 .sidenav a.blocked {
   text-decoration: none;

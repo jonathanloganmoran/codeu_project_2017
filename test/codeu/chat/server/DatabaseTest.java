@@ -11,113 +11,73 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-
-//Created to test the implementation of the methods in database.Connector.java
+// Created to test the implementation of the methods in database.Connector.java
 public final class DatabaseTest {
 
-  private static final database.Connector con = new database.Connector();
-  private static final RandomUuidGenerator uuidGenerator = new RandomUuidGenerator(
+  private static final database.Connector CONNECTOR = new database.Connector();
+  private static final RandomUuidGenerator RANDOM_UUID_GENERATOR = new RandomUuidGenerator(
       Uuids.NULL, System.currentTimeMillis());
+  /*
+  *  It is important that the usernames and passwords added are alphanumeric only.
+  *  Do not try to add an entire UUID as a username. It messes with the testing
+  *  of the front-end. Leave them substringed to only numbers without dashes.
+  */
+  private static final String RANDOM_UN = UUID.randomUUID().toString().substring(0,6);
+  private static final String RANDOM_PW = UUID.randomUUID().toString().substring(0,6);
+  private static final String RANDOM_UID = RANDOM_UUID_GENERATOR.make().toString();
+  private static final int ITERATIONS_TO_TEST = 1;
 
     @Test
     public void testAddAndDeleteUser() {
-
-      int iterationsToTest = 6;
-      for(int i=0; i<iterationsToTest; i++) {
-        assertTrue(con.addAccount("user"+i, "password", "12343431"+i));
+      for(int i=0; i< ITERATIONS_TO_TEST; i++) {
+        assertTrue(CONNECTOR.addAccount(RANDOM_UN +i, RANDOM_PW, RANDOM_UID +i));
       }
-
-      assertFalse(con.addAccount(("user"+(iterationsToTest-1)), "password", "12343431"+(iterationsToTest-1)));
-
-      for(int i=0; i<iterationsToTest; i++) {
-        assertTrue(con.deleteAccount("user"+i));
+      assertFalse(CONNECTOR.addAccount((RANDOM_UN +(ITERATIONS_TO_TEST -1)),
+          RANDOM_PW, RANDOM_UID +(ITERATIONS_TO_TEST -1)));
+      for(int i=0; i< ITERATIONS_TO_TEST; i++) {
+        assertTrue(CONNECTOR.deleteAccount(RANDOM_UN +i));
       }
-
-      String randomUN = UUID.randomUUID().toString().substring(0,6);
-      String randomPW = UUID.randomUUID().toString().substring(0,6);
-      assertTrue(con.addAccount(randomUN, randomPW, uuidGenerator.make().toString()));
-      assertTrue(con.addAccount(randomUN+"1", randomPW, uuidGenerator.make().toString()));
-      assertTrue(con.addAccount(randomUN+"2", randomPW, uuidGenerator.make().toString()));
-      assertTrue(con.addAccount(randomUN+"3", randomPW, uuidGenerator.make().toString()));
-      assertTrue(con.addAccount(randomUN+"4", randomPW, uuidGenerator.make().toString()));
-
-      assertTrue(con.deleteAccount(randomUN));
-      assertTrue(con.deleteAccount(randomUN+"1"));
-      assertTrue(con.deleteAccount(randomUN+"2"));
-      assertTrue(con.deleteAccount(randomUN+"3"));
-      assertTrue(con.deleteAccount(randomUN+"4"));
     }
-    /*
-    @Test
-    public void testDropAll(){
-      assertTrue(con.dropAllAccounts());
-      con.closeConnection();
-    }*/
 
     @Test
     public void testAddVerifyAndDeleteUser() {
-
-      String randomUN = UUID.randomUUID().toString();
-      String randomPW = UUID.randomUUID().toString();
-      assertTrue(con.addAccount(randomUN, randomPW,uuidGenerator.make().toString()));
-      assertTrue(con.verifyAccount(randomUN, randomPW));
-      assertFalse(con.verifyAccount(randomUN, randomPW + "1"));
-      assertFalse(con.verifyAccount(randomUN, randomPW + " "));
-      assertTrue(con.deleteAccount(randomUN));
-      assertFalse(con.verifyAccount(randomUN, randomPW));
-      assertFalse(con.verifyAccount(randomUN, randomPW + "1"));
+      assertTrue(CONNECTOR.addAccount(RANDOM_UN, RANDOM_PW, RANDOM_UID));
+      assertTrue(CONNECTOR.verifyAccount(RANDOM_UN, RANDOM_PW));
+      assertFalse(CONNECTOR.verifyAccount(RANDOM_UN, RANDOM_PW + "1"));
+      assertFalse(CONNECTOR.verifyAccount(RANDOM_UN, RANDOM_PW + " "));
+      assertTrue(CONNECTOR.deleteAccount(RANDOM_UN));
+      assertFalse(CONNECTOR.verifyAccount(RANDOM_UN, RANDOM_PW));
+      assertFalse(CONNECTOR.verifyAccount(RANDOM_UN, RANDOM_PW + "1"));
     }
 
     @Test
     public void testUserExists() {
-      String randomUN = UUID.randomUUID().toString();
-      String randomPW = UUID.randomUUID().toString();
-      con.addAccount(randomUN, randomPW,uuidGenerator.make().toString());
-      assertTrue(con.deleteAccount(randomUN));
-      assertFalse(con.verifyAccount(randomUN, randomPW));
-      assertTrue(con.addAccount(randomUN, randomPW,uuidGenerator.make().toString()));
+      CONNECTOR.addAccount(RANDOM_UN, RANDOM_PW, RANDOM_UID);
+      assertTrue(CONNECTOR.accountExists(RANDOM_UN));
+      assertTrue(CONNECTOR.deleteAccount(RANDOM_UN));
     }
 
     @Test
     public void testGetAllUsers(){
-      String randomUN = UUID.randomUUID().toString();
-      String randomPW = UUID.randomUUID().toString();
       List<String> addedUserNames = new LinkedList<>();
-      int iterationsToTest = 2;
-      for(int i=0; i<iterationsToTest; i++) {
-        addedUserNames.add(randomUN + i);
-        assertTrue(con.addAccount(randomUN + i, randomPW,uuidGenerator.make().toString()));
+      for(int i=0; i< ITERATIONS_TO_TEST; i++) {
+        addedUserNames.add(RANDOM_UN + i);
+        assertTrue(CONNECTOR.addAccount(RANDOM_UN + i, RANDOM_PW, RANDOM_UID + i));
       }
-      List<String> allUsers = con.getAllUsers();
+      List<String> allUsers = CONNECTOR.getAllUsers();
       assertTrue(allUsers.containsAll(addedUserNames));
-      for(int i=0; i<iterationsToTest; i++) {
-        assertTrue(con.deleteAccount(randomUN + i));
+      for(int i=0; i< ITERATIONS_TO_TEST; i++) {
+        assertTrue(CONNECTOR.deleteAccount(RANDOM_UN + i));
       }
     }
 
     @Test
     public void testUpdatePassword() {
-      String password = "password";
-      String username = "BEYonce";
-      String uuid = "12346";
-      assertTrue(con.addAccount(username, password, uuid));
-      assertTrue(con.verifyAccount(username, password));
-      assertTrue(con.updatePassword(username, password+1));
-      assertTrue(con.verifyAccount(username, password+1));
-      String randomUN = UUID.randomUUID().toString();
-      String randomPW = UUID.randomUUID().toString();
-      assertTrue(con.addAccount(randomUN, randomPW,uuidGenerator.make().toString()));
-      assertTrue(con.verifyAccount(randomUN, randomPW));
-      assertTrue(con.updatePassword(randomUN, randomPW+"1"));
-      assertFalse(con.verifyAccount(randomUN, randomPW));
-      assertTrue(con.verifyAccount(randomUN, randomPW+"1"));
-      assertTrue(con.deleteAccount(randomUN));
-      assertTrue(con.deleteAccount(username));
+      assertTrue(CONNECTOR.addAccount(RANDOM_UN, RANDOM_PW, RANDOM_UID));
+      assertTrue(CONNECTOR.verifyAccount(RANDOM_UN, RANDOM_PW));
+      assertTrue(CONNECTOR.updatePassword(RANDOM_UN, RANDOM_PW +"1"));
+      assertFalse(CONNECTOR.verifyAccount(RANDOM_UN, RANDOM_PW));
+      assertTrue(CONNECTOR.verifyAccount(RANDOM_UN, RANDOM_PW +"1"));
+      assertTrue(CONNECTOR.deleteAccount(RANDOM_UN));
     }
-
-    /*@Test
-    public void testDropAll(){
-      assertTrue(con.dropAllAccounts());
-      con.closeConnection();
-    }*/
 }

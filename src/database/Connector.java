@@ -168,6 +168,34 @@ public class Connector {
   }
 
   /**
+   * A method to help me during testing. Will not need to be used in final version, but
+   * please leave it in for now since it is extremely helpful.
+  */
+  public synchronized void addTestAccounts(){
+    dropAllAccounts();
+    String[] usernames = {"unweaving", "deepfreeze", "inability", "nicotinize", "unmaterial",
+        "grandniece", "crappie", "moulmein", "trilithon", "reformulating", "rudimentary",
+        "exhibitioner", "theorist", "favored", "rheumatically", "shakers", "screwhead",
+        "preobviated", "nonerudite", "pharmacolite", "sidereal", "mycobacteria", "apartmental",
+        "repurchase", "gypseous", "excitable", "dolphinfish", "unfertilisable", "unperished",
+        "acardiac", "presubordination", "tobacco", "archipenko", "circumvolved", "geminiflorous",
+        "dermatomic", "playday", "tenderised", "microminiature", "unitarianism", "begrimed",
+        "antibilious", "deglamorized", "toughen", "fearsomeness", "diadochic", "lignification",
+        "budlike", "halterlike", "macrocephalia", "dramatise", "interpretership", "loaning",
+        "barkentine", "millennially", "bouzouki", "uninterpleaded", "terroriser", "legendizing",
+        "mudcapped", "speedway", "dioestrous", "overderiding", "peisistratus", "heterochthonous",
+        "satyric", "premodern", "dipteran", "bromeliaceous", "warrenton", "accusation", "cotangent",
+        "apurimac", "gwendolin", "hyetograph", "dialectologist", "gladbeck", "unpeppered",
+        "hypermegasoma", "undiscomfited", "chesterbed", "polarizing", "oenopides",
+        "psychopathological", "evocatively", "unequatorial", "secretly", "nymwegen", "kinglier",
+        "zaddikim", "pseudamphora", "antonym", "superimpersonal", "grilses", "mesodermal",
+        "pacifically", "libertine", "cystolith", "misbuild", "pseudohemal"};
+    for(int i=0; i<usernames.length; i++){
+      addAccount(usernames[i],"password","000000-000000-000"+i);
+    }
+  }
+
+  /**
    * AddAccount is to add the new account to the database.
    * @param username name of the account that is being added
    * @param password password of the account made by user
@@ -442,7 +470,6 @@ public class Connector {
    * @param username the username that is being verified
    * @return true if the account is valid, if the account is not valid
    */
-  @SuppressWarnings("unused, and not sure if we will need this -> might delete")
   public synchronized boolean accountExists(String username) {
 
     try (Connection conn = dataSource.getConnection()) {

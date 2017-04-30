@@ -116,16 +116,28 @@ function createIn(){
 /**
 * Makes user links clickable by full username, not shortened display
 */
-allUNLinks = document.getElementsByClassName("username-link");
-for (i = 0; i < allUNLinks.length; i++) {
-  var fullUsername = $(allUNLinks[i]).attr('keyword');
-  allUNLinks[i].addEventListener("click", signIn);
+function addUNLinks(){
+  allUNLinks = document.getElementsByClassName("username-link");
+  for (i = 0; i < allUNLinks.length; i++) {
+    var fullUsername = $(allUNLinks[i]).attr('keyword');
+    allUNLinks[i].addEventListener("click", signIn);
+  }
 }
+
+// Add listeners
+addUNLinks();
 document.getElementById("cancel-sign-in-button").addEventListener("click", closeSignIn);
 document.getElementById("cancel-create-in-button").addEventListener("click", closeCreateIn);
 document.getElementById("create-account-link").addEventListener("click", createIn);
 document.getElementById("sign-in-button").addEventListener("click", attemptSignIn);
 document.getElementById("create-in-button").addEventListener("click", attemptCreate);
+
+/**
+*  Update the user list every x miliseconds.
+*/
+window.setInterval(function(){
+  updateUserList();
+}, 15000);
 
 /**
 * Attempts to validate an account
@@ -136,18 +148,18 @@ function attemptSignIn() {
   var passwordInput = document.getElementById("password-sign-in-input");
   var xmlhttp = new XMLHttpRequest();
   xmlhttp.onreadystatechange = function() {
-      if (this.readyState == 4 && this.status == 200) {
-          if(this.responseText == "valid"){
-            document.getElementById("welcome-message").innerHTML = "Hello,<br>" + shorten(usernameInput.value, 10);
-            usernameInput.value = '';
-            passwordInput.value = '';
-            msgbox.style.display = "none";
-          } else {
-            passwordInput.value = '';
-            var message = document.getElementById("message-to-sign-in");
-            message.innerHTML = "Invalid account details!";
-          }
+    if (this.readyState == 4 && this.status == 200) {
+      if(this.responseText == "valid"){
+        document.getElementById("welcome-message").innerHTML = "Hello,<br>" + shorten(usernameInput.value, 10);
+        usernameInput.value = '';
+        passwordInput.value = '';
+        msgbox.style.display = "none";
+      } else {
+        passwordInput.value = '';
+        var message = document.getElementById("message-to-sign-in");
+        message.innerHTML = "Invalid account details!";
       }
+    }
   };
   xmlhttp.open("GET", "authenticateAccountHandler.php?u=" + usernameInput.value +"&p=" + passwordInput.value , true);
   xmlhttp.send();
@@ -163,19 +175,19 @@ function attemptCreate() {
   var passwordInput = document.getElementById("password-create-in-input");
   var xmlhttp = new XMLHttpRequest();
   xmlhttp.onreadystatechange = function() {
-      if (this.readyState == 4 && this.status == 200) {
-          if(this.responseText == "created"){
-            closeNav();
-            document.getElementById("welcome-message").innerHTML = "Hello,<br>" + shorten(usernameInput.value, 10);
-            usernameInput.value = '';
-            passwordInput.value = '';
-            msgbox.style.display = "none";
-          } else {
-            passwordInput.value = '';
-            var message = document.getElementById("message-to-create-in");
-            message.innerHTML = this.responseText;
-          }
+    if (this.readyState == 4 && this.status == 200) {
+      if(this.responseText == "created"){
+        closeNav();
+        document.getElementById("welcome-message").innerHTML = "Hello,<br>" + shorten(usernameInput.value, 10);
+        usernameInput.value = '';
+        passwordInput.value = '';
+        msgbox.style.display = "none";
+      } else {
+        passwordInput.value = '';
+        var message = document.getElementById("message-to-create-in");
+        message.innerHTML = this.responseText;
       }
+    }
   };
   xmlhttp.open("GET", "createAccountHandler.php?u=" + usernameInput.value +"&p=" + passwordInput.value , true);
   xmlhttp.send();
@@ -188,21 +200,14 @@ function updateUserList() {
   var users_div = document.getElementById("users-div");
   var xmlhttp = new XMLHttpRequest();
   xmlhttp.onreadystatechange = function() {
-      if (this.readyState == 4 && this.status == 200) {
-          users_div.innerHTML = this.responseText;
-      }
+    if (this.readyState == 4 && this.status == 200) {
+      users_div.innerHTML = this.responseText;
+      addUNLinks();
+    }
   };
   xmlhttp.open("GET", "updateUserListHandler.php", true);
   xmlhttp.send();
 }
-
-/**
-*  Update the user list every x miliseconds.
-*/
-window.setInterval(function(){
-  updateUserList();
-}, 15000);
-
 
 /**
 * Shortens username to maximum number of characters,

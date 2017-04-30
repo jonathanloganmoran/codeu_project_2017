@@ -196,7 +196,9 @@ function updateUserList() {
   xmlhttp.send();
 }
 
-// Update the user list every 5 seconds.
+/**
+*  Update the user list every x miliseconds.
+*/
 window.setInterval(function(){
   updateUserList();
 }, 15000);

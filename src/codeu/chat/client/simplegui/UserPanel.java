@@ -180,25 +180,15 @@ public final class UserPanel extends JPanel {
       public void actionPerformed(ActionEvent e) {
         if (userList.getSelectedIndex() != -1) {
           final String data = userList.getSelectedValue();
-          JTextField username = new JTextField(data);
-          JTextField password = new JPasswordField();
-          // Must be an object array, holds both Strings and JTextFields
-          Object[] message = {
-              "Username:", username,
-              "Password:", password
-          };
-
-          final int option = JOptionPane
-              .showConfirmDialog(null, message, "Sign-In", JOptionPane.OK_CANCEL_OPTION,
-                  JOptionPane.PLAIN_MESSAGE);
-          if (option == JOptionPane.OK_OPTION) {
+          String[] response = getInput("Sign-In",data);
+          if (response != null) {
             // Needs to be valid format.
-            if (TextValidator.isValidUserName(username.getText()) && TextValidator
-                .isValidPassword(password.getText())) {
+            if (TextValidator.isValidUserName(response[0]) && TextValidator
+                .isValidPassword(response[1])) {
               // Needs to pass through DB to authenticate.
-              if (con.verifyAccount(username.getText(), password.getText())) {
-                clientContext.user.signInUser(username.getText());
-                userSignedInLabel.setText("Hello " + username.getText());
+              if (con.verifyAccount(response[0], response[1])) {
+                clientContext.user.signInUser(response[0]);
+                userSignedInLabel.setText("Hello " + response[0]);
               } else {
                 JOptionPane.showMessageDialog(UserPanel.this,
                     "Not able to sign in. Invalid field for username or password.",
@@ -221,22 +211,13 @@ public final class UserPanel extends JPanel {
     userAddButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        JTextField username = new JTextField();
-        JTextField password = new JPasswordField();
-        // Must be an object array, holds both Strings and JTextFields
-        Object[] message = {
-            "Username:", username,
-            "Password:", password
-        };
-        final int option = JOptionPane
-            .showConfirmDialog(null, message, "Add User", JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE);
-        if (option == JOptionPane.OK_OPTION) {
-          if (TextValidator.isValidUserName(username.getText()) && TextValidator
-              .isValidPassword(password.getText())) {
-            if(!con.accountExists(username.getText())) {
+        String[] response = getInput("Sign-In","");
+        if (response != null) {
+          if (TextValidator.isValidUserName(response[0]) && TextValidator
+              .isValidPassword(response[1])) {
+            if(!con.accountExists(response[0])) {
               // Account added to program and to database in clientContext.user.
-              clientContext.user.addUser(username.getText(), password.getText());
+              clientContext.user.addUser(response[0], response[1]);
               UserPanel.this.getAllUsers(listModel);
             } else {
               JOptionPane.showMessageDialog(UserPanel.this,
@@ -274,6 +255,28 @@ public final class UserPanel extends JPanel {
 
     for (final User u : clientContext.user.getUsers()) {
       usersList.addElement(u.name);
+    }
+  }
+
+  // Pop-up for entering account details
+  private static String[] getInput(String prompt, String usernamePrefill) {
+    JTextField username = new JTextField(usernamePrefill);
+    JTextField password = new JPasswordField();
+    // Must be an object array, holds both Strings and JTextFields
+    Object[] message = {
+        "Username:", username,
+        "Password:", password
+    };
+    final int option = JOptionPane
+        .showConfirmDialog(null, message, prompt, JOptionPane.OK_CANCEL_OPTION,
+            JOptionPane.PLAIN_MESSAGE);
+    if(option == JOptionPane.OK_OPTION) {
+      String[] response = new String[2];
+      response[0] = username.getText();
+      response[1] = password.getText();
+      return response;
+    } else {
+      return null;
     }
   }
 }

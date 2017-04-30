@@ -87,7 +87,7 @@ public final class TestRunner {
         try {
           System.out.write("\r|".getBytes());
           int x =0;
-          while(loading) {
+          while (loading) {
             String anim= "|/-\\";
             String data = "\r" + msg + anim.charAt(++x % anim.length());
             System.out.write(data.getBytes());

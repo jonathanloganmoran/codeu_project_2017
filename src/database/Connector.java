@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.dbcp2.BasicDataSource;
 
 /**
@@ -25,10 +27,17 @@ import org.apache.commons.dbcp2.BasicDataSource;
  * the databased hosted on a remote machine.
  */
 
+/**
+ * The conversation will remain, even though the creator has deleted the account;
+ * same as the messages sent by the user.
+ * In order to have different time for different messages for the same user, it will
+ * be safe to store message every time when user inputs a message
+ */
+
 public class Connector {
 
   /* Database */
-  private BasicDataSource ds;
+  private BasicDataSource dataSource;
   private static final String USER = "User";
   private static final String CONVERSATION = "Conversation";
   private static final String MESSAGE = "Message";
@@ -39,8 +48,8 @@ public class Connector {
   private static final String SQL_SELECT_USERNAMES = String.format("SELECT username FROM %s", USER);
   private static final String SQL_INSERT_ACCOUNT = String
       .format("INSERT INTO %s (username, password, salt, Uuid) VALUES(?,?,?,?)", USER);
-  private static final String SQL_DROP = String.format("TRUNCATE TABLE %s", USER);
-  final static private String SQL_SELECT_PASSWORD = String
+  private static final String SQL_DROP_USER = String.format("TRUNCATE TABLE %s", USER);
+  private static final String SQL_SELECT_PASSWORD = String
       .format("SELECT password FROM %s WHERE username = ?", USER);
   private static final String SQL_UPDATE = String
       .format("UPDATE %s SET password = ? WHERE username = ?", USER);
@@ -48,50 +57,63 @@ public class Connector {
       .format("DELETE FROM %s WHERE username = ?", USER);
   private static final String SQL_SELECT_SALT = String
       .format("SELECT salt FROM %s WHERE username = ?", USER);
+  private static final String SQL_SELECT_ID = String
+      .format("SELECT Uuid FROM %s WHERE username = ?", USER);
 
   /* SQL Conversation Queries */
   private static final String SQL_INSERT_CONVERSATON = String
       .format("INSERT INTO %s (Uuid, id_user, title) VALUES(?,?,?)", CONVERSATION);
-  private static final String SQL_SELECT_CONVERSATION = String.format(
-      "SELECT * FROM %s ORDER BY creation_time ASC", CONVERSATION);
+  private static final String SQL_SELECT_CONVERSATION = String.
+      format("SELECT * FROM %s ORDER BY creation_time ASC", CONVERSATION);
+  private static final String SQL_DELETE_CONVERSATION_BY_ID = String
+      .format("DELETE FROM %s WHERE id_user= ?", CONVERSATION);
+  private static final String SQL_DROP_CONVERSATION = String.format("TRUNCATE TABLE %s", CONVERSATION);
 
   /* SQL Message Queries */
   private static final String SQL_INSERT_MESSAGE = String
       .format("INSERT INTO %s (Uuid, content, id_user, id_conversation) VALUES(?,?,?,?)", MESSAGE);
   private static final String SQL_SELECT_MESSAGES = String.format(
       "SELECT * FROM %s WHERE id_conversation = ? ORDER BY creation_time ASC", MESSAGE);
+  private static final String SQL_DELETE_MESSGES_BY_ID = String
+      .format("DELETE FROM %s WHERE id_user = ?", MESSAGE);
+  private static final String SQL_DROP_MESSAGE = String.format("TRUNCATE TABLE %s", MESSAGE);
 
   /* Encryption */
-  private static final Random ram = new SecureRandom();
-  static final private char[] CHARS = "1234567890abcdefghijklmnopqrstuvwxyz-=1,./;'[]".toCharArray();
-  static final char[] DIGITS = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c',
+  private static final Random rand = new SecureRandom();
+  private static final char[] CHARS = "1234567890abcdefghijklmnopqrstuvwxyz-=1,./;'[]".toCharArray();
+  private static final char[] DIGITS = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c',
       'd', 'e', 'f'};
 
+  /* Log*/
+  private static final Logger LOGGER = Logger.getLogger( Connector.class.getName() );
+
   public Connector() {
-    ds = new BasicDataSource();
-    ds.setDriverClassName("com.mysql.jdbc.Driver");
+    dataSource = new BasicDataSource();
+    dataSource.setDriverClassName("com.mysql.jdbc.Driver");
     try (Scanner in = new Scanner(new FileReader("third_party/databaseInfo"))) {
-      ds.setUrl(String.format("jdbc:mysql://%s:3306/%s", HOST_NAME, DB_NAME));
-      ds.setUsername(in.next());
-      ds.setPassword(in.next());
-    } catch (FileNotFoundException e) {
-      e.printStackTrace();
+      dataSource.setUrl(String.format("jdbc:mysql://%s:3306/%s", HOST_NAME, DB_NAME));
+      dataSource.setUsername(in.next());
+      dataSource.setPassword(in.next());
+    }
+    catch (FileNotFoundException e) {
+      LOGGER.log( Level.SEVERE, "the file that contains account of datavase does not exist");
     }
   }
 
   /**
-   * For testing the time
+   * For testing the time, trying to sort the time and conversation.
    */
   public void time() {
-    try(Connection conn = ds.getConnection()){
+    try (Connection conn = dataSource.getConnection()) {
       PreparedStatement time = conn.prepareStatement(
           "SELECT creation_time FROM Message");
       ResultSet result = time.executeQuery();
-      while(result.next()){
+      while (result.next()) {
         System.out.println(result.getTimestamp("creation_time").getTime());
       }
-    } catch (SQLException e) {
-      e.printStackTrace();
+    }
+    catch (SQLException e) {
+      LOGGER.log( Level.FINE, "error occurred when converting the time");
     }
   }
 
@@ -104,8 +126,8 @@ public class Connector {
    */
   public synchronized boolean addConversation(String uuid, String user_id, String title){
 
-    try(Connection conn = ds.getConnection()) {
-      try(PreparedStatement addConversation = conn.prepareStatement(SQL_INSERT_CONVERSATON)){
+    try (Connection conn = dataSource.getConnection()) {
+      try (PreparedStatement addConversation = conn.prepareStatement(SQL_INSERT_CONVERSATON)) {
         addConversation.setString(1,uuid);
         addConversation.setString(2,user_id);
         addConversation.setString(3,title);
@@ -114,6 +136,7 @@ public class Connector {
       }
     }
     catch (SQLException e) {
+      LOGGER.log( Level.WARNING, "you might have stored a conversation with the same name");
       return false;
     }
   }
@@ -128,18 +151,52 @@ public class Connector {
    */
   public synchronized boolean addMessage(String uuid, String user_id, String conversation_id, String content){
 
-    try(Connection conn = ds.getConnection()) {
-      try(PreparedStatement addMessage = conn.prepareStatement(SQL_INSERT_MESSAGE)){
-        addMessage.setString(1,uuid);
-        addMessage.setString(2,content);
-        addMessage.setString(3,user_id);
-        addMessage.setString(4,conversation_id);
+    try (Connection conn = dataSource.getConnection()) {
+      try (PreparedStatement addMessage = conn.prepareStatement(SQL_INSERT_MESSAGE)) {
+        addMessage.setString(1, uuid);
+        addMessage.setString(2, content);
+        addMessage.setString(3, user_id);
+        addMessage.setString(4, conversation_id);
         addMessage.executeUpdate();
         return true;
       }
     }
     catch (SQLException e) {
-      e.printStackTrace();
+      LOGGER.log( Level.FINE, "something wrong with the connection");
+      return false;
+    }
+  }
+
+  /**
+   * AddAccount is to add the new account to the database.
+   * @param username name of the account that is being added
+   * @param password password of the account made by user
+   * @param uuid id assigned to each user
+   * @return true if the insertion is successful and complete; false, if the insertion fails
+   */
+  public synchronized boolean addAccount(String username, String password, String uuid) {
+
+    String salt = generateSalt();
+    try {
+      String codedPassword = encryptPassword(password, salt);
+
+      try (Connection conn = dataSource.getConnection()) {
+        try (PreparedStatement insertAccount = conn.prepareStatement(SQL_INSERT_ACCOUNT)) {
+          insertAccount.setString(1, username);
+          insertAccount.setString(2, codedPassword);
+          insertAccount.setString(3, salt);
+          insertAccount.setString(4, uuid);
+          insertAccount.executeUpdate();
+          return true;
+        }
+      }
+    }
+    catch (EncryptFailException e){
+      LOGGER.log( Level.SEVERE, "the encryption for the password fails" );
+      return false;
+    }
+    catch (SQLException e) {
+      LOGGER.log( Level.FINE, "SQL exception is caught");
       return false;
     }
   }
@@ -150,10 +207,10 @@ public class Connector {
    */
   public synchronized List<String> getConversations(){
     List<String> conversationList = new ArrayList<>();
-    try(Connection conn = ds.getConnection()) {
+    try (Connection conn = dataSource.getConnection()) {
       try (PreparedStatement getConversation = conn.prepareStatement(SQL_SELECT_CONVERSATION)) {
         ResultSet conversation = getConversation.executeQuery();
-        while(conversation.next()){
+        while (conversation.next()) {
           conversationList.add(conversation.getString("title"));
         }
         return conversationList;
@@ -171,11 +228,11 @@ public class Connector {
    */
   public synchronized List<String> getMessages(String conversation_id){
     List<String> messageList = new ArrayList<>();
-    try(Connection conn = ds.getConnection()) {
+    try(Connection conn = dataSource.getConnection()) {
       try (PreparedStatement getMessage = conn.prepareStatement(SQL_SELECT_MESSAGES)) {
         getMessage.setString(1,conversation_id);
         ResultSet messages = getMessage.executeQuery();
-        while(messages.next()){
+        while (messages.next()) {
           messageList.add(messages.getString("content"));
         }
         return messageList;
@@ -183,7 +240,29 @@ public class Connector {
     }
     catch (SQLException e) {
         return messageList;
+    }
+  }
+
+  /**
+   * Print all the current usernames
+   * @return a list of usernames
+   */
+  public synchronized List<String> getAllUsers() {
+
+    List<String> userNames = new ArrayList<>();
+    try (Connection conn = dataSource.getConnection()) {
+      try (PreparedStatement getUsers = conn.prepareStatement(SQL_SELECT_USERNAMES)) {
+        try (ResultSet users = getUsers.executeQuery()) {
+          while (users.next()) {
+            userNames.add(users.getString("username"));
+          }
+          return userNames;
+        }
       }
+    }
+    catch (SQLException e){
+      return userNames;
+    }
   }
 
   /**
@@ -195,7 +274,7 @@ public class Connector {
     char[] arr = new char[8];
     // Generate the salt
     for (int i = 0; i < arr.length; i++) {
-      int index = ram.nextInt(CHARS.length);
+      int index = rand.nextInt(CHARS.length);
       arr[i] = CHARS[index];
     }
     return new String(arr);
@@ -234,86 +313,62 @@ public class Connector {
   }
 
   /**
-   * Print all the current usernames
-   * @return a list of usernames
-   */
-  public synchronized List<String> getAllUsers() {
-
-    List<String> userNames = new ArrayList<>();
-    try (Connection conn = ds.getConnection()) {
-      try (PreparedStatement getUsers = conn.prepareStatement(SQL_SELECT_USERNAMES)) {
-        try (ResultSet users = getUsers.executeQuery()) {
-          while (users.next()) {
-            userNames.add(users.getString("username"));
-          }
-          return userNames;
-        }
-      }
-    }
-    catch (SQLException e) {
-      e.printStackTrace();
-      return null;
-    }
-  }
-
-  /**
-   * AddAccount is to add the new account to the database.
-   * @param username name of the account that is being added
-   * @param password password of the account made by user
-   * @param uuid id assigned to each user
-   * @return true if the insertion is successful and complete; false, if the insertion fails
-   */
-    public synchronized boolean addAccount(String username, String password, String uuid) {
-
-    String salt = generateSalt();
-    try {
-      String codedPassword = encryptPassword(password, salt);
-
-      try (Connection conn = ds.getConnection()) {
-        try (PreparedStatement insertAccount = conn.prepareStatement(SQL_INSERT_ACCOUNT)) {
-          insertAccount.setString(1, username);
-          insertAccount.setString(2, codedPassword);
-          insertAccount.setString(3, salt);
-          insertAccount.setString(4, uuid);
-          insertAccount.executeUpdate();
-          return true;
-        }
-      }
-    }
-    catch (EncryptFailException e){
-      return false;
-    }
-    catch (SQLException e) {
-      return false;
-    }
-  }
-
-  /**
    * Clean all the data inside the database
    * @return true if the data has been cleaned
    */
   public synchronized boolean dropAllAccounts() {
 
-    try (Connection conn = ds.getConnection()) {
-      try (PreparedStatement dropAll = conn.prepareStatement(SQL_DROP)) {
+    try (Connection conn = dataSource.getConnection()) {
+      if(dropAllMessage() && dropAllConversation()){
+        try (PreparedStatement dropAll = conn.prepareStatement(SQL_DROP_USER)) {
+          dropAll.executeUpdate();
+          return true;
+        }
+      }
+      return false;
+    }
+    catch (SQLException e) {
+      return false;
+    }
+  }
+
+  /*
+   * Drop all conversations
+   */
+  private synchronized boolean dropAllConversation() {
+
+    try (Connection conn = dataSource.getConnection()) {
+      try (PreparedStatement dropAll = conn.prepareStatement(SQL_DROP_CONVERSATION)) {
         dropAll.executeUpdate();
         return true;
       }
     }
     catch (SQLException e) {
-      e.printStackTrace();
+      return false;
+    }
+  }
+  /*
+   * Drop all messages
+   */
+  private synchronized boolean dropAllMessage() {
+
+    try (Connection conn = dataSource.getConnection()) {
+      try (PreparedStatement dropAll = conn.prepareStatement(SQL_DROP_MESSAGE)) {
+        dropAll.executeUpdate();
+        return true;
+      }
+    }
+    catch (SQLException e) {
       return false;
     }
   }
 
-  /**
-   * Acquire the existing salt from database
-   * @param username username from account
-   * @return salt
+  /*
+   * Acquire salt
    */
   private String acquireSalt(String username) throws UserNotFoundException,SaltCannotRetrieveException {
 
-    try (Connection conn = ds.getConnection()) {
+    try (Connection conn = dataSource.getConnection()) {
       try (PreparedStatement selectSalt = conn.prepareStatement(SQL_SELECT_SALT)) {
         selectSalt.setString(1, username);
         try (ResultSet resultSalt = selectSalt.executeQuery()) {
@@ -335,14 +390,14 @@ public class Connector {
 
   /**
    * Verify if the account username and password input by users match what has been recorded in
-   *  database
+   * database
    * @param username the username that is being verified
    * @param password the password that is used to compare to the one in database
    * @return true if the account is verified, else, false, if the account is not valid
    */
   public synchronized boolean verifyAccount(String username, String password) {
 
-    try (Connection conn = ds.getConnection()) {
+    try (Connection conn = dataSource.getConnection()) {
       try (PreparedStatement selectPassword = conn.prepareStatement(SQL_SELECT_PASSWORD)) {
         // The account exists, check password.
         selectPassword.setString(1, username);
@@ -357,18 +412,26 @@ public class Connector {
               // Verify;
               if (!passwordInDB.equals(codedPassword)) {
                 //the password does not match
+                LOGGER.log( Level.SEVERE, "the password does not match" );
                 return false;
               }
               return true;
             }
-            catch (UserNotFoundException e){return false;}
-            catch(SaltCannotRetrieveException e){return false;}
-            catch (EncryptFailException e){return false;}
+            catch (UserNotFoundException e) {
+              LOGGER.log( Level.FINE, "The account does not exist");
+              return false;
+            }
+            catch (SaltCannotRetrieveException e) {
+              LOGGER.log( Level.FINE, "the password conversion does not succeed");
+              return false;
+            }
+            catch (EncryptFailException e) {
+              return false;
+            }
           }
         }
       }
     } catch (SQLException e) {
-      e.printStackTrace();
       return false;
     }
     return false;
@@ -382,14 +445,15 @@ public class Connector {
   @SuppressWarnings("unused, and not sure if we will need this -> might delete")
   public synchronized boolean accountExists(String username) {
 
-    try (Connection conn = ds.getConnection()) {
+    try (Connection conn = dataSource.getConnection()) {
       try (PreparedStatement selectPassword = conn.prepareStatement(SQL_SELECT_PASSWORD)) {
         selectPassword.setString(1, username);
         try (ResultSet resultPassword = selectPassword.executeQuery()) {
           if (resultPassword.next()){
             return true;
           }
-          return false;
+          else
+            return false;
         }
       }
     } catch (SQLException e) {
@@ -399,19 +463,66 @@ public class Connector {
   }
 
   /**
+   * Delete message when the user account gets deleted
+   */
+  private boolean deleteMessage(String user_id) {
+
+    try (Connection conn = dataSource.getConnection()) {
+      try (PreparedStatement deleteMessage = conn.prepareStatement(SQL_DELETE_MESSGES_BY_ID)) {
+        deleteMessage.setString(1, user_id);
+        deleteMessage.executeUpdate();
+          return true;
+      }
+    } catch (SQLException e) {
+      return false;
+    }
+  }
+
+  /**
+   * Delete conversation
+   */
+  private boolean deleteConversation(String user_id) {
+
+    try (Connection conn = dataSource.getConnection()) {
+      try(PreparedStatement deleteConversation = conn.prepareStatement(SQL_DELETE_CONVERSATION_BY_ID)){
+        deleteConversation.setString(1,user_id);
+        deleteConversation.executeUpdate();
+          return true;
+      }
+    } catch (SQLException e){
+      return false;
+    }
+  }
+
+  /**
    * Delete the existing account; deletion requires the user to sign in first
+   * Deletion of the account represents the deletion of all the activities the user involved
    * @param username the account name that is being dropped
    * @return false if the deletion fails; true if succeeds
    */
   public synchronized boolean deleteAccount(String username) {
 
-    try (Connection conn = ds.getConnection()) {
-      try (PreparedStatement deleteAccount = conn.prepareStatement(SQL_DELETE_USER)) {
-        deleteAccount.setString(1, username);
-        if (deleteAccount.executeUpdate() == 1)
-          return true;
+    try (Connection conn = dataSource.getConnection()) {
+      /*String user_id = "";
+      try(PreparedStatement getUserId = conn.prepareStatement(SQL_SELECT_ID)){
+        getUserId.setString(1,username);
+        ResultSet id = getUserId.executeQuery();
+        if(id.next())
+          user_id = id.getString(1);
         else
           return false;
+
+      }
+      // now the account does exit
+      // that means in the table of conversation and messages, the there is either has/no messge/con
+      if(!(deleteMessage(user_id) && deleteConversation(user_id)))
+        return false;
+      */
+      try (PreparedStatement deleteAccount = conn.prepareStatement(SQL_DELETE_USER)) {
+        deleteAccount.setString(1, username);
+        if(deleteAccount.executeUpdate() > 0)
+          return true;
+        return false;
       }
     }
     catch (SQLException e) {
@@ -429,7 +540,7 @@ public class Connector {
    */
   public synchronized boolean updatePassword(String username, String newPassword) {
 
-    try (Connection conn = ds.getConnection()) {
+    try (Connection conn = dataSource.getConnection()) {
       String assignedSalt = "";
       try (PreparedStatement selectSalt = conn.prepareStatement(SQL_SELECT_SALT)){
         selectSalt.setString(1,username);
@@ -457,7 +568,6 @@ public class Connector {
       }
     }
     catch (SQLException e) {
-      e.printStackTrace();
       return false;
     }
   }
@@ -468,7 +578,7 @@ public class Connector {
    */
   public synchronized void closeConnection() {
     try {
-      ds.close();
+      dataSource.close();
     }
     catch (SQLException e) {
       e.printStackTrace();

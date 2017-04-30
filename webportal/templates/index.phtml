@@ -32,6 +32,7 @@
       <div id="mySidenav" class="sidenav">
         <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">x</a>
         <div id="user-panel">
+          <a id="create-account-link">New? Create Account</a>
           <h2><input id="username-input-box" placeholder="Search Users" onkeypress = "filter('username-input-box','users-div','username-link')" onkeyup = "filter('username-input-box','users-div','username-link')" onkeydown = "filter('username-input-box','users-div','username-link')" class="searchbarinput" type="text"></input></h2>
           <div id="users-div">
             <?php
@@ -72,13 +73,23 @@
     </div>
   </center>
   <!-- Sign-In Box -->
-  <div id="sign-in-box">
+  <div class="account-box" id="sign-in-box">
     <center>
       <img height="80px" src="img/no-text.png"></img><br>
       <span id="message-to-sign-in">Please enter your account details.</span><br><br>
       <input class="barinput" type="text" id="username-sign-in-input" placeholder="Username"></input><br>
       <input class="barinput" type="password" id="password-sign-in-input" placeholder="Password"></input><br><br>
-      <button id="sign-in-button">Sign-In</button><button id="cancel-button">Cancel</button>
+      <button id="sign-in-button">Sign-In</button><button id="cancel-sign-in-button">Cancel</button>
+    </center>
+  </div>
+  <!-- Create-Account Box -->
+  <div class="account-box" id="create-in-box">
+    <center>
+      <img height="80px" src="img/no-text.png"></img><br>
+      <span id="message-to-create-in">Welcome! Please create your account.</span><br><br>
+      <input class="barinput" type="text" id="username-create-in-input" placeholder="Username"></input><br>
+      <input class="barinput" type="password" id="password-create-in-input" placeholder="Password"></input><br><br>
+      <button id="create-in-button">Create Account</button><button id="cancel-create-in-button">Cancel</button>
     </center>
   </div>
 </body>

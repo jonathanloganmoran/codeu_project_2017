@@ -98,7 +98,34 @@ function signIn() {
   // Use keyword to input the full username into the sign-in box
   usernameInput.value = $(this).attr('keyword');
   msgbox.style.display = "block";
+  closeNav();
 }
+
+function createIn(){
+  var msgbox = document.getElementById("create-in-box");
+  var usernameInput = document.getElementById("username-create-in-input");
+  var passwordInput = document.getElementById("password-create-in-input");
+  var message = document.getElementById("message-to-create-in");
+  message.innerHTML = "Welcome! Please create your account!";
+  usernameInput.value = "";
+  passwordInput.value = "";
+  msgbox.style.display = "block";
+  closeNav();
+}
+
+/**
+* Makes user links clickable by full username, not shortened display
+*/
+allUNLinks = document.getElementsByClassName("username-link");
+for (i = 0; i < allUNLinks.length; i++) {
+  var fullUsername = $(allUNLinks[i]).attr('keyword');
+  allUNLinks[i].addEventListener("click", signIn);
+}
+document.getElementById("cancel-sign-in-button").addEventListener("click", closeSignIn);
+document.getElementById("cancel-create-in-button").addEventListener("click", closeCreateIn);
+document.getElementById("create-account-link").addEventListener("click", createIn);
+document.getElementById("sign-in-button").addEventListener("click", attemptSignIn);
+document.getElementById("create-in-button").addEventListener("click", attemptCreate);
 
 /**
 * Attempts to validate an account
@@ -111,7 +138,6 @@ function attemptSignIn() {
   xmlhttp.onreadystatechange = function() {
       if (this.readyState == 4 && this.status == 200) {
           if(this.responseText == "valid"){
-            closeNav();
             document.getElementById("welcome-message").innerHTML = "Hello,<br>" + shorten(usernameInput.value, 10);
             usernameInput.value = '';
             passwordInput.value = '';
@@ -126,6 +152,35 @@ function attemptSignIn() {
   xmlhttp.open("GET", "authenticateAccountHandler.php?u=" + usernameInput.value +"&p=" + passwordInput.value , true);
   xmlhttp.send();
 }
+
+
+/**
+* Attempts to create an account
+*/
+function attemptCreate() {
+  var msgbox = document.getElementById("create-in-box");
+  var usernameInput = document.getElementById("username-create-in-input");
+  var passwordInput = document.getElementById("password-create-in-input");
+  var xmlhttp = new XMLHttpRequest();
+  xmlhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+          if(this.responseText == "created"){
+            closeNav();
+            document.getElementById("welcome-message").innerHTML = "Hello,<br>" + shorten(usernameInput.value, 10);
+            usernameInput.value = '';
+            passwordInput.value = '';
+            msgbox.style.display = "none";
+          } else {
+            passwordInput.value = '';
+            var message = document.getElementById("message-to-create-in");
+            message.innerHTML = this.responseText;
+          }
+      }
+  };
+  xmlhttp.open("GET", "createAccountHandler.php?u=" + usernameInput.value +"&p=" + passwordInput.value , true);
+  xmlhttp.send();
+}
+
 
 /**
 * Shortens username to maximum number of characters,
@@ -152,15 +207,16 @@ function closeSignIn() {
 }
 
 /**
-* Makes user links clickable by full username, not shortened display
+* Closes the create-in-box for the user to enter details
 */
-allUNLinks = document.getElementsByClassName("username-link");
-for (i = 0; i < allUNLinks.length; i++) {
-  var fullUsername = $(allUNLinks[i]).attr('keyword');
-  allUNLinks[i].addEventListener("click", signIn);
+function closeCreateIn() {
+  var msgbox = document.getElementById("create-in-box");
+  var usernameInput = document.getElementById("username-create-in-input");
+  var passwordInput = document.getElementById("password-create-in-input");
+  usernameInput.value = '';
+  passwordInput.value = '';
+  msgbox.style.display = "none";
 }
-document.getElementById("cancel-button").addEventListener("click", closeSignIn);
-document.getElementById("sign-in-button").addEventListener("click", attemptSignIn);
 
 /**
 * Removes CodeU logo upon full page load

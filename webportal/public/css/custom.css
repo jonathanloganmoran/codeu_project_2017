@@ -142,7 +142,7 @@ h1 {
   cursor: pointer;
 }
 
-#sign-in-box {
+.account-box {
   padding: 20px;
   padding-top: 30px;
   font-size: 1.5em;

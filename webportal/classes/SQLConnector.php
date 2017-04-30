@@ -139,8 +139,8 @@ class SQLConnector {
   }
 
   /**
-  * Returns true if account username and password match,
-  * False otherwise.
+  * Returns "valid" if account username and password match,
+  * "invalid" otherwise.
   * Not currently functional.
   */
   public function authenticateAccount($username, $password) {
@@ -148,6 +148,18 @@ class SQLConnector {
       return "valid";
     }
     return "invalid";
+  }
+
+  /**
+  * Returns "created" if account was able to be created,
+  * "Account not created: <REASON>" otherwise.
+  * Not currently functional.
+  */
+  public function createAccount($username, $password) {
+    if($password === "password"){
+      return "created";
+    }
+    return "Account not created: method not yet implemented.";
   }
 }
 

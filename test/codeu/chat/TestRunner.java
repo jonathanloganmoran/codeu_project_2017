@@ -16,11 +16,13 @@ package codeu.chat;
 
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
+import codeu.chat.util.Logger;
 import org.junit.runner.notification.Failure;
 import java.io.*;
 
 public final class TestRunner {
 
+  private final static Logger.Log LOG = Logger.newLog(TestRunner.class);
   private static boolean loading = true;
   private static int FRAME_SPEED = 60;
 
@@ -31,7 +33,7 @@ public final class TestRunner {
    * @param msg: the message to be displayed in the loading
    */
   public static synchronized void main(String[] msg) {
-    Thread th = new Thread() {
+    Thread thread = new Thread() {
       @Override
       public void run() {
         try {
@@ -64,13 +66,11 @@ public final class TestRunner {
           for (final Failure failure : result.getFailures()) {
             System.out.println("\t\t"+failure.toString());
           }
-          System.out.println();
         } catch (Exception e) {
-          e.printStackTrace();
         }
       }
     };
-    th.start();
+    thread.start();
   }
 
   /**
@@ -81,13 +81,13 @@ public final class TestRunner {
    * @param msg: the message to be displayed in the loading
    */
   private static synchronized void loading(String msg) {
-    Thread th = new Thread() {
+    Thread thread = new Thread() {
       @Override
       public void run() {
         try {
           System.out.write("\r|".getBytes());
           int x =0;
-          while(loading) {
+          while (loading) {
             String anim= "|/-\\";
             String data = "\r" + msg + anim.charAt(++x % anim.length());
             System.out.write(data.getBytes());
@@ -100,6 +100,6 @@ public final class TestRunner {
         }
       }
     };
-    th.start();
+    thread.start();
   }
 }

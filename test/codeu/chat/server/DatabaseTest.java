@@ -14,8 +14,14 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+// Created to test the implementation of the methods in database.Connector.java
 
-//Created to test the implementation of the methods in database.Connector.java
+/*
+ *  It is important that the usernames and passwords added are alphanumeric only.
+ *  Do not try to add an entire UUID as a username. It messes with the testing
+ *  of the front-end. Leave them substringed to only numbers without dashes.
+ */
+
 public final class DatabaseTest {
 
   private static final Connector con = new database.Connector();
@@ -30,6 +36,10 @@ public final class DatabaseTest {
   private static final String MESSAGE_TWO = "this is the second message";
   private static final String UUID_CONVERSATION_ONE = "31203810";
   private static final String CONVERSATION_TITLE = "the first conve";
+  private static final String RANDOM_UN = UUID.randomUUID().toString().substring(0,6);
+  private static final String RANDOM_PW = UUID.randomUUID().toString().substring(0,6);
+  private static final String RANDOM_UID = uuidGenerator.make().toString();
+  private static final int ITERATIONS_TO_TEST = 1;
 
   @Test
   public void test(){
@@ -89,17 +99,15 @@ public final class DatabaseTest {
   }
 
   @Test
-  public void testGetConversation(){
-    con.addConversation("323","1238","conversation3");
-    List<ConversationFromDB> conversationList = con.getConversations();
-    for(ConversationFromDB str : conversationList){
-      System.out.println(str.getTitle());
-    }
-    assertFalse(conversationList.isEmpty());
-  }
-
-  @Test
-  public void testAddAndDeleteUser() {
+    public void testAddAndDeleteUser(){
+      for(int i=0; i< ITERATIONS_TO_TEST; i++) {
+        assertTrue(con.addAccount(RANDOM_UN +i, RANDOM_PW, RANDOM_UID +i));
+      }
+      assertFalse(con.addAccount((RANDOM_UN +(ITERATIONS_TO_TEST -1)),
+          RANDOM_PW, RANDOM_UID +(ITERATIONS_TO_TEST -1)));
+      for(int i=0; i< ITERATIONS_TO_TEST; i++) {
+        assertTrue(con.deleteAccount(RANDOM_UN +i));
+      }
     assertTrue(con.addAccount("user1", "haha", "1234"));
     assertTrue(con.addAccount("user3", "haha2", "1236"));
     assertTrue(con.addAccount("user4", "haha3", "1237"));
@@ -120,11 +128,17 @@ public final class DatabaseTest {
     assertTrue(con.deleteAccount(randomUN+"2"));
     assertTrue(con.deleteAccount(randomUN+"3"));
     assertTrue(con.deleteAccount(randomUN+"4"));
-  }
+    }
 
   @Test
   public void testAddVerifyAndDeleteUser() {
-
+    assertTrue(con.addAccount(RANDOM_UN, RANDOM_PW, RANDOM_UID));
+    assertTrue(con.verifyAccount(RANDOM_UN, RANDOM_PW));
+    assertFalse(con.verifyAccount(RANDOM_UN, RANDOM_PW + "1"));
+    assertFalse(con.verifyAccount(RANDOM_UN, RANDOM_PW + " "));
+    assertTrue(con.deleteAccount(RANDOM_UN));
+    assertFalse(con.verifyAccount(RANDOM_UN, RANDOM_PW));
+    assertFalse(con.verifyAccount(RANDOM_UN, RANDOM_PW + "1"));
     String randomUN = UUID.randomUUID().toString();
     String randomPW = UUID.randomUUID().toString();
     assertTrue(con.addAccount(randomUN, randomPW,uuidGenerator.make().toString()));
@@ -138,15 +152,21 @@ public final class DatabaseTest {
 
   @Test
   public void testUserExists() {
-
-    String randomUN = UUID.randomUUID().toString();
-    String randomPW = UUID.randomUUID().toString();
-    con.addAccount(randomUN, randomPW,uuidGenerator.make().toString());
-    assertTrue(con.deleteAccount(randomUN));
-    assertFalse(con.verifyAccount(randomUN, randomPW));
-    assertTrue(con.addAccount(randomUN, randomPW,uuidGenerator.make().toString()));
+    con.addAccount(RANDOM_UN, RANDOM_PW, RANDOM_UID);
+    assertFalse(con.addAccount(RANDOM_UN,RANDOM_PW,RANDOM_UID));
+    assertTrue(con.deleteAccount(RANDOM_UN));
   }
 
+
+  @Test
+  public void testGetConversation(){
+    con.addConversation("323","1238","conversation3");
+    List<ConversationFromDB> conversationList = con.getConversations();
+    for(ConversationFromDB str : conversationList){
+      System.out.println(str.getTitle());
+    }
+    assertFalse(conversationList.isEmpty());
+  }
 
   @Test
   public void testUpdatePassword() {
@@ -164,6 +184,13 @@ public final class DatabaseTest {
     assertFalse(con.verifyAccount(randomUN, randomPW));
     assertTrue(con.verifyAccount(randomUN,randomPW+"1"));
     assertTrue(con.deleteAccount(randomUN));
+
+    assertTrue(con.addAccount(RANDOM_UN, RANDOM_PW, RANDOM_UID));
+    assertTrue(con.verifyAccount(RANDOM_UN, RANDOM_PW));
+    assertTrue(con.updatePassword(RANDOM_UN, RANDOM_PW +"1"));
+    assertFalse(con.verifyAccount(RANDOM_UN, RANDOM_PW));
+    assertTrue(con.verifyAccount(RANDOM_UN, RANDOM_PW +"1"));
+    assertTrue(con.deleteAccount(RANDOM_UN));
   }
 
   @Test

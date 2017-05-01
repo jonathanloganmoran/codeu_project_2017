@@ -18,9 +18,12 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.*;
+import codeu.chat.common.Uuid;
+import codeu.chat.common.Uuids;
+import database.Connector;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-
+import java.util.List;
 import codeu.chat.client.ClientContext;
 import codeu.chat.common.ConversationSummary;
 
@@ -31,6 +34,8 @@ public final class ConversationPanel extends JPanel {
 
   private final ClientContext clientContext;
   private final MessagePanel messagePanel;
+  private static final Connector connector = new Connector();
+  private static final Uuid STARTUP_UID = Uuids.fromString("00000000");
 
   public ConversationPanel(ClientContext clientContext, MessagePanel messagePanel) {
     super(new GridBagLayout());
@@ -108,6 +113,12 @@ public final class ConversationPanel extends JPanel {
     this.add(listShowPanel, listPanelC);
     this.add(buttonPanel, buttonPanelC);
 
+    // Load existing conversations from database.
+    List<String> convsToAdd = connector.getConversations();
+    for(String s : convsToAdd) {
+      clientContext.conversation.startConversation(s, STARTUP_UID, true);
+    }
+
     // User clicks Conversations Update button.
     updateButton.addActionListener(new ActionListener() {
       @Override
@@ -125,7 +136,7 @@ public final class ConversationPanel extends JPanel {
               ConversationPanel.this, "Enter title:", "Add Conversation", JOptionPane.PLAIN_MESSAGE,
               null, null, "");
           if (s != null && s.length() > 0) {
-            clientContext.conversation.startConversation(s, clientContext.user.getCurrent().id);
+            clientContext.conversation.startConversation(s, clientContext.user.getCurrent().id, false);
             ConversationPanel.this.getAllConversations(listModel);
           }
         } else {

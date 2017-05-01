@@ -17,7 +17,7 @@ package codeu.chat.client;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-
+import database.Connector;
 import codeu.chat.common.Conversation;
 import codeu.chat.common.ConversationSummary;
 import codeu.chat.common.Uuid;
@@ -31,6 +31,7 @@ public final class ClientConversation {
 
   private final Controller controller;
   private final View view;
+  private static final Connector connector = new Connector();
 
   private ConversationSummary currentSummary = null;
   private Conversation currentConversation = null;
@@ -86,7 +87,7 @@ public final class ClientConversation {
     printConversation(currentSummary, userContext);
   }
 
-  public void startConversation(String title, Uuid owner) {
+  public void startConversation(String title, Uuid owner, boolean isInDB) {
     final boolean validInputs = isValidTitle(title);
 
     final Conversation conv = (validInputs) ? controller.newConversation(title, owner) : null;
@@ -96,7 +97,9 @@ public final class ClientConversation {
           (validInputs) ? "server failure" : "bad input value");
     } else {
       LOG.info("New conversation: Title= \"%s\" UUID= %s", conv.title, conv.id);
-
+      if (!isInDB){
+        connector.addConversation(conv.id.toString(), conv.owner.toString(), conv.title);
+      }
       currentSummary = conv.summary;
 
       updateAllConversations(currentSummary != null);

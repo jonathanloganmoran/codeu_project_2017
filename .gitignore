@@ -49,3 +49,11 @@ com_crashlytics_export_strings.xml
 crashlytics.properties
 crashlytics-build.properties
 fabric.properties
+
+.DS_Store
+.idea/
+bin/
+src/.DS_Store
+src/codeu/.DS_Store
+src/codeu/chat/.DS_Store
+

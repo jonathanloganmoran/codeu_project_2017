@@ -9,12 +9,11 @@ import database.MessageFromDB;
 import database.UserFromDB;
 import java.util.Random;
 import java.util.UUID;
+import javax.jws.soap.SOAPBinding.Use;
 import org.junit.Test;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-
-// Created to test the implementation of the methods in database.Connector.java
 
 /*
  *  It is important that the usernames and passwords added are alphanumeric only.
@@ -98,16 +97,17 @@ public final class DatabaseTest {
     assertFalse(messageList.isEmpty());
   }
 
+
   @Test
-    public void testAddAndDeleteUser(){
-      for(int i=0; i< ITERATIONS_TO_TEST; i++) {
-        assertTrue(con.addAccount(RANDOM_UN +i, RANDOM_PW, RANDOM_UID +i));
-      }
-      assertFalse(con.addAccount((RANDOM_UN +(ITERATIONS_TO_TEST -1)),
-          RANDOM_PW, RANDOM_UID +(ITERATIONS_TO_TEST -1)));
-      for(int i=0; i< ITERATIONS_TO_TEST; i++) {
-        assertTrue(con.deleteAccount(RANDOM_UN +i));
-      }
+  public void testAddAndDeleteUser() {
+    for(int i=0; i< ITERATIONS_TO_TEST; i++) {
+      assertTrue(con.addAccount(RANDOM_UN +i, RANDOM_PW, RANDOM_UID +i));
+    }
+    assertFalse(con.addAccount((RANDOM_UN +(ITERATIONS_TO_TEST -1)),
+        RANDOM_PW, RANDOM_UID +(ITERATIONS_TO_TEST -1)));
+    for(int i=0; i< ITERATIONS_TO_TEST; i++) {
+      assertTrue(con.deleteAccount(RANDOM_UN +i));
+    }
     assertTrue(con.addAccount("user1", "haha", "1234"));
     assertTrue(con.addAccount("user3", "haha2", "1236"));
     assertTrue(con.addAccount("user4", "haha3", "1237"));
@@ -128,7 +128,7 @@ public final class DatabaseTest {
     assertTrue(con.deleteAccount(randomUN+"2"));
     assertTrue(con.deleteAccount(randomUN+"3"));
     assertTrue(con.deleteAccount(randomUN+"4"));
-    }
+  }
 
   @Test
   public void testAddVerifyAndDeleteUser() {
@@ -153,10 +153,10 @@ public final class DatabaseTest {
   @Test
   public void testUserExists() {
     con.addAccount(RANDOM_UN, RANDOM_PW, RANDOM_UID);
-    assertFalse(con.addAccount(RANDOM_UN,RANDOM_PW,RANDOM_UID));
+    assertTrue(con.accountExists(RANDOM_UN));
     assertTrue(con.deleteAccount(RANDOM_UN));
   }
-
+  
 
   @Test
   public void testGetConversation(){

@@ -1,13 +1,9 @@
 package database;
-import codeu.chat.common.Conversation;
-import codeu.chat.common.Message;
-import codeu.chat.common.Uuid;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.security.Timestamp;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -45,7 +41,7 @@ public class Connector {
   private static final String DB_NAME = "CodeU_2017DB";
 
   /* SQL User Queries */
-  private static final String SQL_SELECT_USERNAMES = String.format("SELECT username FROM %s", USER);
+  private static final String SQL_SELECT_USER = String.format("SELECT * FROM %s", USER);
   private static final String SQL_INSERT_ACCOUNT = String
       .format("INSERT INTO %s (username, password, salt, Uuid) VALUES(?,?,?,?)", USER);
   private static final String SQL_DROP_USER = String.format("TRUNCATE TABLE %s", USER);
@@ -205,13 +201,16 @@ public class Connector {
    * Acquire all the conversations ordered by creation time from database
    * @return List<String> a list of conversations
    */
-  public synchronized List<String> getConversations(){
-    List<String> conversationList = new ArrayList<>();
+  public synchronized List<ConversationFromDB> getConversations(){
+    List<ConversationFromDB> conversationList = new ArrayList<>();
     try (Connection conn = dataSource.getConnection()) {
       try (PreparedStatement getConversation = conn.prepareStatement(SQL_SELECT_CONVERSATION)) {
         ResultSet conversation = getConversation.executeQuery();
         while (conversation.next()) {
-          conversationList.add(conversation.getString("title"));
+          String title = conversation.getString("title");
+          String uuid = conversation.getString("Uuid");
+          String author = conversation.getString("id_user");
+          conversationList.add(new ConversationFromDB(uuid, author,title));
         }
         return conversationList;
       }
@@ -226,14 +225,18 @@ public class Connector {
    * @param conversation_id
    * @return List<String> a list of messages
    */
-  public synchronized List<String> getMessages(String conversation_id){
-    List<String> messageList = new ArrayList<>();
+  public synchronized List<MessageFromDB> getMessages(String conversation_id){
+    List<MessageFromDB> messageList = new ArrayList<>();
     try(Connection conn = dataSource.getConnection()) {
       try (PreparedStatement getMessage = conn.prepareStatement(SQL_SELECT_MESSAGES)) {
         getMessage.setString(1,conversation_id);
         ResultSet messages = getMessage.executeQuery();
         while (messages.next()) {
-          messageList.add(messages.getString("content"));
+          String uuid = messages.getString("Uuid");
+          String user = messages.getString("id_user");
+          String conversation = messages.getString("id_conversation");
+          String conetnt = messages.getString("content");
+          messageList.add(new MessageFromDB(uuid,conversation,user,conetnt));
         }
         return messageList;
       }
@@ -247,14 +250,17 @@ public class Connector {
    * Print all the current usernames
    * @return a list of usernames
    */
-  public synchronized List<String> getAllUsers() {
+  public synchronized List<UserFromDB> getAllUsers() {
 
-    List<String> userNames = new ArrayList<>();
+    List<UserFromDB> userNames = new ArrayList<>();
+
     try (Connection conn = dataSource.getConnection()) {
-      try (PreparedStatement getUsers = conn.prepareStatement(SQL_SELECT_USERNAMES)) {
+      try (PreparedStatement getUsers = conn.prepareStatement(SQL_SELECT_USER)) {
         try (ResultSet users = getUsers.executeQuery()) {
           while (users.next()) {
-            userNames.add(users.getString("username"));
+            String username = users.getString("username");
+            String uuid = users.getString("Uuid");
+            userNames.add(new UserFromDB(uuid,username));
           }
           return userNames;
         }

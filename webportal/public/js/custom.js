@@ -2,8 +2,8 @@
 * Constants used in determining how often to refresh page contents.
 */
 var INTERVAL_TO_REFRESH_USERS = 15000;
-var INTERVAL_TO_REFRESH_CONVERSATIONS = 10000;
-var INTERVAL_TO_REFRESH_MESSAGES = 2000;
+var INTERVAL_TO_REFRESH_CONVERSATIONS = 1000;
+var INTERVAL_TO_REFRESH_MESSAGES = 500;
 
 /**
 * Parse the URL parameter for anything after '?dc='
@@ -234,6 +234,7 @@ function updateUserList() {
     if (this.readyState == 4 && this.status == 200) {
       users_div.innerHTML = this.responseText;
       addUNLinks();
+      filter('username-input-box','users-div','username-link');
     }
   };
   xmlhttp.open("GET", "updateUserListHandler.php", true);
@@ -249,6 +250,7 @@ function updateConversationList() {
   xmlhttp.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
       conv_div.innerHTML = this.responseText;
+      filter('conversation-input-box','conversation-list','conversation-link');
       // Will need to regenerate href paths for convs here
     }
   };
@@ -265,6 +267,7 @@ function updateMessageList() {
   xmlhttp.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
       mess_div.innerHTML = this.responseText;
+      filter('messagebar-input','messages-div','message-link');
     }
   };
   xmlhttp.open("GET", "updateMessagesHandler.php?c="+"testConversation", true);

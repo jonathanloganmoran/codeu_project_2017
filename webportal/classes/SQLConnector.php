@@ -131,9 +131,9 @@ class SQLConnector {
     for ($x = 0; $x <= 50; $x++) {
       if($x & 1) {
         //can add for profile pictures: <img class='profile-picture' src='img/no-text.png'></img>
-        $messages .= "<div class='message-link bubble'>" . "<span class='author-link'>David:</span> Lorem ipsum dolor sit amet, consectetur adipiscing elit " . $x . ".</div><br>";
+        $messages .= "<div class='message-link bubble'>" . "<span class='author-link'>David:</span> Lorem ipsum dolor sit amet, consectetur adipiscing elit " . $x . ".</div>";
       } else {
-        $messages .= "<div class='message-link bubble bubble--alt'>" . "Ut enim ad minim veniam, quis nostrud " . $x . ".</div><br>";
+        $messages .= "<div class='message-link bubble bubble--alt'>" . "Ut enim ad minim veniam, quis nostrud " . $x . ".</div>";
       }
     }
     return $messages;

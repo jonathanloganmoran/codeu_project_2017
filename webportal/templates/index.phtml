@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>CodeU Chat</title>
+  <link rel="icon" href="img/no-text.png"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Website of the Online CodeU Chat Portal.">
+  <meta property="og:locale" content="en_US">
+  <meta name="og:description" content="Website of the Online CodeU Chat Portal.">
+  <link rel="stylesheet" type="text/css" href="css/custom.css">
+  <link rel="stylesheet" type="text/css" href="css/google-fonts.css">
+  <script src="js/jquery-3.2.1.min.js"></script>
+  <script src="js/jquery-ui.min.js"></script>
+</head>
+<body>
+  <!-- Loading Screen for Better UI -->
+  <div class="se-pre-con">
+    <noscript>
+      <center>
+        <br><br>
+        <p style="font-size:20px;color:white;">Your browser does not support Javascript. :(<br>Please <a href="mailto:dgarry@usc.edu?Subject=Error in Loading CodeU Chat Website - Javascript Disabled" target="_top">email us</a> if you believe this was an error.</p>
+      </center>
+    </noscript>
+  </div>
+  <!-- Page content. -->
+  <center>
+    <div id="conversation-panel" class="rgba-primary-0">
+      <!-- Navigation for Sign-In -->
+      <div id="navbars" class="nav padded-below" onclick="openNav()">&#9776; Sign-In</div>
+      <div id="mySidenav" class="sidenav">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">x</a>
+        <div id="user-panel">
+          <a id="create-account-link">New? Create Account</a>
+          <h2><input id="username-input-box" placeholder="Search Users" onkeypress = "filter('username-input-box','users-div','username-link')" onkeyup = "filter('username-input-box','users-div','username-link')" onkeydown = "filter('username-input-box','users-div','username-link')" class="searchbarinput" type="text"></input></h2>
+          <div id="users-div">
+            <?php
+            $connection = new SQLConnector();
+            echo $connection->getUsers();
+            ?>
+          </div>
+        </div>
+        <footer id="footer">
+          <div class="copyright">
+            Copyright &copy; 2017 <a target="_blank" href="https://developers.google.com/">CodeU</a>
+          </div>
+        </footer>
+      </div>
+      <h2 class="padded-above"><input id="conversation-input-box" class="searchbarinput" placeholder="Conversations" onkeypress = "filter('conversation-input-box','conversation-list','conversation-link')" onkeyup = "filter('conversation-input-box','conversation-list','conversation-link')" onkeydown = "filter('conversation-input-box','conversation-list','conversation-link')" type="text"></input></h2>
+      <div id="conversation-list" class="more-padded-below">
+        <?php
+        $connection = new SQLConnector();
+        echo $connection->getConversations();
+        ?>
+      </div>
+    </div>
+    <div id="bottom-panel" class="rgba-primary-2">
+      <h2><span id="welcome-message" class="logo lefted">Welcome</span><input id="messagebar-input" placeholder="Messages" class="searchbarinput" onkeydown = "filter('messagebar-input','messages-div','message-link')" onkeypress = "filter('messagebar-input','messages-div','message-link')" onkeyup ="filter('messagebar-input','messages-div','message-link')" type="text"></input></h2>
+      <div id="message-panel" class="rgba-primary-0">
+        <div class="more-padded" id="message-context">
+          <div class="more-padded-below"><i>- Beginning of Conversation -</i></div>
+          <div id="messages-div">
+            <?php
+            $connection = new SQLConnector();
+            echo $connection->getMessages();
+            ?>
+          </div>
+        </div>
+      </div>
+      <textarea id="message-input" class="barinput" type="text"></textarea><br>
+      <button id="message-input-button">Send</button>
+    </div>
+  </center>
+  <!-- Sign-In Box -->
+  <div class="account-box" id="sign-in-box">
+    <center>
+      <img height="80px" src="img/no-text.png"></img><br>
+      <span id="message-to-sign-in">Please enter your account details.</span><br><br>
+      <input class="barinput" type="text" id="username-sign-in-input" placeholder="Username"></input><br>
+      <input class="barinput" type="password" id="password-sign-in-input" placeholder="Password"></input><br><br>
+      <button id="sign-in-button">Sign-In</button><button id="cancel-sign-in-button">Cancel</button>
+    </center>
+  </div>
+  <!-- Create-Account Box -->
+  <div class="account-box" id="create-in-box">
+    <center>
+      <img height="80px" src="img/no-text.png"></img><br>
+      <span id="message-to-create-in">Welcome! Please create your account.</span><br><br>
+      <input class="barinput" type="text" id="username-create-in-input" placeholder="Username"></input><br>
+      <input class="barinput" type="password" id="password-create-in-input" placeholder="Password"></input><br><br>
+      <button id="create-in-button">Create Account</button><button id="cancel-create-in-button">Cancel</button>
+    </center>
+  </div>
+</body>
+<script src="js/custom.js"></script>
+</html>

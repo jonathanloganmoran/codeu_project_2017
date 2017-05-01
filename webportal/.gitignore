@@ -3,3 +3,9 @@
 !/logs/README.md
 .DS_STORE
 /pdfs/*
+.DS_Store
+.idea/
+bin/
+src/.DS_Store
+src/codeu/.DS_Store
+src/codeu/chat/.DS_Store

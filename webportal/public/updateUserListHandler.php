@@ -1,6 +1,6 @@
 <?php
 
-  $connection = new SQLConnector();
-  echo $connection->getUsers();
+$connection = new SQLConnector();
+echo $connection->getUsers();
 
 ?>

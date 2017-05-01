@@ -124,13 +124,13 @@ button.ui-button::-moz-focus-inner { border: 0; padding: 0; } /* reset extra pad
 
 /* IE6 IFRAME FIX (taken from datepicker 1.5.3 */
 .ui-datepicker-cover {
-    position: absolute; /*must have*/
-    z-index: -1; /*must have*/
-    filter: mask(); /*must have*/
-    top: -4px; /*must have*/
-    left: -4px; /*must have*/
-    width: 200px; /*must have*/
-    height: 200px; /*must have*/
+  position: absolute; /*must have*/
+  z-index: -1; /*must have*/
+  filter: mask(); /*must have*/
+  top: -4px; /*must have*/
+  left: -4px; /*must have*/
+  width: 200px; /*must have*/
+  height: 200px; /*must have*/
 }
 .ui-dialog { position: absolute; padding: .2em; width: 300px; overflow: hidden; }
 .ui-dialog .ui-dialog-titlebar { padding: .4em 1em; position: relative;  }
@@ -146,54 +146,54 @@ button.ui-button::-moz-focus-inner { border: 0; padding: 0; } /* reset extra pad
 .ui-draggable .ui-dialog-titlebar { cursor: move; }
 
 .ui-menu {max-width:400px;
-white-space: nowrap;
-overflow: hidden;
-text-overflow: ellipsis; list-style:none; padding: 2px; margin: 0; display:block; box-shadow: 1px 1px 0 #990000,
--1px 1px 0 #990066,
-1px -1px 0 #9900cc,
--1px -1px 0 #9900ff,
-0px 1px 0 #993366,
-0px -1px 0 #993333,
--1px 0px 0 #996600,
-1px 0px 0 #996666,
-2px 2px 0 #996699,
--2px 2px 0 #9966cc,
-2px -2px 0 #9999ff,
--2px -2px 0 #99ccff,
-0px 2px 0 #99cccc,
-0px -2px 0 #99cc66,
--2px 0px 0 #99cc00,
-2px 0px 0 #99ff66,
-1px 2px 0 #99ff00,
--1px 2px 0 #ccff33,
-1px -2px 0 #ffff66,
--1px -2px 0 #ffff00,
-2px 1px 0 #ffcc00,
--2px 1px 0 #ff9900,
-2px -1px 0 #ff6600,
--2px -1px 0 #ff3300;
-margin: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; list-style:none; padding: 2px; margin: 0; display:block; box-shadow: 1px 1px 0 #990000,
+  -1px 1px 0 #990066,
+  1px -1px 0 #9900cc,
+  -1px -1px 0 #9900ff,
+  0px 1px 0 #993366,
+  0px -1px 0 #993333,
+  -1px 0px 0 #996600,
+  1px 0px 0 #996666,
+  2px 2px 0 #996699,
+  -2px 2px 0 #9966cc,
+  2px -2px 0 #9999ff,
+  -2px -2px 0 #99ccff,
+  0px 2px 0 #99cccc,
+  0px -2px 0 #99cc66,
+  -2px 0px 0 #99cc00,
+  2px 0px 0 #99ff66,
+  1px 2px 0 #99ff00,
+  -1px 2px 0 #ccff33,
+  1px -2px 0 #ffff66,
+  -1px -2px 0 #ffff00,
+  2px 1px 0 #ffcc00,
+  -2px 1px 0 #ff9900,
+  2px -1px 0 #ff6600,
+  -2px -1px 0 #ff3300;
+  margin: 10px;
 }
 input[type=text]:focus {
-width: 400px;
+  width: 400px;
 }
 
 button {
-border-radius: 8px;
-border: 2px solid #000;
-width: 100px;
-padding: 2px;
-height: 36px;
-margin: 3px;
-font-size: 14px;
-color: #000;
-background-color: white;
-text-align: center;
-vertical-align: middle;
-font-family: Palatino;
-border-style: solid;
-border-color: purple;
-   }
+  border-radius: 8px;
+  border: 2px solid #000;
+  width: 100px;
+  padding: 2px;
+  height: 36px;
+  margin: 3px;
+  font-size: 14px;
+  color: #000;
+  background-color: white;
+  text-align: center;
+  vertical-align: middle;
+  font-family: Palatino;
+  border-style: solid;
+  border-color: purple;
+}
 .ui-menu .ui-menu { margin-top: -3px; position: absolute; }
 .ui-menu .ui-menu-item { margin: 0; padding: 0; zoom: 1; width: 100%; }
 .ui-menu .ui-menu-divider { margin: 5px -2px 5px -2px; height: 0; font-size: 0; line-height: 0; border-width: 1px 0 0 0; }
@@ -255,8 +255,8 @@ border-color: purple;
 /* TR overrides */
 span.ui-spinner { background: none; }
 .ui-spinner .ui-icon-triangle-1-s {
-	/* need to fix icons sprite */
-	background-position:-65px -16px;
+  /* need to fix icons sprite */
+  background-position:-65px -16px;
 }
 
 .ui-tabs { position: relative; padding: .2em; zoom: 1; } /* position: relative prevents IE scroll bug (element with position: relative inside container with overflow: auto appear as "fixed") */
@@ -269,17 +269,17 @@ span.ui-spinner { background: none; }
 .ui-tabs .ui-tabs-panel { display: block; border-width: 0; padding: 1em 1.4em; background: none; }
 
 .ui-tooltip {
-	padding:8px;
-	position:absolute;
-	z-index:9999;
-	-o-box-shadow: 0 0 5px #aaa;
-	-moz-box-shadow: 0 0 5px #aaa;
-	-webkit-box-shadow: 0 0 5px #aaa;
-	box-shadow: 0 0 5px #aaa;
+  padding:8px;
+  position:absolute;
+  z-index:9999;
+  -o-box-shadow: 0 0 5px #aaa;
+  -moz-box-shadow: 0 0 5px #aaa;
+  -webkit-box-shadow: 0 0 5px #aaa;
+  box-shadow: 0 0 5px #aaa;
 }
 /* Fades and background-images don't work well together in IE6, drop the image */
 * html .ui-tooltip {
-	background-image: none;
+  background-image: none;
 }
 body .ui-tooltip { border-width:2px; }
 

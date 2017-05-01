@@ -18,6 +18,7 @@ import codeu.chat.client.ClientContext;
 import codeu.chat.common.User;
 import codeu.chat.util.TextValidator;
 import database.Connector;
+import database.UserFromDB;
 import java.util.LinkedList;
 import java.util.List;
 import java.awt.Dimension;
@@ -160,9 +161,9 @@ public final class UserPanel extends JPanel {
 
     // Load existing users from database.
     con = new Connector();
-    List<String> usersToAdd = con.getAllUsers();
-    for(String s : usersToAdd) {
-      clientContext.user.addUser(s);
+    List<UserFromDB> usersToAdd = con.getAllUsers();
+    for(UserFromDB s : usersToAdd) {
+      clientContext.user.addUser(s.getUsername());
     }
     UserPanel.this.getAllUsers(listModel);
 

@@ -1,3 +1,10 @@
+/*
+* Constants used in determining how often to refresh page contents.
+*/
+var INTERVAL_TO_REFRESH_USERS = 15000;
+var INTERVAL_TO_REFRESH_CONVERSATIONS = 10000;
+var INTERVAL_TO_REFRESH_MESSAGES = 2000;
+
 /**
 * Parse the URL parameter for anything after '?dc='
 */
@@ -143,7 +150,7 @@ function checkForEnableSubmit(){
 */
 window.setInterval(function(){
   updateUserList();
-}, 15000);
+}, INTERVAL_TO_REFRESH_USERS);
 
 /**
 *  Update the conversation list every x miliseconds.
@@ -152,7 +159,7 @@ window.setInterval(function(){
 */
 window.setInterval(function(){
   updateConversationList();
-}, 5000);
+}, INTERVAL_TO_REFRESH_CONVERSATIONS);
 
 /**
 *  Update the conversation list every x miliseconds.
@@ -161,7 +168,7 @@ window.setInterval(function(){
 */
 window.setInterval(function(){
   updateMessageList();
-}, 2500);
+}, INTERVAL_TO_REFRESH_MESSAGES);
 
 /**
 * Attempts to validate an account

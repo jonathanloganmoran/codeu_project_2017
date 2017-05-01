@@ -111,7 +111,7 @@ class SQLConnector {
   public function getConversations() {
     $conversations = "";
     for ($x = 0; $x <= 50; $x++) {
-      $convname = "Conversation " . $x . " With A Long Name Title";
+      $convname = "Conversation " . $x . " Test";
       $fullconvname = $convname;
       // Truncate conversation name to 28 characters max
       if(strlen($convname) > 28){

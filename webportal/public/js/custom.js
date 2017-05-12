@@ -3,7 +3,7 @@
 */
 var INTERVAL_TO_REFRESH_USERS = 15000;
 var INTERVAL_TO_REFRESH_CONVERSATIONS = 1000;
-var INTERVAL_TO_REFRESH_MESSAGES = 3000;
+var INTERVAL_TO_REFRESH_MESSAGES = 300;
 
 /**
 * Parse the URL parameter for anything after '?dc='
@@ -121,17 +121,6 @@ function createIn(){
 }
 
 /**
-* Makes user links clickable by full username, not shortened display
-*/
-function addUNLinks(){
-  allUNLinks = document.getElementsByClassName("username-link");
-  for (i = 0; i < allUNLinks.length; i++) {
-    var fullUsername = $(allUNLinks[i]).attr('keyword');
-    allUNLinks[i].addEventListener("click", signIn);
-  }
-}
-
-/**
 *  Only allow user to send a message that is valid.
 */
 function checkForEnableSubmit(){
@@ -140,6 +129,38 @@ function checkForEnableSubmit(){
     document.getElementById("message-input-button").disabled = false;
   } else {
     document.getElementById("message-input-button").disabled = true;
+  }
+}
+
+/**
+*  Only allow user to press the create account button if
+*  the appropriate fields are filled out.
+*/
+function checkForCreateAccountSubmit(){
+  // Can add more text validation here if necessary
+  var userLength = document.getElementById("username-create-in-input").value.length;
+  var passLength = document.getElementById("password-create-in-input").value.length;
+
+  if(userLength > 0 && passLength >= 4) {
+    document.getElementById("create-in-button").disabled = false;
+  } else {
+    document.getElementById("create-in-button").disabled = true;
+  }
+}
+
+/**
+*  Only allow user to press the sign-in button if
+*  the appropriate fields are filled out.
+*/
+function checkForSignInSubmit(){
+  // Can add more text validation here if necessary
+  var userLength = document.getElementById("username-sign-in-input").value.length;
+  var passLength = document.getElementById("password-sign-in-input").value.length;
+
+  if(userLength > 0 && passLength >= 4) {
+    document.getElementById("sign-in-button").disabled = false;
+  } else {
+    document.getElementById("sign-in-button").disabled = true;
   }
 }
 
@@ -189,6 +210,7 @@ function attemptSignIn() {
         passwordInput.value = '';
         var message = document.getElementById("message-to-sign-in");
         message.innerHTML = "Invalid account details!";
+        checkForSignInSubmit();
       }
     }
   };
@@ -213,10 +235,12 @@ function attemptCreate() {
         usernameInput.value = '';
         passwordInput.value = '';
         msgbox.style.display = "none";
+        updateUserList();
       } else {
         passwordInput.value = '';
         var message = document.getElementById("message-to-create-in");
         message.innerHTML = this.responseText;
+        checkForCreateAccountSubmit();
       }
     }
   };
@@ -325,12 +349,31 @@ $(window).on('load',function() {
   }, 1);
 });
 
+/**
+* Makes user links clickable by full username, not shortened display
+*/
+function addUNLinks(){
+  allUNLinks = document.getElementsByClassName("username-link");
+  for (i = 0; i < allUNLinks.length; i++) {
+    var fullUsername = $(allUNLinks[i]).attr('keyword');
+    allUNLinks[i].addEventListener("click", signIn);
+    allUNLinks[i].addEventListener("click", checkForSignInSubmit);
+  }
+}
+
 // Add listeners
 addUNLinks();
 checkForEnableSubmit();
+checkForCreateAccountSubmit();
+checkForSignInSubmit();
 document.getElementById("cancel-sign-in-button").addEventListener("click", closeSignIn);
 document.getElementById("cancel-create-in-button").addEventListener("click", closeCreateIn);
 document.getElementById("create-account-link").addEventListener("click", createIn);
 document.getElementById("sign-in-button").addEventListener("click", attemptSignIn);
 document.getElementById("create-in-button").addEventListener("click", attemptCreate);
+document.getElementById("create-account-link").addEventListener("click", checkForCreateAccountSubmit);
+$('#username-create-in-input').bind('input', checkForCreateAccountSubmit);
+$('#password-create-in-input').bind('input', checkForCreateAccountSubmit);
+$('#username-sign-in-input').bind('input', checkForSignInSubmit);
+$('#password-sign-in-input').bind('input', checkForSignInSubmit);
 $('#message-input').bind('input', checkForEnableSubmit);

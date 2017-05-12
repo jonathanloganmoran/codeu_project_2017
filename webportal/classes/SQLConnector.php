@@ -106,9 +106,9 @@ class SQLConnector {
   }
 
   /*
-    * Private helper method to acquire salt
-    * to be used in decryption of password.
-    */
+  * Private helper method to acquire salt
+  * to be used in decryption of password.
+  */
   private function acquireSalt($username) {
     $SQL_SELECT_SALT = "SELECT salt FROM User WHERE username = '" . $username . "'";
     $result = $this -> query($SQL_SELECT_SALT);
@@ -180,15 +180,128 @@ class SQLConnector {
   }
 
   /**
+  * Returns "valid" if username is valid string format
+  * Returns "invalid" if username is not
+  */
+  public function validateUsernameFormat($string) {
+    if(!(preg_match("/^[a-zA-Z0-9]+$/", $string) == 1)){
+      return "invalid";
+    }
+    if(strlen($string) < 1){
+      return "invalid";
+    }
+    return "valid";
+  }
+
+  /**
+  * Returns "valid" if password is valid string format
+  * Returns "invalid" if password is not
+  */
+  public function validatePasswordFormat($string) {
+    if(strlen($string) < 4){
+      return "invalid";
+    }
+    return "valid";
+  }
+
+  /**
+  * Returns "present" if username is already in database
+  * Returns "absent" if username is not
+  */
+  private function checkIfUsernameExistsInDB($username) {
+    $SQL_SELECT_USER = "SELECT username FROM User WHERE username = '" . $username . "'";
+    $result = $this -> query($SQL_SELECT_USER);
+    $rows = array();
+    if($result === false) {
+      return "absent";
+    }
+    $row = $result -> fetch_assoc();
+    if($row === NULL){
+      return "absent";
+    }
+    return "present";
+  }
+
+  /**
+  * Adds an account into the database.
+  * Does not check inputs: not to be called directly.
+  * Returns "invalid" if not added
+  * Returns "valid" if added
+  */
+  private function addAccount($username, $password) {
+    $salt = $this->generateSalt();
+    $input = $salt . $password;
+    $encryptedPassword = hash("sha256", utf8_encode($input));
+    $uuid = $this->generateUuid();
+    $SQL_ADD_ACCOUNT = "INSERT INTO User (username, password, salt, Uuid) VALUES ('";
+    $SQL_ADD_ACCOUNT = $SQL_ADD_ACCOUNT . $username . "','" . $encryptedPassword;
+    $SQL_ADD_ACCOUNT = $SQL_ADD_ACCOUNT . "','" . $salt . "','" . $uuid . "')";
+    $result = $this -> query($SQL_ADD_ACCOUNT);
+    if($result === false) {
+      return "invalid";
+    }
+    return "valid";
+  }
+
+  /*
+  * Generates a UUID
+  */
+  private function generateUuid(){
+    $num = "100.101." . $this->randomNumber();
+    // to-do: make sure ID is not already taken
+    $id = "[UUID:" . $num . "]";
+    return $id;
+  }
+
+  /*
+  * Generates a random number of length 9
+  */
+  private function randomNumber() {
+    $length = 9;
+    $result = '';
+    for($i = 0; $i < $length; $i++) {
+        $result .= mt_rand(0, 9);
+    }
+    return $result;
+  }
+
+  /*
+  * Generates a random salt string for encryption
+  */
+  private function generateSalt(){
+    $length = 8;
+    $string = "";
+    for($i=0; $i < $length; $i++){
+      $x = mt_rand(0, 2);
+      switch($x){
+        case 0: $string.= chr(mt_rand(97,122));break;
+        case 1: $string.= chr(mt_rand(65,90));break;
+        case 2: $string.= chr(mt_rand(48,57));break;
+      }
+    }
+    return $string;
+  }
+
+  /**
   * Returns "created" if account was able to be created,
   * "Account not created: <REASON>" otherwise.
   * Not currently functional.
   */
   public function createAccount($username, $password) {
-    if($password === "password"){
+    if($this->validateUsernameFormat($username) === "invalid"){
+      return "Account not created. Format of username invalid.";
+    }
+    if($this->validatePasswordFormat($password) === "invalid"){
+      return "Account not created. Format of password invalid.";
+    }
+    if($this->checkIfUsernameExistsInDB($username) === "present"){
+      return "Account not created. Username already in use.";
+    }
+    $results =  $this->addAccount($username, $password);
+    if($results === "valid"){
       return "created";
     }
-    return "Account not created: method not yet implemented.";
+    return "Account not created. Please try again later.";
   }
 }
 

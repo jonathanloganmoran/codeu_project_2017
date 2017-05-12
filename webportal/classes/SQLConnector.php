@@ -80,6 +80,46 @@ class SQLConnector {
     return "'" . $connection -> real_escape_string($value) . "'";
   }
 
+  /**
+  * Returns "valid" if account username and password match,
+  * "invalid" otherwise.
+  * Should be completely functional, however SQLI attacks
+  * not yet protected against.
+  */
+  public function authenticateAccount($username, $password) {
+    $SQL_SELECT_PASSWORD = "SELECT password FROM User WHERE username = '" . $username ."'";
+    $salt = $this->acquireSalt($username);
+    $input = $salt . $password;
+    $hash = hash("sha256", utf8_encode($input));
+    $result = $this -> query($SQL_SELECT_PASSWORD);
+    $rows = array();
+    $users = "";
+    if($result === false) {
+      return "invalid";
+    }
+    $row = $result -> fetch_assoc();
+    $passwordEncrypted = $row["password"];
+    if($hash === $passwordEncrypted){
+      return "valid";
+    }
+    return "invalid";
+  }
+
+  /*
+    * Private helper method to acquire salt
+    * to be used in decryption of password.
+    */
+  private function acquireSalt($username) {
+    $SQL_SELECT_SALT = "SELECT salt FROM User WHERE username = '" . $username . "'";
+    $result = $this -> query($SQL_SELECT_SALT);
+    $rows = array();
+    $users = "";
+    if($result === false) {
+      return false;
+    }
+    $row = $result -> fetch_assoc();
+    return $row["salt"];
+  }
 
   /**
   * Returns the formatted usernames of all users.
@@ -128,7 +168,7 @@ class SQLConnector {
   */
   public function getMessages() {
     $messages = "";
-    for ($x = 0; $x <= 50; $x++) {
+    for ($x = 0; $x <= 2; $x++) {
       if($x & 1) {
         //can add for profile pictures: <img class='profile-picture' src='img/no-text.png'></img>
         $messages .= "<div class='message-link bubble'>" . "<span class='author-link'>David:</span> Lorem ipsum dolor sit amet, consectetur adipiscing elit " . $x . ".</div>";
@@ -137,18 +177,6 @@ class SQLConnector {
       }
     }
     return $messages;
-  }
-
-  /**
-  * Returns "valid" if account username and password match,
-  * "invalid" otherwise.
-  * Not currently functional.
-  */
-  public function authenticateAccount($username, $password) {
-    if($password === "password"){
-      return "valid";
-    }
-    return "invalid";
   }
 
   /**

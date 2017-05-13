@@ -4,7 +4,10 @@
 // Users will also be refreshed on relevant clicks
 var INTERVAL_TO_REFRESH_USERS = 30000;
 var INTERVAL_TO_REFRESH_CONVERSATIONS = 30000;
-var INTERVAL_TO_REFRESH_MESSAGES = 30000;
+var INTERVAL_TO_REFRESH_MESSAGES = 10000;
+var ACTIVE_CONVERSATION_ID;
+// Current security risk, should be moved to server in PHP sessions once working
+var ACTIVE_UID;
 
 /**
 * Parse the URL parameter for anything after '?dc='
@@ -82,7 +85,6 @@ function filter(element, div, link) {
 */
 function openNav() {
   document.getElementById("mySidenav").style.width = "250px";
-  //document.getElementById("navbars").style.display ="none";
 }
 
 /**
@@ -90,7 +92,6 @@ function openNav() {
 */
 function closeNav() {
   document.getElementById("mySidenav").style.width = "0";
-  //document.getElementById("navbars").style.display ="block";
 }
 
 /**
@@ -107,8 +108,13 @@ function signIn() {
   usernameInput.value = $(this).attr('keyword');
   msgbox.style.display = "block";
   closeNav();
+  closeCreateIn();
+  closeConversationIn();
 }
 
+/**
+* Opens the create-in-box for the user to enter details
+*/
 function createIn(){
   var msgbox = document.getElementById("create-in-box");
   var usernameInput = document.getElementById("username-create-in-input");
@@ -119,6 +125,23 @@ function createIn(){
   passwordInput.value = "";
   msgbox.style.display = "block";
   closeNav();
+  closeSignIn();
+  closeConversationIn();
+}
+
+/**
+* Opens the conversation-in-box for the user to enter details
+*/
+function conversationIn(){
+  var msgbox = document.getElementById("conversation-in-box");
+  var titleInput = document.getElementById("conversation-in-input");
+  var message = document.getElementById("message-to-conversation-in");
+  message.innerHTML = "Please enter your new topic:";
+  titleInput.value = "";
+  msgbox.style.display = "block";
+  closeNav();
+  closeSignIn();
+  closeCreateIn();
 }
 
 /**
@@ -146,6 +169,20 @@ function checkForCreateAccountSubmit(){
     document.getElementById("create-in-button").disabled = false;
   } else {
     document.getElementById("create-in-button").disabled = true;
+  }
+}
+
+/**
+*  Only allow user to press the create conversation button if
+*  the appropriate fields are filled out.
+*/
+function checkForCreateConversationSubmit(){
+  // Can add more text validation here if necessary
+  var convLength = document.getElementById("conversation-in-input").value.length;
+  if(convLength >= 2) {
+    document.getElementById("conversation-in-button").disabled = false;
+  } else {
+    document.getElementById("conversation-in-button").disabled = true;
   }
 }
 
@@ -196,6 +233,8 @@ window.setInterval(function(){
 * Attempts to validate an account
 */
 function attemptSignIn() {
+  var message = document.getElementById("message-to-sign-in");
+  message.innerHTML = "<img class='loading' src='img/loading.gif'></img>";
   var msgbox = document.getElementById("sign-in-box");
   var usernameInput = document.getElementById("username-sign-in-input");
   var passwordInput = document.getElementById("password-sign-in-input");
@@ -204,12 +243,13 @@ function attemptSignIn() {
     if (this.readyState == 4 && this.status == 200) {
       if(this.responseText == "valid"){
         document.getElementById("welcome-message").innerHTML = "Hello,<br>" + shorten(usernameInput.value, 10);
+        ACTIVE_UID = usernameInput.value;
         usernameInput.value = '';
         passwordInput.value = '';
         msgbox.style.display = "none";
+        document.getElementById("create-conversation-link").style.display = "block";
       } else {
         passwordInput.value = '';
-        var message = document.getElementById("message-to-sign-in");
         message.innerHTML = "Invalid account details!";
         checkForSignInSubmit();
       }
@@ -224,6 +264,8 @@ function attemptSignIn() {
 * Attempts to create an account
 */
 function attemptCreate() {
+  var message = document.getElementById("message-to-create-in");
+  message.innerHTML = "<img class='loading' src='img/loading.gif'></img>";
   var msgbox = document.getElementById("create-in-box");
   var usernameInput = document.getElementById("username-create-in-input");
   var passwordInput = document.getElementById("password-create-in-input");
@@ -233,13 +275,14 @@ function attemptCreate() {
       if(this.responseText == "created"){
         closeNav();
         document.getElementById("welcome-message").innerHTML = "Hello,<br>" + shorten(usernameInput.value, 10);
+        ACTIVE_UID = usernameInput.value;
         usernameInput.value = '';
         passwordInput.value = '';
         msgbox.style.display = "none";
         updateUserList();
+        document.getElementById("create-conversation-link").style.display = "block";
       } else {
         passwordInput.value = '';
-        var message = document.getElementById("message-to-create-in");
         message.innerHTML = this.responseText;
         checkForCreateAccountSubmit();
       }
@@ -276,26 +319,10 @@ function updateConversationList() {
     if (this.readyState == 4 && this.status == 200) {
       conv_div.innerHTML = this.responseText;
       filter('conversation-input-box','conversation-list','conversation-link');
-      // Will need to regenerate href paths for convs here
+      addConversationLinks();
     }
   };
   xmlhttp.open("GET", "updateConversationListHandler.php", true);
-  xmlhttp.send();
-}
-
-/**
-* A method that will regenerate the list of messages.
-*/
-function updateMessageList() {
-  var mess_div = document.getElementById("messages-div");
-  var xmlhttp = new XMLHttpRequest();
-  xmlhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-      mess_div.innerHTML = this.responseText;
-      filter('messagebar-input','messages-div','message-link');
-    }
-  };
-  xmlhttp.open("GET", "updateMessagesHandler.php?c="+"testConversation", true);
   xmlhttp.send();
 }
 
@@ -336,6 +363,16 @@ function closeCreateIn() {
 }
 
 /**
+* Closes the conversation-in-box for the user to enter conversation name
+*/
+function closeConversationIn() {
+  var msgbox = document.getElementById("conversation-in-box");
+  var titleInput = document.getElementById("conversation-in-input");
+  titleInput.value = '';
+  msgbox.style.display = "none";
+}
+
+/**
 * Removes CodeU logo upon full page load
 */
 $(window).on('load',function() {
@@ -362,20 +399,103 @@ function addUNLinks(){
   }
 }
 
-// Add listeners
+/**
+* Makes conversation links clickable by full conversation name, not shortened display
+*/
+function addConversationLinks(){
+  allConversationLinks = document.getElementsByClassName("conversation-link");
+  for (i = 0; i < allConversationLinks.length; i++) {
+    allConversationLinks[i].addEventListener("click", updateMessageList);
+  }
+}
+
+/**
+* A method that will regenerate the list of messages.
+*/
+function updateMessageList() {
+  var mess_div = document.getElementById("messages-div");
+  var title = this.innerHTML;
+  var id = $(this).attr('i');
+  if(!title){
+    id = document.getElementById(ACTIVE_CONVERSATION_ID).id;
+    title = document.getElementById(ACTIVE_CONVERSATION_ID).innerHTML;
+  } else {
+    mess_div.innerHTML = "<img class='loadingbig' src='img/loading.gif'></img>";
+    ACTIVE_CONVERSATION_ID = id;
+  }
+  var xmlhttp = new XMLHttpRequest();
+  xmlhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      mess_div.innerHTML = this.responseText;
+      filter('messagebar-input','messages-div','message-link');
+    }
+  };
+  xmlhttp.open("GET", "updateMessagesHandler.php?c="+ id + "&n=" + title, true);
+  xmlhttp.send();
+}
+
+/**
+* Attempts to create a conversation
+*/
+function attemptConversationCreate() {
+  var message = document.getElementById("message-to-conversation-in");
+  message.innerHTML = "<img class='loading' src='img/loading.gif'></img>";
+  var msgbox = document.getElementById("conversation-in-box");
+  var titleInput = document.getElementById("conversation-in-input");
+  var xmlhttp = new XMLHttpRequest();
+  xmlhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      if(this.responseText == "created"){
+        closeNav();
+        titleInput.value = '';
+        msgbox.style.display = "none";
+        updateConversationList();
+      } else {
+        message.innerHTML = this.responseText;
+        checkForCreateConversationSubmit();
+      }
+    }
+  };
+  xmlhttp.open("GET", "createConversationHandler.php?c=" + titleInput.value +"&u=" + ACTIVE_UID, true);
+  xmlhttp.send();
+}
+
+/**
+* Improves UI by preloading images
+*/
+function preloadImage(url) {
+  var img = new Image();
+  img.src=url;
+}
+
+// Add listeners and startup options
+preloadImage('img/loading.gif');
+document.getElementById("message-to-create-in").innerHTML = "<img class='loading' src='img/loading.gif'></img>";
+document.getElementById("message-to-conversation-in").innerHTML = "<img class='loading' src='img/loading.gif'></img>";
+document.getElementById("message-to-sign-in").innerHTML = "<img class='loading' src='img/loading.gif'></img>";
 addUNLinks();
 checkForEnableSubmit();
 checkForCreateAccountSubmit();
+checkForCreateConversationSubmit();
 checkForSignInSubmit();
+addConversationLinks();
+allConversationLinks = document.getElementsByClassName("conversation-link");
+ACTIVE_CONVERSATION_ID = (allConversationLinks[0].id);
+document.getElementById("create-conversation-link").style.display = "none";
 document.getElementById("cancel-sign-in-button").addEventListener("click", closeSignIn);
 document.getElementById("cancel-create-in-button").addEventListener("click", closeCreateIn);
+document.getElementById("cancel-conversation-in-button").addEventListener("click", closeConversationIn);
+document.getElementById("create-conversation-link").addEventListener("click", conversationIn);
 document.getElementById("create-account-link").addEventListener("click", createIn);
 document.getElementById("sign-in-button").addEventListener("click", attemptSignIn);
 document.getElementById("create-in-button").addEventListener("click", attemptCreate);
+document.getElementById("conversation-in-button").addEventListener("click", attemptConversationCreate);
 document.getElementById("create-account-link").addEventListener("click", checkForCreateAccountSubmit);
+document.getElementById("create-conversation-link").addEventListener("click", checkForCreateConversationSubmit);
 document.getElementById("navbars").addEventListener("click", updateUserList);
 $('#username-create-in-input').bind('input', checkForCreateAccountSubmit);
 $('#password-create-in-input').bind('input', checkForCreateAccountSubmit);
+$('#conversation-in-input').bind('input', checkForCreateConversationSubmit);
 $('#username-sign-in-input').bind('input', checkForSignInSubmit);
 $('#password-sign-in-input').bind('input', checkForSignInSubmit);
 $('#message-input').bind('input', checkForEnableSubmit);

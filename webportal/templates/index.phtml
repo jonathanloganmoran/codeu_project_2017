@@ -41,29 +41,29 @@
             ?>
           </div>
         </div>
-        <footer id="footer">
-          <div class="copyright">
-            Copyright &copy; 2017 <a target="_blank" href="https://developers.google.com/">CodeU</a>
-          </div>
-        </footer>
+            <?php
+            $connection = new SQLConnector();
+            echo $connection->getFooter();
+            ?>
       </div>
       <h2 class="padded-above"><input id="conversation-input-box" class="searchbarinput" placeholder="Conversations" onkeypress = "filter('conversation-input-box','conversation-list','conversation-link')" onkeyup = "filter('conversation-input-box','conversation-list','conversation-link')" onkeydown = "filter('conversation-input-box','conversation-list','conversation-link')" type="text"></input></h2>
+      <a id="create-conversation-link" class="">New Conversation?</a><br>
+      <hr class="divided">
       <div id="conversation-list" class="more-padded-below">
-        <?php
-        $connection = new SQLConnector();
-        echo $connection->getConversations();
-        ?>
+            <?php
+            $connection = new SQLConnector();
+            echo $connection->getConversations();
+            ?>
       </div>
     </div>
     <div id="bottom-panel" class="rgba-primary-2">
       <h2><span id="welcome-message" class="logo lefted"></span><input id="messagebar-input" placeholder="Messages" class="searchbarinput" onkeydown = "filter('messagebar-input','messages-div','message-link')" onkeypress = "filter('messagebar-input','messages-div','message-link')" onkeyup ="filter('messagebar-input','messages-div','message-link')" type="text"></input></h2>
       <div id="message-panel" class="rgba-primary-0">
         <div class="more-padded" id="message-context">
-          <div class="more-padded-below"><i class="begin-conversation">- Beginning of Conversation -</i></div>
           <div id="messages-div">
             <?php
-            $connection = new SQLConnector();
-            echo $connection->getMessages();
+            //$connection = new SQLConnector();
+            //echo $connection->getMessages();
             ?>
           </div>
         </div>
@@ -76,7 +76,7 @@
   <div class="account-box" id="sign-in-box">
     <center>
       <img height="80px" src="img/no-text.png"></img><br>
-      <span id="message-to-sign-in">Please enter your account details.</span><br><br>
+      <span id="message-to-sign-in"></span><br><br>
       <input class="barinput" type="text" id="username-sign-in-input" placeholder="Username"></input><br>
       <input class="barinput" type="password" id="password-sign-in-input" placeholder="Password"></input><br><br>
       <button id="sign-in-button">Sign-In</button><button id="cancel-sign-in-button">Cancel</button>
@@ -86,10 +86,19 @@
   <div class="account-box" id="create-in-box">
     <center>
       <img height="80px" src="img/no-text.png"></img><br>
-      <span id="message-to-create-in">Welcome! Please create your account.</span><br><br>
+      <span id="message-to-create-in"></span><br><br>
       <input class="barinput" type="text" id="username-create-in-input" placeholder="Username"></input><br>
       <input class="barinput" type="password" id="password-create-in-input" placeholder="Password"></input><br><br>
       <button id="create-in-button">Create Account</button><button id="cancel-create-in-button">Cancel</button>
+    </center>
+  </div>
+  <!-- Create-Conversation Box -->
+  <div class="account-box" id="conversation-in-box">
+    <center>
+      <img height="80px" src="img/no-text.png" class="more-padded-below"></img><br>
+      <span id="message-to-conversation-in"></span><br><br>
+      <input class="barinput" type="text" id="conversation-in-input" placeholder="Conversation Name"></input><br><br>
+      <button id="conversation-in-button">Start Conversation</button><button id="cancel-conversation-in-button">Cancel</button>
     </center>
   </div>
 </body>

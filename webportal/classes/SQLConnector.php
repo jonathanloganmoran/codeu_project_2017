@@ -160,9 +160,25 @@ class SQLConnector {
     return $row["username"];
   }
 
+  /*
+  * Returns the uuid of user with username $username
+  * Returns null if no user was found
+  */
+  private function getUUIDFromUsername($username){
+    $SQL_USERNAME_LOOKUP = "SELECT * FROM User WHERE username = '" . $username . "'";
+    $rows = array();
+    $users = "";
+    $result = $this -> query($SQL_USERNAME_LOOKUP);
+    if($result === false) {
+      return NULL;
+    }
+    $row = $result -> fetch_assoc();
+    return $row["Uuid"];
+  }
+
   /**
   * Returns the formatted list of all conversations.
-  * Not currently functional -- just for viewing purposes.
+  *
   */
   public function getConversations() {
     $SQL_SELECT_CONV = "SELECT * FROM Conversation ORDER BY creation_time ASC";
@@ -181,7 +197,7 @@ class SQLConnector {
       if(strlen($convname) > 28){
         $convname = substr($convname,0,25) . "...";
       }
-      $conversations .= "<a i='" . $uuid . "'" . " o='" . $iduser . "'" . " keyword='" . $fullconvname . "' class='conversation-link'>" . $convname . "</a>";
+      $conversations .= "<a i='" . $uuid . "'" . " o='" . $this->getUsernameFromUUID($iduser) . "'" . " keyword='" . $fullconvname . "' class='conversation-link' id='" . $uuid . "'>" . $convname . "</a>";
     }
     return $conversations;
   }
@@ -190,9 +206,9 @@ class SQLConnector {
   * Returns the formatted list of all messages.
   * Not currently functional -- just for viewing purposes.
   */
-  public function getMessages() {
-    $messages = "";
-    for ($x = 0; $x <= 2; $x++) {
+  public function getMessages($conversationid, $conversationtitle) {
+    $messages = "<div class='more-padded-below'><i class='begin-conversation'>- Beginning of Conversation " . $conversationtitle . " -</i></div>";
+    for ($x = 0; $x <= strlen($conversationtitle); $x++) {
       if($x & 1) {
         //can add for profile pictures: <img class='profile-picture' src='img/no-text.png'></img>
         $messages .= "<div class='message-link bubble'>" . "<span class='author-link'>David:</span> Lorem ipsum dolor sit amet, consectetur adipiscing elit " . $x . ".</div>";
@@ -202,6 +218,27 @@ class SQLConnector {
     }
     return $messages;
   }
+
+  public function getFooter(){
+    $footer = "<footer id='footer'><div class='copyright'>Copyright &copy; 2017 <a target='_blank' href='https://developers.google.com/'>CodeU</a></div></footer>";
+    return $footer;
+  }
+
+
+  /**
+  * Returns "valid" if conversation is valid string format
+  * Returns "invalid" if conversation is not
+  */
+  public function validateConversationFormat($string) {
+    if(!(preg_match("/^[a-zA-Z0-9]+$/", $string) == 1)){
+      return "invalid";
+    }
+    if(strlen($string) < 2){
+      return "invalid";
+    }
+    return "valid";
+  }
+
 
   /**
   * Returns "valid" if username is valid string format
@@ -307,9 +344,41 @@ class SQLConnector {
   }
 
   /**
+  * Adds a conversation into the database.
+  * Does not check inputs: not to be called directly.
+  * Returns "invalid" if not added
+  * Returns "valid" if added
+  */
+  private function addConversation($username, $title){
+    $id_user = $this->getUUIDFromUsername($username);
+    $uuid = $this->generateUuid();
+    $SQL_INSERT_CON = "INSERT INTO Conversation (Uuid, id_user, title) VALUES";
+    $SQL_INSERT_CON = $SQL_INSERT_CON . "('" . $uuid . "','" . $id_user . "','" . $title . "')";
+    $result = $this -> query($SQL_INSERT_CON);
+    if($result === false) {
+      return "invalid";
+    }
+    return "valid";
+  }
+
+  /**
+  * Returns "created" if conversation was able to be created,
+  * "Conversation not created: <REASON>" otherwise.
+  */
+  public function createConversation($conversation, $user){
+    if($this->validateConversationFormat($conversation) === "invalid"){
+      return "Conversation not created. Format of title invalid.";
+    }
+    $results = $this->addConversation($user,$conversation);
+    if($results === "valid"){
+      return "created";
+    }
+    return "Conversation already exists. Please try a new title.";
+  }
+
+  /**
   * Returns "created" if account was able to be created,
   * "Account not created: <REASON>" otherwise.
-  * Not currently functional.
   */
   public function createAccount($username, $password) {
     if($this->validateUsernameFormat($username) === "invalid"){

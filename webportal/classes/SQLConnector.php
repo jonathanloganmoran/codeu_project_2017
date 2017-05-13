@@ -144,20 +144,44 @@ class SQLConnector {
     return $users;
   }
 
+  /*
+  * Returns the username of user with UUID $uuid
+  * Returns null if no user was found
+  */
+  private function getUsernameFromUUID($uuid){
+    $SQL_UUID_LOOKUP = "SELECT username FROM User WHERE Uuid = '" . $uuid . "'";
+    $rows = array();
+    $users = "";
+    $result = $this -> query($SQL_UUID_LOOKUP);
+    if($result === false) {
+      return NULL;
+    }
+    $row = $result -> fetch_assoc();
+    return $row["username"];
+  }
+
   /**
   * Returns the formatted list of all conversations.
   * Not currently functional -- just for viewing purposes.
   */
   public function getConversations() {
+    $SQL_SELECT_CONV = "SELECT * FROM Conversation ORDER BY creation_time ASC";
+    $rows = array();
+    $result = $this -> query($SQL_SELECT_CONV);
+    if($result === false) {
+      return false;
+    }
     $conversations = "";
-    for ($x = 0; $x <= 150; $x++) {
-      $convname = "Conversation " . $x . " Test";
+    while ($row = $result -> fetch_assoc()) {
+      $convname = $row["title"];
+      $uuid = $row["Uuid"];
+      $iduser = $row["id_user"];
       $fullconvname = $convname;
       // Truncate conversation name to 28 characters max
       if(strlen($convname) > 28){
         $convname = substr($convname,0,25) . "...";
       }
-      $conversations .= "<a keyword='" . $fullconvname . "' class='conversation-link'>" . $convname . "</a>";
+      $conversations .= "<a i='" . $uuid . "'" . " o='" . $iduser . "'" . " keyword='" . $fullconvname . "' class='conversation-link'>" . $convname . "</a>";
     }
     return $conversations;
   }
@@ -260,7 +284,7 @@ class SQLConnector {
     $length = 9;
     $result = '';
     for($i = 0; $i < $length; $i++) {
-        $result .= mt_rand(0, 9);
+      $result .= mt_rand(0, 9);
     }
     return $result;
   }

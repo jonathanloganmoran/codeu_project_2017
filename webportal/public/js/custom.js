@@ -1,9 +1,10 @@
 /*
 * Constants used in determining how often to refresh page contents.
 */
-var INTERVAL_TO_REFRESH_USERS = 15000;
-var INTERVAL_TO_REFRESH_CONVERSATIONS = 1000;
-var INTERVAL_TO_REFRESH_MESSAGES = 300;
+// Users will also be refreshed on relevant clicks
+var INTERVAL_TO_REFRESH_USERS = 30000;
+var INTERVAL_TO_REFRESH_CONVERSATIONS = 30000;
+var INTERVAL_TO_REFRESH_MESSAGES = 30000;
 
 /**
 * Parse the URL parameter for anything after '?dc='
@@ -372,6 +373,7 @@ document.getElementById("create-account-link").addEventListener("click", createI
 document.getElementById("sign-in-button").addEventListener("click", attemptSignIn);
 document.getElementById("create-in-button").addEventListener("click", attemptCreate);
 document.getElementById("create-account-link").addEventListener("click", checkForCreateAccountSubmit);
+document.getElementById("navbars").addEventListener("click", updateUserList);
 $('#username-create-in-input').bind('input', checkForCreateAccountSubmit);
 $('#password-create-in-input').bind('input', checkForCreateAccountSubmit);
 $('#username-sign-in-input').bind('input', checkForSignInSubmit);

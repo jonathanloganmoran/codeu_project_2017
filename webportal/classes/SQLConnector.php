@@ -181,7 +181,7 @@ class SQLConnector {
   *
   */
   public function getConversations() {
-    $SQL_SELECT_CONV = "SELECT * FROM Conversation ORDER BY creation_time ASC";
+    $SQL_SELECT_CONV = "SELECT * FROM Conversation ORDER BY creation_time DESC";
     $rows = array();
     $result = $this -> query($SQL_SELECT_CONV);
     if($result === false) {
@@ -217,11 +217,6 @@ class SQLConnector {
       }
     }
     return $messages;
-  }
-
-  public function getFooter(){
-    $footer = "<footer id='footer'><div class='copyright'>Copyright &copy; 2017 <a target='_blank' href='https://developers.google.com/'>CodeU</a></div></footer>";
-    return $footer;
   }
 
 

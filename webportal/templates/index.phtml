@@ -34,38 +34,22 @@
         <div id="user-panel">
           <a id="create-account-link">New? Create Account</a>
           <h2><input id="username-input-box" placeholder="Search Users" onkeypress = "filter('username-input-box','users-div','username-link')" onkeyup = "filter('username-input-box','users-div','username-link')" onkeydown = "filter('username-input-box','users-div','username-link')" class="searchbarinput" type="text"></input></h2>
-          <div id="users-div">
-            <?php
-            $connection = new SQLConnector();
-            echo $connection->getUsers();
-            ?>
-          </div>
+          <div id="users-div"></div>
         </div>
-            <?php
-            $connection = new SQLConnector();
-            echo $connection->getFooter();
-            ?>
+            <footer id='footer'><div class='copyright'>Copyright &copy; 2017 <a target='_blank' href='https://developers.google.com/'>CodeU</a></div></footer>
       </div>
       <h2 class="padded-above"><input id="conversation-input-box" class="searchbarinput" placeholder="Conversations" onkeypress = "filter('conversation-input-box','conversation-list','conversation-link')" onkeyup = "filter('conversation-input-box','conversation-list','conversation-link')" onkeydown = "filter('conversation-input-box','conversation-list','conversation-link')" type="text"></input></h2>
       <a id="create-conversation-link" class="">New Conversation?</a><br>
       <hr class="divided">
       <div id="conversation-list" class="more-padded-below">
-            <?php
-            $connection = new SQLConnector();
-            echo $connection->getConversations();
-            ?>
+            
       </div>
     </div>
     <div id="bottom-panel" class="rgba-primary-2">
       <h2><span id="welcome-message" class="logo lefted"></span><input id="messagebar-input" placeholder="Messages" class="searchbarinput" onkeydown = "filter('messagebar-input','messages-div','message-link')" onkeypress = "filter('messagebar-input','messages-div','message-link')" onkeyup ="filter('messagebar-input','messages-div','message-link')" type="text"></input></h2>
       <div id="message-panel" class="rgba-primary-0">
         <div class="more-padded" id="message-context">
-          <div id="messages-div">
-            <?php
-            //$connection = new SQLConnector();
-            //echo $connection->getMessages();
-            ?>
-          </div>
+          <div id="messages-div"></div>
         </div>
       </div>
       <textarea id="message-input" class="barinput" type="text"></textarea><br>

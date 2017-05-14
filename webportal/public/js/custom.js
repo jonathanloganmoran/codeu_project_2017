@@ -2,12 +2,15 @@
 * Constants used in determining how often to refresh page contents.
 */
 // Users will also be refreshed on relevant clicks
-var INTERVAL_TO_REFRESH_USERS = 30000;
-var INTERVAL_TO_REFRESH_CONVERSATIONS = 30000;
-var INTERVAL_TO_REFRESH_MESSAGES = 10000;
+var INTERVAL_TO_REFRESH_USERS = 60000;
+var INTERVAL_TO_REFRESH_CONVERSATIONS = 50000;
+var INTERVAL_TO_REFRESH_MESSAGES = 40000;
 var ACTIVE_CONVERSATION_ID;
 // Current security risk, should be moved to server in PHP sessions once working
-var ACTIVE_UID;
+var ACTIVE_UID = -1;
+// Moved to top for faster load
+updateConversationList(true);
+updateUserList();
 
 /**
 * Parse the URL parameter for anything after '?dc='
@@ -149,7 +152,7 @@ function conversationIn(){
 */
 function checkForEnableSubmit(){
   // Can add more text validation here if necessary
-  if(document.getElementById("message-input").value.length > 0) {
+  if(document.getElementById("message-input").value.length > 0 && ACTIVE_UID != -1) {
     document.getElementById("message-input-button").disabled = false;
   } else {
     document.getElementById("message-input-button").disabled = true;
@@ -164,7 +167,6 @@ function checkForCreateAccountSubmit(){
   // Can add more text validation here if necessary
   var userLength = document.getElementById("username-create-in-input").value.length;
   var passLength = document.getElementById("password-create-in-input").value.length;
-
   if(userLength > 0 && passLength >= 4) {
     document.getElementById("create-in-button").disabled = false;
   } else {
@@ -217,7 +219,7 @@ window.setInterval(function(){
 *  seeing the expected change.
 */
 window.setInterval(function(){
-  updateConversationList();
+  updateConversationList(false);
 }, INTERVAL_TO_REFRESH_CONVERSATIONS);
 
 /**
@@ -312,7 +314,7 @@ function updateUserList() {
 /**
 * A method that will regenerate the list of conversations.
 */
-function updateConversationList() {
+function updateConversationList(firstLoad) {
   var conv_div = document.getElementById("conversation-list");
   var xmlhttp = new XMLHttpRequest();
   xmlhttp.onreadystatechange = function() {
@@ -320,6 +322,11 @@ function updateConversationList() {
       conv_div.innerHTML = this.responseText;
       filter('conversation-input-box','conversation-list','conversation-link');
       addConversationLinks();
+      if(firstLoad){
+        allConversationLinks = document.getElementsByClassName("conversation-link");
+        ACTIVE_CONVERSATION_ID = (allConversationLinks[0].id);
+        updateMessageList();
+      }
     }
   };
   xmlhttp.open("GET", "updateConversationListHandler.php", true);
@@ -449,7 +456,7 @@ function attemptConversationCreate() {
         closeNav();
         titleInput.value = '';
         msgbox.style.display = "none";
-        updateConversationList();
+        updateConversationList(false);
       } else {
         message.innerHTML = this.responseText;
         checkForCreateConversationSubmit();
@@ -479,8 +486,6 @@ checkForCreateAccountSubmit();
 checkForCreateConversationSubmit();
 checkForSignInSubmit();
 addConversationLinks();
-allConversationLinks = document.getElementsByClassName("conversation-link");
-ACTIVE_CONVERSATION_ID = (allConversationLinks[0].id);
 document.getElementById("create-conversation-link").style.display = "none";
 document.getElementById("cancel-sign-in-button").addEventListener("click", closeSignIn);
 document.getElementById("cancel-create-in-button").addEventListener("click", closeCreateIn);

@@ -240,25 +240,30 @@ function attemptSignIn() {
   message.innerHTML = "<img class='loading' src='img/loading.gif'></img>";
   var msgbox = document.getElementById("sign-in-box");
   var usernameInput = document.getElementById("username-sign-in-input");
+  var usernameStorage = usernameInput.value;
   var passwordInput = document.getElementById("password-sign-in-input");
   var xmlhttp = new XMLHttpRequest();
   xmlhttp.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
       if(this.responseText == "valid"){
-        document.getElementById("welcome-message").innerHTML = "Hello,<br>" + shorten(usernameInput.value, 10);
-        ACTIVE_UID = usernameInput.value;
+        document.getElementById("navbars").innerHTML = "&#9776; " + shorten(usernameStorage, 10);
+        ACTIVE_UID = usernameStorage;
         usernameInput.value = '';
         passwordInput.value = '';
         msgbox.style.display = "none";
         document.getElementById("create-conversation-link").style.display = "block";
+        toggleSignOutCreateLinks(true);
+        updateMessageList();
+        checkForEnableSubmit();
       } else {
         passwordInput.value = '';
         message.innerHTML = "Invalid account details!";
         checkForSignInSubmit();
+        toggleSignOutCreateLinks(false);
       }
     }
   };
-  xmlhttp.open("GET", "authenticateAccountHandler.php?u=" + usernameInput.value +"&p=" + passwordInput.value , true);
+  xmlhttp.open("GET", "authenticateAccountHandler.php?u=" + usernameStorage +"&p=" + passwordInput.value , true);
   xmlhttp.send();
 }
 
@@ -271,23 +276,28 @@ function attemptCreate() {
   message.innerHTML = "<img class='loading' src='img/loading.gif'></img>";
   var msgbox = document.getElementById("create-in-box");
   var usernameInput = document.getElementById("username-create-in-input");
+  var usernameStorage = usernameInput.value;
   var passwordInput = document.getElementById("password-create-in-input");
   var xmlhttp = new XMLHttpRequest();
   xmlhttp.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
       if(this.responseText == "created"){
         closeNav();
-        document.getElementById("welcome-message").innerHTML = "Hello,<br>" + shorten(usernameInput.value, 10);
-        ACTIVE_UID = usernameInput.value;
+        document.getElementById("navbars").innerHTML = "&#9776; " + shorten(usernameStorage, 10);
+        ACTIVE_UID = usernameStorage;
         usernameInput.value = '';
         passwordInput.value = '';
         msgbox.style.display = "none";
         updateUserList();
         document.getElementById("create-conversation-link").style.display = "block";
+        toggleSignOutCreateLinks(true);
+        updateMessageList();
+        checkForEnableSubmit();
       } else {
         passwordInput.value = '';
         message.innerHTML = this.responseText;
         checkForCreateAccountSubmit();
+        toggleSignOutCreateLinks(false);
       }
     }
   };
@@ -299,6 +309,7 @@ function attemptCreate() {
 * Attempts to create a message
 */
 function attemptCreateMessage() {
+  document.getElementById("message-input-button").disabled = true;
   var message = document.getElementById("message-input");
   var content = message.value;
   var xmlhttp = new XMLHttpRequest();
@@ -308,7 +319,7 @@ function attemptCreateMessage() {
         message.value = "";
         updateMessageList();
       } else {
-        showErrorMessage(this.responseText, 2500);
+        showErrorMessage(this.responseText);
       }
       checkForEnableSubmit();
     }
@@ -319,11 +330,13 @@ function attemptCreateMessage() {
 }
 
 /**
-* Display an error message to the user for x seconds
+* Display an error message to the user
 */
-function showErrorMessage(message, time) {
+function showErrorMessage(message) {
   var msgbox = document.getElementById("error-message-box");
   var msgcontent = document.getElementById("message-to-error-out");
+  message = "Sorry about that. We had an error.<br><br>" + message;
+  var time = message.length*100 + 300;
   msgcontent.innerHTML = message;
   msgbox.style.display = "block";
   window.setTimeout(function(){
@@ -513,33 +526,72 @@ function preloadImage(url) {
   img.src=url;
 }
 
-// Add listeners and startup options
-preloadImage('img/loading.gif');
-document.getElementById("message-to-create-in").innerHTML = "<img class='loading' src='img/loading.gif'></img>";
-document.getElementById("message-to-conversation-in").innerHTML = "<img class='loading' src='img/loading.gif'></img>";
-document.getElementById("message-to-sign-in").innerHTML = "<img class='loading' src='img/loading.gif'></img>";
-addUNLinks();
-checkForEnableSubmit();
-checkForCreateAccountSubmit();
-checkForCreateConversationSubmit();
-checkForSignInSubmit();
-addConversationLinks();
-document.getElementById("create-conversation-link").style.display = "none";
-document.getElementById("cancel-sign-in-button").addEventListener("click", closeSignIn);
-document.getElementById("cancel-create-in-button").addEventListener("click", closeCreateIn);
-document.getElementById("cancel-conversation-in-button").addEventListener("click", closeConversationIn);
-document.getElementById("create-conversation-link").addEventListener("click", conversationIn);
-document.getElementById("create-account-link").addEventListener("click", createIn);
-document.getElementById("sign-in-button").addEventListener("click", attemptSignIn);
-document.getElementById("create-in-button").addEventListener("click", attemptCreate);
-document.getElementById("conversation-in-button").addEventListener("click", attemptConversationCreate);
-document.getElementById("message-input-button").addEventListener("click", attemptCreateMessage);
-document.getElementById("create-account-link").addEventListener("click", checkForCreateAccountSubmit);
-document.getElementById("create-conversation-link").addEventListener("click", checkForCreateConversationSubmit);
-document.getElementById("navbars").addEventListener("click", updateUserList);
-$('#username-create-in-input').bind('input', checkForCreateAccountSubmit);
-$('#password-create-in-input').bind('input', checkForCreateAccountSubmit);
-$('#conversation-in-input').bind('input', checkForCreateConversationSubmit);
-$('#username-sign-in-input').bind('input', checkForSignInSubmit);
-$('#password-sign-in-input').bind('input', checkForSignInSubmit);
-$('#message-input').bind('input', checkForEnableSubmit);
+/*
+* Shows the sign out button if true
+* Shows the create account button if false
+*/
+function toggleSignOutCreateLinks(signout) {
+  var sign = document.getElementById("sign-out-link");
+  var create = document.getElementById("create-account-link");
+  if(signout){
+    sign.style.display = "inline";
+    create.style.display = "none";
+  } else {
+    sign.style.display = "none";
+    create.style.display = "inline";
+  }
+}
+
+/*
+*
+*
+*/
+function signOut(){
+  var mess_div = document.getElementById("messages-div");
+  mess_div.innerHTML = "<img class='loadingbig' src='img/loading.gif'></img>";
+  ACTIVE_UID = -1;
+  updateMessageList();
+  toggleSignOutCreateLinks(false);
+  document.getElementById("navbars").innerHTML = "&#9776; Sign-In";
+  document.getElementById("create-conversation-link").style.display = "none";
+  checkForEnableSubmit();
+  closeNav();
+}
+
+/*
+* Sets up the initial options of the page
+*/
+function setUpListenersAndStartingOptions(){
+  preloadImage('img/loading.gif');
+  document.getElementById("message-to-create-in").innerHTML = "<img class='loading' src='img/loading.gif'></img>";
+  document.getElementById("message-to-conversation-in").innerHTML = "<img class='loading' src='img/loading.gif'></img>";
+  document.getElementById("message-to-sign-in").innerHTML = "<img class='loading' src='img/loading.gif'></img>";
+  addUNLinks();
+  checkForEnableSubmit();
+  checkForCreateAccountSubmit();
+  checkForCreateConversationSubmit();
+  checkForSignInSubmit();
+  addConversationLinks();
+  toggleSignOutCreateLinks(false);
+  document.getElementById("create-conversation-link").style.display = "none";
+  document.getElementById("cancel-sign-in-button").addEventListener("click", closeSignIn);
+  document.getElementById("cancel-create-in-button").addEventListener("click", closeCreateIn);
+  document.getElementById("cancel-conversation-in-button").addEventListener("click", closeConversationIn);
+  document.getElementById("create-conversation-link").addEventListener("click", conversationIn);
+  document.getElementById("create-account-link").addEventListener("click", createIn);
+  document.getElementById("sign-in-button").addEventListener("click", attemptSignIn);
+  document.getElementById("create-in-button").addEventListener("click", attemptCreate);
+  document.getElementById("conversation-in-button").addEventListener("click", attemptConversationCreate);
+  document.getElementById("message-input-button").addEventListener("click", attemptCreateMessage);
+  document.getElementById("create-account-link").addEventListener("click", checkForCreateAccountSubmit);
+  document.getElementById("create-conversation-link").addEventListener("click", checkForCreateConversationSubmit);
+  document.getElementById("navbars").addEventListener("click", updateUserList);
+    document.getElementById("sign-out-link").addEventListener("click", signOut);
+  $('#username-create-in-input').bind('input', checkForCreateAccountSubmit);
+  $('#password-create-in-input').bind('input', checkForCreateAccountSubmit);
+  $('#conversation-in-input').bind('input', checkForCreateConversationSubmit);
+  $('#username-sign-in-input').bind('input', checkForSignInSubmit);
+  $('#password-sign-in-input').bind('input', checkForSignInSubmit);
+  $('#message-input').bind('input', checkForEnableSubmit);
+}
+setUpListenersAndStartingOptions();

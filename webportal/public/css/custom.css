@@ -150,7 +150,22 @@ h1 {
   left: 50%;
   margin: -150px 0 0 -300px;
   /* [-(height/2)px 0 0 -(width/2)px] */
-
+  border-radius: 10px;
+}
+.error-box {
+  padding: 20px;
+  padding-top: 30px;
+  font-size: 1.1em;
+  color: white;
+  display: none;
+  background-color: rgba(0, 0, 0, 0.92);
+  height: 300px;
+  width: 600px;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  margin: -150px 0 0 -300px;
+  /* [-(height/2)px 0 0 -(width/2)px] */
   border-radius: 10px;
 }
 #footer a {
@@ -161,10 +176,14 @@ h1 {
   color: red;
   cursor: pointer;
 }
-#create-conversation-link {
+#create-conversation-link, #sign-out-link {
   text-decoration: none;
   color: #000;
   font-size: 1.2em;
+}
+#sign-out-link:hover {
+  color: red;
+  cursor: pointer;
 }
 #create-conversation-link:hover {
   color: red;

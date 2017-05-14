@@ -33,6 +33,7 @@
         <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">x</a>
         <div id="user-panel">
           <a id="create-account-link">New? Create Account</a>
+          <a id="sign-out-link" class="">Sign-Out</a>
           <h2><input id="username-input-box" placeholder="Search Users" onkeypress = "filter('username-input-box','users-div','username-link')" onkeyup = "filter('username-input-box','users-div','username-link')" onkeydown = "filter('username-input-box','users-div','username-link')" class="searchbarinput" type="text"></input></h2>
           <div id="users-div"></div>
         </div>
@@ -44,12 +45,9 @@
       <div id="conversation-list" class="more-padded-below"></div>
     </div>
     <div id="bottom-panel" class="rgba-primary-2">
-      <h2><span id="welcome-message" class="logo lefted"></span><input id="messagebar-input" placeholder="Messages" class="searchbarinput" onkeydown = "filter('messagebar-input','messages-div','message-link')" onkeypress = "filter('messagebar-input','messages-div','message-link')" onkeyup ="filter('messagebar-input','messages-div','message-link')" type="text"></input></h2>
+      <h2><span id="welcome-message" class="logo lefted"></span><input id="messagebar-input" placeholder="Messages in This Conversation" class="searchbarinput" onkeydown = "filter('messagebar-input','messages-div','message-link')" onkeypress = "filter('messagebar-input','messages-div','message-link')" onkeyup ="filter('messagebar-input','messages-div','message-link')" type="text"></input></h2>
       <div id="message-panel" class="rgba-primary-0">
-        <div class="more-padded" id="message-context">
-          
-          <div id="messages-div"></div>
-        </div>
+        <div class="more-padded" id="message-context"><div id="messages-div"></div></div>
       </div>
       <textarea id="message-input" class="barinput" type="text"></textarea><br>
       <button id="message-input-button">Send</button>
@@ -85,7 +83,7 @@
     </center>
   </div>
   <!-- Error Message Box -->
-  <div class="account-box" id="error-message-box">
+  <div class="error-box" id="error-message-box">
     <center>
       <img height="80px" src="img/no-text.png" class="more-padded-below"></img><br>
       <span id="message-to-error-out"></span><br>

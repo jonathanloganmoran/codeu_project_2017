@@ -41,14 +41,13 @@
       <h2 class="padded-above"><input id="conversation-input-box" class="searchbarinput" placeholder="Conversations" onkeypress = "filter('conversation-input-box','conversation-list','conversation-link')" onkeyup = "filter('conversation-input-box','conversation-list','conversation-link')" onkeydown = "filter('conversation-input-box','conversation-list','conversation-link')" type="text"></input></h2>
       <a id="create-conversation-link" class="">New Conversation?</a><br>
       <hr class="divided">
-      <div id="conversation-list" class="more-padded-below">
-            
-      </div>
+      <div id="conversation-list" class="more-padded-below"></div>
     </div>
     <div id="bottom-panel" class="rgba-primary-2">
       <h2><span id="welcome-message" class="logo lefted"></span><input id="messagebar-input" placeholder="Messages" class="searchbarinput" onkeydown = "filter('messagebar-input','messages-div','message-link')" onkeypress = "filter('messagebar-input','messages-div','message-link')" onkeyup ="filter('messagebar-input','messages-div','message-link')" type="text"></input></h2>
       <div id="message-panel" class="rgba-primary-0">
         <div class="more-padded" id="message-context">
+          
           <div id="messages-div"></div>
         </div>
       </div>
@@ -83,6 +82,13 @@
       <span id="message-to-conversation-in"></span><br><br>
       <input class="barinput" type="text" id="conversation-in-input" placeholder="Conversation Name"></input><br><br>
       <button id="conversation-in-button">Start Conversation</button><button id="cancel-conversation-in-button">Cancel</button>
+    </center>
+  </div>
+  <!-- Error Message Box -->
+  <div class="account-box" id="error-message-box">
+    <center>
+      <img height="80px" src="img/no-text.png" class="more-padded-below"></img><br>
+      <span id="message-to-error-out"></span><br>
     </center>
   </div>
 </body>

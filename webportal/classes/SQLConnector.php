@@ -134,14 +134,20 @@ class SQLConnector {
     }
     while ($row = $result -> fetch_assoc()) {
       $fullun = $row["username"];
-      $shortun = $fullun;
-      // Truncate username to 18 characters max
-      if(strlen($shortun) > 25){
-        $shortun = substr($shortun,0,22) . "...";
-      }
+      $shortun = $this->shorten($fullun, 17);
       $users .= "<a keyword='" . $fullun . "' class='username-link'>" . $shortun . "</a>";
     }
     return $users;
+  }
+
+  /*
+  * Shorten a string to a maximum number of characters
+  */
+  private function shorten($string, $max){
+    if(strlen($string) > $max){
+      return substr($string,0,$max-3) . "...";
+    }
+    return $string;
   }
 
   /*
@@ -193,10 +199,7 @@ class SQLConnector {
       $uuid = $row["Uuid"];
       $iduser = $row["id_user"];
       $fullconvname = $convname;
-      // Truncate conversation name to 28 characters max
-      if(strlen($convname) > 28){
-        $convname = substr($convname,0,25) . "...";
-      }
+      $convname = $this->shorten($convname, 17);
       $conversations .= "<a i='" . $uuid . "'" . " o='" . $this->getUsernameFromUUID($iduser) . "'" . " keyword='" . $fullconvname . "' class='conversation-link' id='" . $uuid . "'>" . $convname . "</a>";
     }
     return $conversations;
@@ -204,19 +207,49 @@ class SQLConnector {
 
   /**
   * Returns the formatted list of all messages.
-  * Not currently functional -- just for viewing purposes.
+  *
   */
-  public function getMessages($conversationid, $conversationtitle) {
+  public function getMessages($conversationid, $conversationtitle, $currentuser) {
+    $SQL_SELECT_MESS = "SELECT * FROM Message WHERE id_conversation = '" . $conversationid . "' ORDER BY creation_time ASC";
+    $rows = array();
+    $result = $this -> query($SQL_SELECT_MESS);
+    if($result === false) {
+      return false;
+    }
     $messages = "<div class='more-padded-below'><i class='begin-conversation'>- Beginning of Conversation " . $conversationtitle . " -</i></div>";
-    for ($x = 0; $x <= strlen($conversationtitle); $x++) {
-      if($x & 1) {
-        //can add for profile pictures: <img class='profile-picture' src='img/no-text.png'></img>
-        $messages .= "<div class='message-link bubble'>" . "<span class='author-link'>David:</span> Lorem ipsum dolor sit amet, consectetur adipiscing elit " . $x . ".</div>";
+    //can add for profile pictures: <img class='profile-picture' src='img/no-text.png'></img>
+    while ($row = $result -> fetch_assoc()) {
+      $id_user = $row["id_user"];
+      $id_user = $this->getUsernameFromUUID($id_user);
+      $content = $row["content"];
+      if($currentuser === $id_user){
+        $messages .= "<div class='message-link bubble bubble--alt'><span class='author-link'>".$id_user.":</span> ".$content."</div>";
       } else {
-        $messages .= "<div class='message-link bubble bubble--alt'>" . "Ut enim ad minim veniam, quis nostrud " . $x . ".</div>";
+        $messages .= "<div class='message-link bubble'><span class='author-link'>".$id_user.":</span> ".$content."</div>";
       }
     }
     return $messages;
+  }
+
+  /**
+  * Method to add a message to a conversation
+  * Returns "valid" if message was added
+  * Returns "invalid" if message was not
+  */
+  public function addMessage($content, $currentuser, $id_conv){
+    if(strlen($content) > 2000) {
+      return "Message is too long. Please shorten to < 2000 characters.";
+    }
+    $uuid = $this->generateUuid();
+    $currentuser = $this->getUUIDFromUsername($currentuser);
+    $SQL_INSERT_MESS = "INSERT INTO Message (Uuid, content, id_user, id_conversation) VALUES";
+    $SQL_INSERT_MESS = $SQL_INSERT_MESS . "('".$uuid."','".$content."','".$currentuser."','".$id_conv."')";
+    $rows = array();
+    $result = $this -> query($SQL_INSERT_MESS);
+    if($result === false) {
+      return $SQL_INSERT_MESS;
+    }
+    return "created";
   }
 
 
@@ -224,11 +257,11 @@ class SQLConnector {
   * Returns "valid" if conversation is valid string format
   * Returns "invalid" if conversation is not
   */
-  public function validateConversationFormat($string) {
+  private function validateConversationFormat($string) {
     if(!(preg_match("/^[a-zA-Z0-9]+$/", $string) == 1)){
       return "invalid";
     }
-    if(strlen($string) < 2){
+    if(strlen($string) < 2 || strlen($string) > 32){
       return "invalid";
     }
     return "valid";
@@ -239,11 +272,11 @@ class SQLConnector {
   * Returns "valid" if username is valid string format
   * Returns "invalid" if username is not
   */
-  public function validateUsernameFormat($string) {
+  private function validateUsernameFormat($string) {
     if(!(preg_match("/^[a-zA-Z0-9]+$/", $string) == 1)){
       return "invalid";
     }
-    if(strlen($string) < 1){
+    if(strlen($string) < 1 || strlen($string) > 32){
       return "invalid";
     }
     return "valid";
@@ -253,8 +286,8 @@ class SQLConnector {
   * Returns "valid" if password is valid string format
   * Returns "invalid" if password is not
   */
-  public function validatePasswordFormat($string) {
-    if(strlen($string) < 4){
+  private function validatePasswordFormat($string) {
+    if(strlen($string) < 4 || strlen($string) > 32){
       return "invalid";
     }
     return "valid";

@@ -152,7 +152,8 @@ function conversationIn(){
 */
 function checkForEnableSubmit(){
   // Can add more text validation here if necessary
-  if(document.getElementById("message-input").value.length > 0 && ACTIVE_UID != -1) {
+  var size = document.getElementById("message-input").value.length;
+  if(size > 0 && size <= 2000 && ACTIVE_UID != -1) {
     document.getElementById("message-input-button").disabled = false;
   } else {
     document.getElementById("message-input-button").disabled = true;
@@ -167,7 +168,7 @@ function checkForCreateAccountSubmit(){
   // Can add more text validation here if necessary
   var userLength = document.getElementById("username-create-in-input").value.length;
   var passLength = document.getElementById("password-create-in-input").value.length;
-  if(userLength > 0 && passLength >= 4) {
+  if(userLength > 0 && userLength <= 32 && passLength >= 4 && passLength <= 32) {
     document.getElementById("create-in-button").disabled = false;
   } else {
     document.getElementById("create-in-button").disabled = true;
@@ -181,7 +182,7 @@ function checkForCreateAccountSubmit(){
 function checkForCreateConversationSubmit(){
   // Can add more text validation here if necessary
   var convLength = document.getElementById("conversation-in-input").value.length;
-  if(convLength >= 2) {
+  if(convLength >= 2 && convLength <= 32) {
     document.getElementById("conversation-in-button").disabled = false;
   } else {
     document.getElementById("conversation-in-button").disabled = true;
@@ -292,6 +293,43 @@ function attemptCreate() {
   };
   xmlhttp.open("GET", "createAccountHandler.php?u=" + usernameInput.value +"&p=" + passwordInput.value , true);
   xmlhttp.send();
+}
+
+/**
+* Attempts to create a message
+*/
+function attemptCreateMessage() {
+  var message = document.getElementById("message-input");
+  var content = message.value;
+  var xmlhttp = new XMLHttpRequest();
+  xmlhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      if(this.responseText == "created"){
+        message.value = "";
+        updateMessageList();
+      } else {
+        showErrorMessage(this.responseText, 2500);
+      }
+      checkForEnableSubmit();
+    }
+  };
+  var conversation_id = document.getElementById(ACTIVE_CONVERSATION_ID).id;
+  xmlhttp.open("GET","createMessageHandler.php?c="+content+"&u="+ACTIVE_UID+"&i="+conversation_id, true);
+  xmlhttp.send();
+}
+
+/**
+* Display an error message to the user for x seconds
+*/
+function showErrorMessage(message, time) {
+  var msgbox = document.getElementById("error-message-box");
+  var msgcontent = document.getElementById("message-to-error-out");
+  msgcontent.innerHTML = message;
+  msgbox.style.display = "block";
+  window.setTimeout(function(){
+    msgbox.style.display = "none";
+    msgcontent.innerHTML = "";
+  }, time);
 }
 
 /**
@@ -437,7 +475,7 @@ function updateMessageList() {
       filter('messagebar-input','messages-div','message-link');
     }
   };
-  xmlhttp.open("GET", "updateMessagesHandler.php?c="+ id + "&n=" + title, true);
+  xmlhttp.open("GET", "updateMessagesHandler.php?c="+ id + "&n=" + title + "&d=" + ACTIVE_UID, true);
   xmlhttp.send();
 }
 
@@ -495,6 +533,7 @@ document.getElementById("create-account-link").addEventListener("click", createI
 document.getElementById("sign-in-button").addEventListener("click", attemptSignIn);
 document.getElementById("create-in-button").addEventListener("click", attemptCreate);
 document.getElementById("conversation-in-button").addEventListener("click", attemptConversationCreate);
+document.getElementById("message-input-button").addEventListener("click", attemptCreateMessage);
 document.getElementById("create-account-link").addEventListener("click", checkForCreateAccountSubmit);
 document.getElementById("create-conversation-link").addEventListener("click", checkForCreateConversationSubmit);
 document.getElementById("navbars").addEventListener("click", updateUserList);

@@ -14,6 +14,8 @@
 
 package codeu.chat.server;
 
+import database.Connector;
+import database.UserFromDB;
 import java.util.Collection;
 
 import codeu.chat.common.BasicController;
@@ -25,6 +27,7 @@ import codeu.chat.common.User;
 import codeu.chat.common.Uuid;
 import codeu.chat.common.Uuids;
 import codeu.chat.util.Logger;
+import java.util.List;
 
 public final class Controller implements RawController, BasicController {
 
@@ -32,6 +35,7 @@ public final class Controller implements RawController, BasicController {
 
   private final Model model;
   private final Uuid.Generator uuidGenerator;
+  private Connector conn = new Connector();
 
   public Controller(Uuid serverId, Model model) {
     this.model = model;
@@ -45,6 +49,13 @@ public final class Controller implements RawController, BasicController {
 
   @Override
   public User newUser(String name) {
+    List<UserFromDB> list = conn.getAllUsers();
+    for (UserFromDB user: list){
+      if(user.getUsername().equals(name)){
+        //exist
+        newUser(Uuids.fromString(user.getUuid()), name, user.getTime());
+      }
+    }
     return newUser(createId(), name, Time.now());
   }
 

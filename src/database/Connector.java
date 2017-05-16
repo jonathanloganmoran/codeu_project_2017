@@ -1,4 +1,5 @@
 package database;
+import codeu.chat.common.Time;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.security.MessageDigest;
@@ -8,6 +9,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -288,7 +290,8 @@ public class Connector {
           while (users.next()) {
             String username = users.getString("username");
             String uuid = users.getString("Uuid");
-            userNames.add(new UserFromDB(uuid,username));
+            Timestamp time = users.getTimestamp("creation_time");
+            userNames.add(new UserFromDB(uuid,username,Time.fromMs(time.getTime())));
           }
           return userNames;
         }

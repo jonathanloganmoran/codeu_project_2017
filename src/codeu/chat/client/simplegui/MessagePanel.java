@@ -14,6 +14,7 @@
 
 package codeu.chat.client.simplegui;
 
+import database.MessageFromDB;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -151,12 +152,12 @@ public final class MessagePanel extends JPanel {
     this.add(buttonPanel, buttonPanelC);
 
     // Load existing messages from database.
-    List<String> messagesToAdd = connector.getMessages(STARTUP_UID.toString());
-    for(String s : messagesToAdd) {
+    List<MessageFromDB> messagesToAdd = connector.getMessages(clientContext.conversation.getCurrentId().toString());
+    for(MessageFromDB s : messagesToAdd) {
       clientContext.message.addMessage(
-          STARTUP_UID,
-          STARTUP_UID,
-          s);
+          Uuids.fromString(s.getId_user()),
+          Uuids.fromString(s.getId_conversation()),
+          s.getMessage());
     }
 
     // User click Messages Add button - prompt for message body and add new Message to Conversation

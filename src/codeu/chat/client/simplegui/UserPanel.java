@@ -163,6 +163,7 @@ public final class UserPanel extends JPanel {
     con = new Connector();
     List<UserFromDB> usersToAdd = con.getAllUsers();
     for(UserFromDB s : usersToAdd) {
+      //repopulate the model
       clientContext.user.addUser(s.getUsername());
     }
     UserPanel.this.getAllUsers(listModel);

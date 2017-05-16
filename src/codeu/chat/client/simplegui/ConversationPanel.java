@@ -14,6 +14,7 @@
 
 package codeu.chat.client.simplegui;
 
+import database.ConversationFromDB;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -35,7 +36,6 @@ public final class ConversationPanel extends JPanel {
   private final ClientContext clientContext;
   private final MessagePanel messagePanel;
   private static final Connector connector = new Connector();
-  private static final Uuid STARTUP_UID = Uuids.fromString("00000000");
 
   public ConversationPanel(ClientContext clientContext, MessagePanel messagePanel) {
     super(new GridBagLayout());
@@ -114,9 +114,9 @@ public final class ConversationPanel extends JPanel {
     this.add(buttonPanel, buttonPanelC);
 
     // Load existing conversations from database.
-    List<String> convsToAdd = connector.getConversations();
-    for(String s : convsToAdd) {
-      clientContext.conversation.startConversation(s, STARTUP_UID, true);
+    List<ConversationFromDB > conversations = connector.getConversations();
+    for(ConversationFromDB s : conversations) {
+      clientContext.conversation.startConversation(s.getTitle(), Uuids.fromString(s.getAuthorid()), true);
     }
 
     // User clicks Conversations Update button.

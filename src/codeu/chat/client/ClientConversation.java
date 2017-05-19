@@ -33,18 +33,18 @@ public final class ClientConversation {
   private final View view;
   private static final Connector connector = new Connector();
 
-  private ConversationSummary currentSummary = null;
+  //private ConversationSummary current = null;
   private Conversation currentConversation = null;
 
   private final ClientUser userContext;
   private ClientMessage messageContext = null;
 
   // This is the set of conversations known to the server.
-  private final Map<Uuid, ConversationSummary> summariesByUuid = new HashMap<>();
+  private final Map<Uuid, Conversation> conversationsMap = new HashMap<>();
 
   // This is the set of conversations known to the server, sorted by title.
-  private Store<String, ConversationSummary> summariesSortedByTitle =
-      new Store<>(String.CASE_INSENSITIVE_ORDER);
+  //private Store<String, ConversationSummary> summariesSortedByTitle =
+    //  new Store<>(String.CASE_INSENSITIVE_ORDER);
 
   public ClientConversation(Controller controller, View view, ClientUser userContext) {
     this.controller = controller;
@@ -70,14 +70,14 @@ public final class ClientConversation {
   }
 
   public boolean hasCurrent() {
-    return (currentSummary != null);
+    return (currentConversation != null);
   }
 
-  public ConversationSummary getCurrent() {
-    return currentSummary;
+  public Conversation getCurrent() {
+    return currentConversation;
   }
 
-  public Uuid getCurrentId() { return (currentSummary != null) ? currentSummary.id : null; }
+  public Uuid getCurrentId() { return (currentConversation != null) ? currentConversation.id : null; }
 
   public int currentMessageCount() {
     return messageContext.currentMessageCount();
@@ -118,10 +118,7 @@ public final class ClientConversation {
 
   // Get a single conversation from the server.
   public Conversation getConversation(Uuid conversationId) {
-    for (final Conversation c : view.getConversations(Arrays.asList(conversationId))) {
-      return c;
-    }
-    return null;
+    return view.findConversation(conversationId);
   }
 
   private void joinConversation(String match) {
@@ -147,11 +144,11 @@ public final class ClientConversation {
       }
     }
   }
-
+/*
   public int conversationsCount() {
    return summariesByUuid.size();
   }
-
+*/
   public Iterable<ConversationSummary> getConversationSummaries() {
     return summariesSortedByTitle.all();
   }
@@ -160,13 +157,12 @@ public final class ClientConversation {
   // If the input currentChanged is true, then re-establish the state of
   // the current Conversation, including its messages.
   public void updateAllConversations(boolean currentChanged) {
+  //  summariesByUuid.clear();
+ //   summariesSortedByTitle = new Store<>(String.CASE_INSENSITIVE_ORDER);
 
-    summariesByUuid.clear();
-    summariesSortedByTitle = new Store<>(String.CASE_INSENSITIVE_ORDER);
-
-    for (final ConversationSummary cs : view.getAllConversations()) {
-      summariesByUuid.put(cs.id, cs);
-      summariesSortedByTitle.insert(cs.title, cs);
+    for (final Conversation cs : view.getConversations()) {
+      conversationsMap.put(cs.id,cs);
+  //    summariesSortedByTitle.insert(cs.title, cs);
     }
 
     if (currentChanged) {

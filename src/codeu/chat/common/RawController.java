@@ -14,6 +14,8 @@
 
 package codeu.chat.common;
 
+import com.sun.org.apache.xml.internal.security.algorithms.MessageDigestAlgorithm;
+
 // RAW CONTROLLER
 //
 // A controller that grants a large amount of control over how data is inserted
@@ -25,18 +27,20 @@ public interface RawController {
   //
   // Add a new message to the model with a specific id. If the id is already
   // in use, the call will fail and null will be returned.
-  Message newMessage(Uuid id, Uuid author, Uuid conversation, String body, Time creationTime);
+  //Message newMessage(Uuid id, Uuid author, Uuid conversation, String body, Time creation_time);
+  Message newMessage(Uuid id, Uuid author, Uuid conversation, String body);
 
   // NEW USER
   //
   // Add a new user to the model with a specific id. If the id is already in
   // use, the call will fail and null will be returned.
-  User newUser(Uuid id, String name, Time creationTime);
-
+  //User newUser(Uuid id, String name, Time creationTime);
+  User newUser(Uuid id, String name);
   // NEW CONVERSATION
   //
   // Add a new conversation to the model with a specific if. If the id is
   // already in use, the call will fail and null will be returned.
-  Conversation newConversation(Uuid id, String title, Uuid owner, Time creationTime);
+  //Conversation newConversation(Uuid id, String title, Uuid owner, Time creationTime);
+  Conversation newConversation(Uuid id, String title, Uuid owner);
 
 }

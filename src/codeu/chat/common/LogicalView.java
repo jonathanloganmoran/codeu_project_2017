@@ -31,10 +31,11 @@ public interface LogicalView {
   //   tracking this number will allow checking if it is worth fetching all users.
   Uuid getUserGeneration();
 
+
   // GET USERS EXCLUDING
   //
   //   Get all users whose ID are not found in the given set of ids.
-  Collection<User> getUsersExcluding(Collection<Uuid> ids);
+  //Collection<User> getUsersExcluding(Collection<Uuid> ids);
 
   // GET CONVERSATIONS
   //
@@ -48,7 +49,7 @@ public interface LogicalView {
   //   Get a collection of conversations given a regex expression that will be
   //   used against every conversation's title. All conversations whose title
   //   matches the given regex expression will be returned.
-  Collection<Conversation> getConversations(String filter);
+  //Collection<Conversation> getConversations(String filter);
 
   // GET MESSAGES
   //
@@ -56,7 +57,8 @@ public interface LogicalView {
   //   between the start and end times. If the conversation is not found,
   //   or the start time is invalid, or the end time is invalid, no
   //   messages will be returned.
-  Collection<Message> getMessages(Uuid conversation, Time start, Time end);
+  //Collection<Message> getMessages(Uuid conversation, Time start, Time end);
+  Collection<Message> getMessages(Uuid conversation);
 
   // GET MESSAGES
   //
@@ -66,6 +68,6 @@ public interface LogicalView {
   //   range is negative, all messages before the given message up to and
   //   including |range| will be returned. If the root message is not found
   //   no messages will be returned.
-  Collection<Message> getMessages(Uuid rootMessage, int range);
-
+  //Collection<Message> getMessages(Uuid rootMessage, int range);
+  Collection<Message> getMessages(Uuid conversation, Time start, Time end);
 }

@@ -159,13 +159,14 @@ public final class UserPanel extends JPanel {
     this.add(buttonPanel, buttonPanelC);
     this.add(currentPanel, currentPanelC);
 
-    // Load existing users from database.
+  /*  // Load existing users from database.
     con = new Connector();
     List<UserFromDB> usersToAdd = con.getAllUsers();
     for(UserFromDB s : usersToAdd) {
       //repopulate the model
       clientContext.user.addUser(s.getUsername());
     }
+    */
     UserPanel.this.getAllUsers(listModel);
 
 
@@ -252,9 +253,8 @@ public final class UserPanel extends JPanel {
 
   // Swing UI: populate ListModel object - updates display objects.
   private void getAllUsers(DefaultListModel<String> usersList) {
-    clientContext.user.updateUsers();
-    usersList.clear();
-
+    //clientContext.user.updateUsers();
+    //usersList.clear();
     for (final User u : clientContext.user.getUsers()) {
       usersList.addElement(u.name);
     }

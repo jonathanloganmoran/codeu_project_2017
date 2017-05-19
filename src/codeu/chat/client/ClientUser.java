@@ -20,23 +20,25 @@ import codeu.chat.util.Logger;
 import database.Connector;
 import codeu.chat.util.TextValidator;
 import codeu.chat.util.store.Store;
+import database.UserFromDB;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public final class ClientUser {
 
   private final static Logger.Log LOG = Logger.newLog(ClientUser.class);
 
-  private static final Collection<Uuid> EMPTY = Arrays.asList(new Uuid[0]);
+ // private static final Collection<Uuid> EMPTY = Arrays.asList(new Uuid[0]);
   private final Controller controller;
   private final View view;
 
   private User current = null;
 
   private final Map<Uuid, User> usersById = new HashMap<>();
-  private static final database.Connector con = new database.Connector();
+ // private static final database.Connector con = new database.Connector();
 
   // This is the set of users known to the server, sorted by name.
   private Store<String, User> usersByName = new Store<>(String.CASE_INSENSITIVE_ORDER);
@@ -85,22 +87,21 @@ public final class ClientUser {
   public void addUser(String name, String password) {
     final boolean validInputs = isValidName(name);
 
-    final User user = (validInputs) ? controller.newUser(name) : null;
+    final User user = (validInputs) ? controller.newUser(name,password) : null;
 
     if (user == null) {
       System.out.format("Error: user not created - %s.\n",
           (validInputs) ? "server failure" : "bad input value");
     } else {
-      con.addAccount(user.name, password, user.id.toString());
       LOG.info("New user complete, Name= \"%s\" UUID=%s", user.name, user.id);
       updateUsers();
     }
   }
-
-  public void addUser(String name) {
+/*
+  public void addUser(String name, String password) {
     final boolean validInputs = isValidName(name);
 
-    final User user = (validInputs) ? controller.newUser(name) : null;
+    final User user = (validInputs) ? controller.newUser(name,password) : null;
 
     if (user == null) {
       System.out.format("Error: user not created - %s.\n",
@@ -109,8 +110,13 @@ public final class ClientUser {
       LOG.info("New user complete, Name= \"%s\" UUID=%s", user.name, user.id);
       updateUsers();
     }
-  }
+  */
+/*
+  public void populateList(List<UserFromDB> list){
+   Collection<User>collection =  view.getUsersExcluding(null);
 
+  }
+*/
 
   public void showAllUsers() {
     updateUsers();
@@ -133,17 +139,17 @@ public final class ClientUser {
     }
   }
 
-  public Iterable<User> getUsers() {
-    return usersByName.all();
+  public Collection<User> getUsers() {
+    return view.getUsers(); //usersByName.all();
   }
 
   public void updateUsers() {
     usersById.clear();
-    usersByName = new Store<>(String.CASE_INSENSITIVE_ORDER);
+    //usersByName = new Store<>(String.CASE_INSENSITIVE_ORDER);
 
-    for (final User user : view.getUsersExcluding(EMPTY)) {
+    for (final User user : view.getUsers()) {
       usersById.put(user.id, user);
-      usersByName.insert(user.name, user);
+      //usersByName.insert(user.name, user);
     }
   }
 

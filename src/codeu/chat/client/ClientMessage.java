@@ -90,7 +90,8 @@ public final class ClientMessage {
     return (conversationContents == null) ? 0 : conversationContents.size();
   }
 
-  public List<Message> getConversationContents(ConversationSummary summary) {
+  public List<Message> getConversationContents(Conversation summary) {
+
     if (conversationHead == null || summary == null || !conversationHead.id.equals(summary.id)) {
       updateMessages(summary, true);
     }
@@ -100,16 +101,15 @@ public final class ClientMessage {
   // For m-add command.
   public void addMessage(Uuid author, Uuid conversation, String body) {
     final boolean validInputs = isValidBody(body) && (author != null) && (conversation != null);
-
     final Message message = (validInputs) ? controller.newMessage(author, conversation, body) : null;
-
     if (message == null) {
       System.out.format("Error: message not created - %s.\n",
           (validInputs) ? "server error" : "bad input value");
     } else {
       LOG.info("New message:, Author= %s UUID= %s", author, message.id);
-      connector.addMessage(message.id.toString(), author.toString(), conversation.toString(), message.content);
-      current = message;
+      // add to the display list first
+     // connector.addMessage(message.id.toString(), author.toString(), conversation.toString(), message.content);
+      //current = message;
     }
     updateMessages(false);
   }
@@ -166,7 +166,7 @@ public final class ClientMessage {
       return getCurrentTailMessageId();
     }
   }
-
+/*
   private Uuid getCurrentTailMessageId() {
     Uuid nextMessageId = conversationContents.get(conversationContents.size() - 1).id;
     final List<Message> messageTail = new ArrayList<>(view.getMessages(nextMessageId, 1));
@@ -181,7 +181,7 @@ public final class ClientMessage {
     }
     return nextMessageId;
   }
-
+*/
   // Update the list of messages for the current conversation.
   // Currently rereads the entire message chain.
   public void updateMessages(boolean replaceAll) {
@@ -190,18 +190,19 @@ public final class ClientMessage {
 
   // Update the list of messages for the given conversation.
   // Currently rereads the entire message chain.
-  public void updateMessages(ConversationSummary conversation, boolean replaceAll) {
+  public void updateMessages(Conversation conversation, boolean replaceAll) {
     if (conversation == null) {
       LOG.error("conversation argument is null - do nothing.");
       return;
     }
+    /*
     conversationHead = conversationContext.getConversation(conversation.id);
     if (conversationHead == null) {
       LOG.info("ConversationHead is null");
-    } else {
-      LOG.info("ConversationHead: Title=\"%s\" UUID=%s first=%s last=%s\n",
-          conversationHead.title, conversationHead.id, conversationHead.firstMessage,
-          conversationHead.lastMessage);
+    }*/ else {
+      LOG.info("Conversation: Title=\"%s\" UUID=%s first=%s last=%s\n",
+          conversation.title, conversation.id/*, conversation.firstMessage,
+          conversationHead.lastMessage*/);
 
       Uuid nextMessageId = getCurrentMessageFetchId(replaceAll);
 

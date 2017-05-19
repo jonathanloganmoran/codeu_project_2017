@@ -14,7 +14,7 @@
 
 package codeu.chat.common;
 
-import com.sun.org.apache.xml.internal.security.algorithms.MessageDigestAlgorithm;
+//import com.sun.org.apache.xml.internal.security.algorithms.MessageDigestAlgorithm;
 
 // RAW CONTROLLER
 //
@@ -22,7 +22,6 @@ import com.sun.org.apache.xml.internal.security.algorithms.MessageDigestAlgorith
 // into the model. If there is a conflict in data, the call will be rejected and
 // a null value returned.
 public interface RawController {
-
   // NEW MESSAGE
   //
   // Add a new message to the model with a specific id. If the id is already
@@ -42,5 +41,4 @@ public interface RawController {
   // already in use, the call will fail and null will be returned.
   //Conversation newConversation(Uuid id, String title, Uuid owner, Time creationTime);
   Conversation newConversation(Uuid id, String title, Uuid owner);
-
 }

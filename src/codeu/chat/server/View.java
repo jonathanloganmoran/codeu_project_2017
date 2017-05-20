@@ -15,27 +15,16 @@
 package codeu.chat.server;
 
 import codeu.chat.common.Uuids;
-import database.Connector;
-import database.ConversationFromDB;
-import database.MessageFromDB;
-import database.UserFromDB;
+import codeu.chat.database.Connector;
+import codeu.chat.database.ConversationFromDB;
+import codeu.chat.database.MessageFromDB;
+import codeu.chat.database.UserFromDB;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.regex.Pattern;
 
 import codeu.chat.common.BasicView;
 import codeu.chat.common.Conversation;
-import codeu.chat.common.ConversationSummary;
 import codeu.chat.common.LogicalView;
 import codeu.chat.common.Message;
 import codeu.chat.common.SinglesView;
@@ -43,16 +32,15 @@ import codeu.chat.common.Time;
 import codeu.chat.common.User;
 import codeu.chat.common.Uuid;
 import codeu.chat.util.Logger;
-import codeu.chat.util.store.StoreAccessor;
 
 public final class View implements BasicView, LogicalView, SinglesView {
 
   private final static Logger.Log LOG = Logger.newLog(View.class);
 
-  //in this case, we have database
+  //in this case, we have codeu.chat.database
   //private final Model model;
 
-  //database:
+  //codeu.chat.database:
   Connector connector= new Connector();
 
   public View(/*Model model*/) {
@@ -66,7 +54,7 @@ public final class View implements BasicView, LogicalView, SinglesView {
 */
 
   /**
-   * Get all the users from the database
+   * Get all the users from the codeu.chat.database
    * @return
    */
   @Override
@@ -96,7 +84,7 @@ public final class View implements BasicView, LogicalView, SinglesView {
 */
 
   /**
-   * Get all the conversations from the database
+   * Get all the conversations from the codeu.chat.database
    * @return
    */
   @Override
@@ -327,6 +315,33 @@ public final class View implements BasicView, LogicalView, SinglesView {
               Uuids.fromString(message.getId_user()),
               message.getMessage(),
               Uuids.fromString(message.getId_conversation()));
+    }
+    return null;
+  }
+
+  public User getUserByName(String name){
+    UserFromDB userFromDB = connector.getUserByName(name);
+    if(userFromDB != null){
+      return new User(Uuids.fromString(userFromDB.getUuid()), userFromDB.getUsername(), userFromDB.getTime());
+    }
+    return null;
+  }
+
+  public Conversation getConversationByTitle(String title){
+    ConversationFromDB conversationFromDB = connector.getConversationByTitle(title);
+    if(conversationFromDB != null){
+      return new Conversation(
+              Uuids.fromString(conversationFromDB.getUuid()),
+              Uuids.fromString(conversationFromDB.getAuthorid()),
+              conversationFromDB.getTime(),
+              title);
+    }
+    return  null;
+  }
+
+  public User verifyAccount(String name, String password){
+    if(connector.verifyAccount(name,password)){
+     return getUserByName(name);
     }
     return null;
   }

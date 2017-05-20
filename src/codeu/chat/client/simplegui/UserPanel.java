@@ -17,10 +17,7 @@ package codeu.chat.client.simplegui;
 import codeu.chat.client.ClientContext;
 import codeu.chat.common.User;
 import codeu.chat.util.TextValidator;
-import database.Connector;
-import database.UserFromDB;
-import java.util.LinkedList;
-import java.util.List;
+
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -48,7 +45,7 @@ import javax.swing.JPasswordField;
 public final class UserPanel extends JPanel {
 
   private final ClientContext clientContext;
-  private static Connector con;
+  //private static Connector con;
 
   public UserPanel(ClientContext clientContext) {
     super(new GridBagLayout());
@@ -159,7 +156,7 @@ public final class UserPanel extends JPanel {
     this.add(buttonPanel, buttonPanelC);
     this.add(currentPanel, currentPanelC);
 
-  /*  // Load existing users from database.
+  /*  // Load existing users from codeu.chat.database.
     con = new Connector();
     List<UserFromDB> usersToAdd = con.getAllUsers();
     for(UserFromDB s : usersToAdd) {
@@ -167,9 +164,8 @@ public final class UserPanel extends JPanel {
       clientContext.user.addUser(s.getUsername());
     }
     */
+    // populate listModel with a list of users: done
     UserPanel.this.getAllUsers(listModel);
-
-
     userUpdateButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -177,7 +173,7 @@ public final class UserPanel extends JPanel {
       }
     });
 
-    // Updated to verify password with database as well.
+    // Updated to verify password with codeu.chat.database as well.
     userSignInButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -186,49 +182,48 @@ public final class UserPanel extends JPanel {
           String[] response = getInput("Sign-In",data);
           if (response != null) {
             // Needs to be valid format.
-            if (TextValidator.isValidUserName(response[0]) && TextValidator
-                .isValidPassword(response[1])) {
-              // Needs to pass through DB to authenticate.
-              if (con.verifyAccount(response[0], response[1])) {
-                clientContext.user.signInUser(response[0]);
+            if (TextValidator.isValidUserName(response[0]) && TextValidator.isValidPassword(response[1])) {
+
+              if(clientContext.user.signInUser(response[0],response[1])){
                 userSignedInLabel.setText("Hello " + response[0]);
-              } else {
-                JOptionPane.showMessageDialog(UserPanel.this,
-                    "Not able to sign in. Invalid field for username or password.",
-                    "Failure to Authenticate",
-                    JOptionPane.ERROR_MESSAGE);
               }
-            } else {
+              else {
+                JOptionPane.showMessageDialog(UserPanel.this,
+                        "Not able to sign in. Invalid field for username or password.",
+                        "Failure to Authenticate", JOptionPane.ERROR_MESSAGE);
+              }
+            }
+            else {
               JOptionPane.showMessageDialog(UserPanel.this,
-                  "Not able to sign in. Invalid format of username or password entered.\n"
-                      + "Please try again.",
-                  "Failure to Authenticate",
-                  JOptionPane.ERROR_MESSAGE);
+                      "Not able to sign in. Invalid format of username or password entered.\n"
+                      + "Please try again.", "Failure to Authenticate", JOptionPane.ERROR_MESSAGE);
             }
           }
         }
       }
     });
 
-    // Updated to add to database as well.
+    // Updated to add to codeu.chat.database as well.
     userAddButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         String[] response = getInput("Sign-In","");
         if (response != null) {
-          if (TextValidator.isValidUserName(response[0]) && TextValidator
-              .isValidPassword(response[1])) {
-            if(!con.accountExists(response[0])) {
-              // Account added to program and to database in clientContext.user.
-              clientContext.user.addUser(response[0], response[1]);
-              UserPanel.this.getAllUsers(listModel);
-            } else {
+          if (TextValidator.isValidUserName(response[0]) && TextValidator.isValidPassword(response[1])) {
+            // Account added to program and to codeu.chat.database in clientContext.user.
+            boolean added = clientContext.user.addUser(response[0], response[1]);
+            if(added){
+              listModel.addElement(response[0]);
+            }
+            //UserPanel.this.getAllUsers(listModel);
+            else {
               JOptionPane.showMessageDialog(UserPanel.this,
                   "User not created. User already exists. Please choose different name.",
                   "User Not Created",
                   JOptionPane.ERROR_MESSAGE);
             }
-          } else {
+          }
+          else {
             JOptionPane.showMessageDialog(UserPanel.this,
                 "User not created. Alphanumeric characters only, with no spaces.\nPlease try again.",
                 "User Not Created",
@@ -241,14 +236,14 @@ public final class UserPanel extends JPanel {
     userList.addListSelectionListener(new ListSelectionListener() {
       @Override
       public void valueChanged(ListSelectionEvent e) {
-        if (userList.getSelectedIndex() != -1) {
+        if (userList.getSelectedIndex() != -1){
           final String data = userList.getSelectedValue();
           userInfoPanel.setText(clientContext.user.showUserInfo(data));
         }
       }
     });
-
-    getAllUsers(listModel);
+    //todo: //is this needed?
+    //getAllUsers(listModel);
   }
 
   // Swing UI: populate ListModel object - updates display objects.

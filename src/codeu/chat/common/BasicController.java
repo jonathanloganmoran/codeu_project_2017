@@ -14,9 +14,6 @@
 
 package codeu.chat.common;
 
-import database.UserFromDB;
-import java.util.List;
-
 // BASIC CONTROLLER
 //
 //   The controller component in the Model-View-Controller pattern. This

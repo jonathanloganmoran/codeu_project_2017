@@ -17,10 +17,9 @@ package codeu.chat.server;
 import codeu.chat.common.Conversation;
 import codeu.chat.common.Message;
 import codeu.chat.common.User;
-import database.Connector;
+import codeu.chat.database.Connector;
 import codeu.chat.common.BasicController;
 import codeu.chat.common.RawController;
-import codeu.chat.common.Time;
 import codeu.chat.common.Uuid;
 import codeu.chat.common.Uuids;
 import codeu.chat.util.Logger;
@@ -29,7 +28,7 @@ public final class Controller implements RawController, BasicController {
 
   private final static Logger.Log LOG = Logger.newLog(Controller.class);
 
-  /* Model is teh database so it is not necessary here to put the model as the database exists*/
+  /* Model is teh codeu.chat.database so it is not necessary here to put the model as the codeu.chat.database exists*/
   //private final Model model;
 
   private final Uuid.Generator uuidGenerator;
@@ -40,7 +39,7 @@ public final class Controller implements RawController, BasicController {
     this.uuidGenerator = new RandomUuidGenerator(serverId, System.currentTimeMillis());
   }
 
-  /* Add new message to the database*/
+  /* Add new message to the codeu.chat.database*/
   @Override
   public Message newMessage(Uuid author, Uuid conversation, String body) {
     Uuid newID = createId();
@@ -50,7 +49,7 @@ public final class Controller implements RawController, BasicController {
     return null;
   }
 
-  /* Add new user to the database*/
+  /* Add new user to the codeu.chat.database*/
   @Override
   public User newUser(String name, String password) {
     Uuid newID = createId();

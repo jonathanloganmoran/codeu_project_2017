@@ -14,34 +14,29 @@
 
 package codeu.chat.client;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import database.Connector;
+import java.util.*;
+
+import codeu.chat.database.Connector;
 import codeu.chat.common.Conversation;
-import codeu.chat.common.ConversationSummary;
 import codeu.chat.common.Message;
 import codeu.chat.common.Uuid;
 import codeu.chat.common.Uuids;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Method;
+import codeu.chat.util.TextValidator;
 
 public final class ClientMessage {
 
   private final static Logger.Log LOG = Logger.newLog(ClientMessage.class);
-
   private final static int MESSAGE_MAX_COUNT = 100;
   private final static int MESSAGE_FETCH_COUNT = 5;
-  private static final Connector connector = new Connector();
 
   private final Controller controller;
   private final View view;
 
   private Message current = null;
 
-  private final Map<Uuid, Message> messageByUuid = new HashMap<>();
-
+ // private final Map<Uuid, Message> messageByUuid = new HashMap<>();
   private Conversation conversationHead;
   private final List<Message> conversationContents = new ArrayList<>();
 
@@ -62,11 +57,12 @@ public final class ClientMessage {
     boolean clean = true;
     if ((body.length() <= 0) || (body.length() > 1024)) {
       clean = false;
-    } else {
-
-      // TODO: check for invalid characters
-
     }
+    else {
+      if (!TextValidator.isValidMessage(body)) {
+        clean = false;
+      }
+    } // TODO: check for invalid characters
     return clean;
   }
 
@@ -86,12 +82,17 @@ public final class ClientMessage {
     updateMessages(replaceAll);
   }
 
-  public int currentMessageCount() {
+  /*public int currentMessageCount() {
     return (conversationContents == null) ? 0 : conversationContents.size();
   }
-
+*/
   public List<Message> getConversationContents(Conversation summary) {
-
+    Collection<Message> messageList = view.getMessages(summary.id);
+    if(messageList != null) {
+      for (Message message : messageList) {
+        conversationContents.add(message);
+      }
+    }
     if (conversationHead == null || summary == null || !conversationHead.id.equals(summary.id)) {
       updateMessages(summary, true);
     }
@@ -99,7 +100,7 @@ public final class ClientMessage {
   }
 
   // For m-add command.
-  public void addMessage(Uuid author, Uuid conversation, String body) {
+  public Message addMessage(Uuid author, Uuid conversation, String body) {
     final boolean validInputs = isValidBody(body) && (author != null) && (conversation != null);
     final Message message = (validInputs) ? controller.newMessage(author, conversation, body) : null;
     if (message == null) {
@@ -111,7 +112,8 @@ public final class ClientMessage {
      // connector.addMessage(message.id.toString(), author.toString(), conversation.toString(), message.content);
       //current = message;
     }
-    updateMessages(false);
+    return message;
+    //updateMessages(false);
   }
 
   // For m-list-all command.
@@ -166,10 +168,11 @@ public final class ClientMessage {
       return getCurrentTailMessageId();
     }
   }
+  todo:need to understand the tail
 /*
   private Uuid getCurrentTailMessageId() {
     Uuid nextMessageId = conversationContents.get(conversationContents.size() - 1).id;
-    final List<Message> messageTail = new ArrayList<>(view.getMessages(nextMessageId, 1));
+    final List<Message> messageTail = new ArrayList<>(view.getMessages(nextMessageId));
     if (messageTail.size() > 0) {
       final Message msg = messageTail.get(0);
       nextMessageId = msg.next;

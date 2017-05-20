@@ -1,4 +1,4 @@
-package database;
+package codeu.chat.database;
 
 import codeu.chat.common.Time;
 

@@ -89,7 +89,7 @@ public final class Chat {
       if (!tokenScanner.hasNext()) {
         System.out.println("ERROR: No user name supplied.");
       } else {
-        signInUser(tokenScanner.nextLine().trim());
+        signInUser(tokenScanner.nextLine().trim(),tokenScanner.nextLine().trim());
       }
 
     } else if (token.equals("sign-out")) {
@@ -193,8 +193,8 @@ public final class Chat {
   }
 
   // Sign in a user.
-  private void signInUser(String name) {
-    if (!clientContext.user.signInUser(name)) {
+  private void signInUser(String name, String password) {
+    if (!clientContext.user.signInUser(name,password)) {
       System.out.println("Error: sign in failed (invalid name?)");
     }
   }

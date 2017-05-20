@@ -38,7 +38,7 @@ public final class View implements BasicView, LogicalView, SinglesView {
     this.source = source;
   }
 
-  /* Get all the users from the database*/
+  /* Get all the users from the codeu.chat.database*/
   @Override
   public Collection<User> getUsers() {
 
@@ -65,9 +65,9 @@ public final class View implements BasicView, LogicalView, SinglesView {
     final Collection<Conversation> conversations = new ArrayList<>();
     try (final Connection connection = source.connect()) {
 
-      Serializers.INTEGER.write(connection.out(), NetworkCode.GET_ALL_CONVERSATIONS_REQUEST);
+      Serializers.INTEGER.write(connection.out(), NetworkCode.GET_CONVERSATIONS_REQUEST);
 
-      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_ALL_CONVERSATIONS_RESPONSE) {
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_CONVERSATIONS_RESPONSE) {
         conversations.addAll(Serializers.collection(Conversation.SERIALIZER).read(connection.in()));
       } else {
         LOG.error("Response from server failed.");
@@ -209,10 +209,30 @@ public final class View implements BasicView, LogicalView, SinglesView {
 
     try (final Connection connection = source.connect()) {
 
-      Serializers.INTEGER.write(connection.out(), NetworkCode.GET_USER_REQUEST);
+      Serializers.INTEGER.write(connection.out(), NetworkCode.GET_USER_BY_ID_REQUEST);
       Uuids.SERIALIZER.write(connection.out(), id);
 
-      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_USER_RESPONSE) {
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_USER_BY_ID_RESPONSE) {
+        response  = User.SERIALIZER.read(connection.in());
+      } else {
+        LOG.error("Response from server failed.");
+      }
+
+    } catch (Exception ex) {
+      System.out.println("ERROR: Exception during call on server. Check log for details.");
+      LOG.error(ex, "Exception during call on server.");
+    }
+    return response;
+  }
+
+  public User getUserByName(String name) {
+    User response = null;
+    try (final Connection connection = source.connect()) {
+
+      Serializers.INTEGER.write(connection.out(), NetworkCode.GET_USER_BY_NAME_REQUEST);
+      Serializers.STRING.write(connection.out(), name);
+
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_USER_BY_NAME_RESPONSE) {
         response  = User.SERIALIZER.read(connection.in());
       } else {
         LOG.error("Response from server failed.");
@@ -231,10 +251,30 @@ public final class View implements BasicView, LogicalView, SinglesView {
 
     try (final Connection connection = source.connect()) {
 
-      Serializers.INTEGER.write(connection.out(), NetworkCode.GET_CONVERSATION_REQUEST);
+      Serializers.INTEGER.write(connection.out(), NetworkCode.GET_CONVERSATION_BY_ID_REQUEST);
       Uuids.SERIALIZER.write(connection.out(), id);
 
-      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_CONVERSATION_RESPONSE) {
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_CONVERSATION_BY_ID_RESPONSE) {
+        response  = Conversation.SERIALIZER.read(connection.in());
+      } else {
+        LOG.error("Response from server failed.");
+      }
+
+    } catch (Exception ex) {
+      System.out.println("ERROR: Exception during call on server. Check log for details.");
+      LOG.error(ex, "Exception during call on server.");
+    }
+    return response;
+  }
+
+  public Conversation getConversationByTitle(String title){
+    Conversation response = null;
+    try (final Connection connection = source.connect()) {
+
+      Serializers.INTEGER.write(connection.out(), NetworkCode.GET_CONVERSATION_BY_TITLE_REQUEST);
+      Serializers.STRING.write(connection.out(), title);
+
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_CONVERSATION_BY_TITLE_RESPONSE) {
         response  = Conversation.SERIALIZER.read(connection.in());
       } else {
         LOG.error("Response from server failed.");
@@ -253,10 +293,10 @@ public final class View implements BasicView, LogicalView, SinglesView {
 
     try (final Connection connection = source.connect()) {
 
-      Serializers.INTEGER.write(connection.out(), NetworkCode.GET_MESSAGE_REQUEST);
+      Serializers.INTEGER.write(connection.out(), NetworkCode.GET_MESSAGE_BY_ID_REQUEST);
       Uuids.SERIALIZER.write(connection.out(), id);
 
-      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_MESSAGE_RESPONSE) {
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_MESSAGE_BY_ID_RESPONSE) {
         response  = Message.SERIALIZER.read(connection.in());
       } else {
         LOG.error("Response from server failed.");
@@ -267,6 +307,25 @@ public final class View implements BasicView, LogicalView, SinglesView {
       LOG.error(ex, "Exception during call on server.");
     }
     return response;
+  }
+  public User AccountExists(String name, String password){
+    try (final Connection connection = source.connect()) {
+
+      Serializers.INTEGER.write(connection.out(), NetworkCode.VERIFY_ACCOUNT_REQUEST);
+      Serializers.STRING.write(connection.out(), name);
+      Serializers.STRING.write(connection.out(), password);
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.VERIFY_ACCOUNT_RESPONSE) {
+        return User.SERIALIZER.read(connection.in());
+      } else {
+        LOG.error("Response from server failed.");
+        return null;
+      }
+
+    } catch (Exception ex) {
+      System.out.println("ERROR: Exception during call on server. Check log for details.");
+      LOG.error(ex, "Exception during call on server.");
+      return null;
+    }
   }
 
 /*

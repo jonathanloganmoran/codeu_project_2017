@@ -34,6 +34,7 @@ import codeu.chat.common.User;
 import codeu.chat.common.Uuid;
 import codeu.chat.common.Uuids;
 import codeu.chat.util.Logger;
+import codeu.chat.util.Serializer;
 import codeu.chat.util.Serializers;
 import codeu.chat.util.connections.Connection;
 
@@ -110,33 +111,54 @@ public final class Server {
       Serializers.INTEGER.write(out, NetworkCode.NEW_CONVERSATION_RESPONSE);
       Serializers.nullable(Conversation.SERIALIZER).write(out, conversation);
 
-    } /*else if (type == NetworkCode.GET_USERS_BY_ID_REQUEST) {
+    } else if (type == NetworkCode.GET_USER_BY_ID_REQUEST) {
 
-      final Collection<Uuid> ids = Serializers.collection(Uuids.SERIALIZER).read(in);
+      final Uuid id = Uuids.SERIALIZER.read(in);
+      final User user = view.findUser(id);
 
-      final Collection<User> users = view.getUsers(ids);
+      Serializers.INTEGER.write(out, NetworkCode.GET_USER_BY_ID_RESPONSE);
+      User.SERIALIZER.write(out, user);
 
-      Serializers.INTEGER.write(out, NetworkCode.GET_USERS_BY_ID_RESPONSE);
-      Serializers.collection(User.SERIALIZER).write(out, users);
+    } else if (type == NetworkCode.GET_USER_BY_NAME_REQUEST) {
 
-    } else if (type == NetworkCode.GET_ALL_CONVERSATIONS_REQUEST) {
+    final String name= Serializers.STRING.read(in);
+    final User user = view.getUserByName(name);
 
-      //final Collection<ConversationSummary> conversations = view.getAllConversations();
-      final Collection<Conversation> conversations = view.getConversations();
+    Serializers.INTEGER.write(out, NetworkCode.GET_USER_BY_NAME_RESPONSE);
+    User.SERIALIZER.write(out, user);
 
-      Serializers.INTEGER.write(out, NetworkCode.GET_ALL_CONVERSATIONS_RESPONSE);
-      Serializers.collection(ConversationSummary.SERIALIZER).write(out, conversations);
+  }
+    else if (type == NetworkCode.GET_CONVERSATION_BY_ID_REQUEST) {
 
-    } else if (type == NetworkCode.GET_CONVERSATIONS_BY_ID_REQUEST) {
+      final Uuid id = Uuids.SERIALIZER.read(in);
+      final Conversation conversation = view.findConversation(id);
 
-      final Collection<Uuid> ids = Serializers.collection(Uuids.SERIALIZER).read(in);
+      Serializers.INTEGER.write(out, NetworkCode.GET_CONVERSATION_BY_ID_RESPONSE);
+      Conversation.SERIALIZER.write(out, conversation);
 
-      final Collection<Conversation> conversations = view.getConversations(ids);
+    }
+    else if (type == NetworkCode.GET_CONVERSATION_BY_TITLE_REQUEST) {
 
-      Serializers.INTEGER.write(out, NetworkCode.GET_CONVERSATIONS_BY_ID_RESPONSE);
-      Serializers.collection(Conversation.SERIALIZER).write(out, conversations);
+      final String title = Serializers.STRING.read(in);
+      final Conversation conversation = view.getConversationByTitle(title);
 
-    }*/
+      Serializers.INTEGER.write(out, NetworkCode.GET_CONVERSATION_BY_TITLE_RESPONSE);
+      Conversation.SERIALIZER.write(out, conversation);
+
+    } else if (type == NetworkCode.GET_MESSAGE_BY_ID_REQUEST) {
+
+      final Uuid id = Uuids.SERIALIZER.read(in);
+      Message message = view.findMessage(id);
+      Serializers.INTEGER.write(out, NetworkCode.GET_MESSAGE_BY_ID_RESPONSE);
+      Message.SERIALIZER.write(out, message);
+    }
+    else if(type == NetworkCode.VERIFY_ACCOUNT_REQUEST){
+      final String name = Serializers.STRING.read(in);
+      final String password = Serializers.STRING.read(in);
+      final User user = view.verifyAccount(name,password);
+      Serializers.INTEGER.write(out, NetworkCode.VERIFY_ACCOUNT_RESPONSE);
+      User.SERIALIZER.write(out, user);
+    }
 
     else if (type == NetworkCode.GET_MESSAGES_BY_CONVERSATION_REQUEST) {
 

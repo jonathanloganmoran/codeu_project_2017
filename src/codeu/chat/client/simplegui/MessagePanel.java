@@ -14,18 +14,15 @@
 
 package codeu.chat.client.simplegui;
 
-import database.MessageFromDB;
+import codeu.chat.common.*;
+import codeu.chat.database.MessageFromDB;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.*;
-import codeu.chat.common.Uuid;
-import codeu.chat.common.Uuids;
-import database.Connector;
+
 import codeu.chat.client.ClientContext;
-import codeu.chat.common.ConversationSummary;
-import codeu.chat.common.Message;
-import codeu.chat.common.User;
+
 import java.util.List;
 
 // NOTE: JPanel is serializable, but there is no need to serialize MessagePanel
@@ -37,8 +34,7 @@ public final class MessagePanel extends JPanel {
   private final JLabel messageOwnerLabel = new JLabel("Owner:", JLabel.RIGHT);
   private final JLabel messageConversationLabel = new JLabel("Conversation:", JLabel.LEFT);
   private final DefaultListModel<String> messageListModel = new DefaultListModel<>();
-  private static final Connector connector = new Connector();
-  private static final Uuid STARTUP_UID = Uuids.fromString("00000000");
+  //private static final Connector connector = new Connector();
 
   private final ClientContext clientContext;
 
@@ -49,19 +45,16 @@ public final class MessagePanel extends JPanel {
   }
 
   // External agent calls this to trigger an update of this panel's contents.
-  public void update(ConversationSummary owningConversation) {
+  public void update(Conversation owningConversation) {
 
-    final User u = (owningConversation == null) ?
-        null :
-        clientContext.user.lookup(owningConversation.owner);
-
+    final User u = (owningConversation == null) ? null : clientContext.user.lookup(owningConversation.owner);
     messageOwnerLabel.setText("Owner: " +
         ((u==null) ?
             ((owningConversation==null) ? "" : owningConversation.owner) :
             u.name));
 
     messageConversationLabel.setText("Conversation: " + owningConversation.title);
-
+    //update the message, so grab everything from the database
     getAllMessages(owningConversation);
   }
 
@@ -150,8 +143,8 @@ public final class MessagePanel extends JPanel {
     this.add(titlePanel, titlePanelC);
     this.add(listShowPanel, listPanelC);
     this.add(buttonPanel, buttonPanelC);
-
-    // Load existing messages from database.
+    /*
+    // Load existing messages from codeu.chat.database.
     List<MessageFromDB> messagesToAdd = connector.getMessages(clientContext.conversation.getCurrentId().toString());
     for(MessageFromDB s : messagesToAdd) {
       clientContext.message.addMessage(
@@ -159,6 +152,9 @@ public final class MessagePanel extends JPanel {
           Uuids.fromString(s.getId_conversation()),
           s.getMessage());
     }
+    */
+    //show all the messages in the current conversation to user
+    getAllMessages(clientContext.conversation.getCurrent());
 
     // User click Messages Add button - prompt for message body and add new Message to Conversation
     addButton.addActionListener(new ActionListener() {
@@ -173,32 +169,34 @@ public final class MessagePanel extends JPanel {
               MessagePanel.this, "Enter message:", "Add Message", JOptionPane.PLAIN_MESSAGE,
               null, null, "");
           if (messageText != null && messageText.length() > 0) {
-            clientContext.message.addMessage(
+           Message newMessage = clientContext.message.addMessage(
                 clientContext.user.getCurrent().id,
                 clientContext.conversation.getCurrentId(),
                 messageText);
-            MessagePanel.this.getAllMessages(clientContext.conversation.getCurrent());
+           if(newMessage != null){
+             final String authorName = clientContext.user.getName(newMessage.author);
+              messageListModel.addElement(String.format("%s: [%s]: %s", authorName, newMessage.creation, newMessage.content));
+           }
+            //MessagePanel.this.getAllMessages(clientContext.conversation.getCurrent());
           }
         }
       }
     });
 
     // Panel is set up. If there is a current conversation, Populate the conversation list.
-    getAllMessages(clientContext.conversation.getCurrent());
+    //getAllMessages(clientContext.conversation.getCurrent());
   }
 
   // Populate ListModel
   // TODO: don't refetch messages if current conversation not changed
-  private void getAllMessages(ConversationSummary conversation) {
+  private void getAllMessages(Conversation conversation) {
     messageListModel.clear();
-
     for (final Message m : clientContext.message.getConversationContents(conversation)) {
       // Display author name if available.  Otherwise display the author UUID.
       final String authorName = clientContext.user.getName(m.author);
 
       final String displayString = String.format("%s: [%s]: %s",
           ((authorName == null) ? m.author : authorName), m.creation, m.content);
-
       messageListModel.addElement(displayString);
     }
   }

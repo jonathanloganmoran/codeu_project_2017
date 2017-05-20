@@ -38,4 +38,15 @@ public final class TextValidator {
       return false;
     }
   }
+
+  public static boolean isValidMessage(String message) {
+    if (message == null) {
+      return false;
+    } else if (message.length() != 0 && VALID_PASSWORD_PATTERN.matcher(message).matches()) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
 }

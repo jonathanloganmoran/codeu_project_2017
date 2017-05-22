@@ -37,7 +37,7 @@ public class Controller implements BasicController {
   }
 
   @Override
-  public Message newMessage(Uuid author, Uuid conversation, String body) {
+  public Message newMessage(Uuid author, Uuid conversation, String body, Uuid next, Uuid previous) {
 
     Message response = null;
 

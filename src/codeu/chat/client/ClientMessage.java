@@ -62,7 +62,7 @@ public final class ClientMessage {
       if (!TextValidator.isValidMessage(body)) {
         clean = false;
       }
-    } // TODO: check for invalid characters
+    }
     return clean;
   }
 
@@ -86,28 +86,33 @@ public final class ClientMessage {
     return (conversationContents == null) ? 0 : conversationContents.size();
   }
 */
-  public List<Message> getConversationContents(Conversation summary) {
-    Collection<Message> messageList = view.getMessages(summary.id);
+  public List<Message> getConversationContents(Conversation conversation) {
+    Collection<Message> messageList = view.getMessages(conversation.id);
     if(messageList != null) {
       for (Message message : messageList) {
         conversationContents.add(message);
       }
     }
-    if (conversationHead == null || summary == null || !conversationHead.id.equals(summary.id)) {
+    /*if (conversationHead == null || conversation == null || !conversationHead.id.equals(conversation.id)) {
       updateMessages(summary, true);
-    }
+    }*/
     return conversationContents;
   }
 
   // For m-add command.
   public Message addMessage(Uuid author, Uuid conversation, String body) {
     final boolean validInputs = isValidBody(body) && (author != null) && (conversation != null);
-    final Message message = (validInputs) ? controller.newMessage(author, conversation, body) : null;
+    final Message message = (validInputs) ? controller.newMessage(author, conversation, body, null, current.id) : null;
     if (message == null) {
       System.out.format("Error: message not created - %s.\n",
           (validInputs) ? "server error" : "bad input value");
     } else {
-      LOG.info("New message:, Author= %s UUID= %s", author, message.id);
+        // TODO: 5/20/17  add update next in message table in database 
+        current.next = message.id;
+        message.previous=current.id;
+        current = message;
+        current.next=null;
+        LOG.info("New message:, Author= %s UUID= %s", author, message.id);
       // add to the display list first
      // connector.addMessage(message.id.toString(), author.toString(), conversation.toString(), message.content);
       //current = message;
@@ -128,15 +133,14 @@ public final class ClientMessage {
       }
     }
   }
-
+    // TODO: 5/20/17  understand the following methdos and what it does
   // For m-next command.
   // Accept an index (within the current stream) that indicates the next message to show.
   // Message 1 is the head of the Conversation's message chain.
   // Message -1 is the tail of the Conversation's message chain.
   public void selectMessage(int index) {
-    Method.notImplemented();
-  }
 
+  }
   // Processing for m-show command.
   // Accept an int for number of messages to attempt to show (1 by default).
   // Negative values go from newest to oldest.
@@ -145,7 +149,6 @@ public final class ClientMessage {
       printMessage(m, userContext);
     }
   }
-
   private void showNextMessages(int count) {
     Method.notImplemented();
   }
@@ -154,37 +157,35 @@ public final class ClientMessage {
     Method.notImplemented();
   }
 
+
   // Determine the next message ID of the current conversation to start pulling.
   // This requires a read of the last read message to determine if the chain has been extended.
   private Uuid getCurrentMessageFetchId(boolean replaceAll) {
     if (replaceAll || conversationContents.isEmpty()) {
       // Fetch/refetch all the messages.
       conversationContents.clear();
+      getConversationContents(conversationContext.getCurrent());
       LOG.info("Refetch all messages: replaceAll=%s firstMessage=%s", replaceAll,
-               conversationHead.firstMessage);
-      return conversationHead.firstMessage;
+               conversationContents.get(0).content);
+      return conversationContents.get(0).id;
     } else {
       // Locate last known message. Its next, if any, becomes our starting point.
       return getCurrentTailMessageId();
     }
   }
-  todo:need to understand the tail
-/*
+
   private Uuid getCurrentTailMessageId() {
     Uuid nextMessageId = conversationContents.get(conversationContents.size() - 1).id;
-    final List<Message> messageTail = new ArrayList<>(view.getMessages(nextMessageId));
-    if (messageTail.size() > 0) {
-      final Message msg = messageTail.get(0);
+    final Message messageTail = view.findMessage(nextMessageId);
       nextMessageId = msg.next;
-    } else {
+
       // fall back.
       LOG.warning("Failed to get tail of messages, starting from %s", nextMessageId);
       conversationContents.clear();
       nextMessageId = conversationHead.firstMessage;
-    }
     return nextMessageId;
   }
-*/
+
   // Update the list of messages for the current conversation.
   // Currently rereads the entire message chain.
   public void updateMessages(boolean replaceAll) {

@@ -199,7 +199,7 @@ class SQLConnector {
       $uuid = $row["Uuid"];
       $iduser = $row["id_user"];
       $fullconvname = $convname;
-      $convname = $this->shorten($convname, 17);
+      $convname = $this->shorten($convname, 22);
       $conversations .= "<a i='" . $uuid . "'" . " o='" . $this->getUsernameFromUUID($iduser) . "'" . " keyword='" . $fullconvname . "' class='conversation-link' id='" . $uuid . "'>" . $convname . "</a>";
     }
     return $conversations;

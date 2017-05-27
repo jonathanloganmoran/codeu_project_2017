@@ -14,5 +14,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cd './bin'
-java codeu.chat.ServerMain "100.101" "ABABAB" "2007"
+java -cp ./third_party/junit4.jar:./third_party/commons-dbcp2-2.1.1.jar:./third_party/mysql-connector-java-5.1.41-bin.jar:./third_party/commons-pool2-2.4.2.jar:./third_party/commons-logging-1.2.jar:./bin codeu.chat.ServerMain "100.101" "ABABAB" "2007"

@@ -77,9 +77,9 @@ public final class ClientConversation {
 
   public Uuid getCurrentId() { return (currentConversation != null) ? currentConversation.id : null; }
 
-  public int currentMessageCount() {
-    return messageContext.currentMessageCount();
-  }
+  //public int currentMessageCount() {
+    //return messageContext.currentMessageCount();
+  //}
 
   public void showCurrent() {
     printConversation(currentConversation, userContext);

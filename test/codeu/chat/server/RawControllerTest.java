@@ -38,7 +38,7 @@ public final class RawControllerTest {
   @Before
   public void doBefore() {
     model = new Model();
-    controller = new Controller(Uuids.NULL, model);
+    controller = new Controller(Uuids.NULL);
 
     userId = newTestId(1);
     conversationId = newTestId(2);
@@ -48,7 +48,7 @@ public final class RawControllerTest {
   @Test
   public void testAddUser() {
 
-    final User user = controller.newUser(userId, "user", Time.now());
+    final User user = controller.newUser(userId, "user");
 
     assertFalse(
         "Check that user has a valid reference",
@@ -61,7 +61,7 @@ public final class RawControllerTest {
   @Test
   public void testAddConversation() {
 
-    final User user = controller.newUser(userId, "user", Time.now());
+    final User user = controller.newUser(userId, "user");
 
     assertFalse(
         "Check that user has a valid reference",
@@ -73,8 +73,7 @@ public final class RawControllerTest {
     final Conversation conversation = controller.newConversation(
         conversationId,
         "conversation",
-        user.id,
-        Time.now());
+        user.id);
 
     assertFalse(
         "Check that conversation has a valid reference",
@@ -87,7 +86,7 @@ public final class RawControllerTest {
   @Test
   public void testAddMessage() {
 
-    final User user = controller.newUser(userId, "user", Time.now());
+    final User user = controller.newUser(userId, "user");
 
     assertFalse(
         "Check that user has a valid reference",
@@ -99,8 +98,7 @@ public final class RawControllerTest {
     final Conversation conversation = controller.newConversation(
         conversationId,
         "conversation",
-        user.id,
-        Time.now());
+        user.id);
 
     assertFalse(
         "Check that conversation has a valid reference",
@@ -113,8 +111,7 @@ public final class RawControllerTest {
         messageId,
         user.id,
         conversation.id,
-        "Hello World",
-        Time.now());
+        "Hello World");
 
     assertFalse(
         "Check that the message has a valid reference",

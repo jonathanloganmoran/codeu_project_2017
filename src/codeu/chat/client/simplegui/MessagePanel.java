@@ -23,6 +23,7 @@ import javax.swing.*;
 
 import codeu.chat.client.ClientContext;
 
+import java.util.Collection;
 import java.util.List;
 
 // NOTE: JPanel is serializable, but there is no need to serialize MessagePanel
@@ -191,13 +192,16 @@ public final class MessagePanel extends JPanel {
   // TODO: don't refetch messages if current conversation not changed
   private void getAllMessages(Conversation conversation) {
     messageListModel.clear();
-    for (final Message m : clientContext.message.getConversationContents(conversation)) {
-      // Display author name if available.  Otherwise display the author UUID.
-      final String authorName = clientContext.user.getName(m.author);
+    Collection<Message> collection = clientContext.message.getConversationContents(conversation);
+    if(collection.size()!= 0) {
+      for (final Message m :collection) {
+        // Display author name if available.  Otherwise display the author UUID.
+        final String authorName = clientContext.user.getName(m.author);
 
-      final String displayString = String.format("%s: [%s]: %s",
-          ((authorName == null) ? m.author : authorName), m.creation, m.content);
-      messageListModel.addElement(displayString);
+        final String displayString = String.format("%s: [%s]: %s",
+                ((authorName == null) ? m.author : authorName), m.creation, m.content);
+        messageListModel.addElement(displayString);
+      }
     }
   }
 }

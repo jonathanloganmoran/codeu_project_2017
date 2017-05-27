@@ -42,8 +42,8 @@ final class SimpleGuiClientMain {
 
     // Start up server connection/interface.
 
-    final RemoteAddress address = RemoteAddress.parse(args[0]);
-
+    //final RemoteAddress address = RemoteAddress.parse(args[0]);
+    final RemoteAddress address = RemoteAddress.parse("localhost@2007");
     try (
       final ConnectionSource source = new ClientConnectionSource(address.host, address.port)
     ) {

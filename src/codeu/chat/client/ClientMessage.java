@@ -86,8 +86,10 @@ public final class ClientMessage {
     return (conversationContents == null) ? 0 : conversationContents.size();
   }
 */
-  public List<Message> getConversationContents(Conversation summary) {
-    Collection<Message> messageList = view.getMessages(summary.id);
+  public List<Message> getConversationContents(Conversation summary){
+      
+      if(summary == null) {return conversationContents;}
+      Collection<Message> messageList = view.getMessages(summary.id);
     if(messageList != null) {
       for (Message message : messageList) {
         conversationContents.add(message);
@@ -145,7 +147,7 @@ public final class ClientMessage {
       printMessage(m, userContext);
     }
   }
-
+/*
   private void showNextMessages(int count) {
     Method.notImplemented();
   }
@@ -168,8 +170,7 @@ public final class ClientMessage {
       return getCurrentTailMessageId();
     }
   }
-  todo:need to understand the tail
-/*
+ // todo:need to understand the tail
   private Uuid getCurrentTailMessageId() {
     Uuid nextMessageId = conversationContents.get(conversationContents.size() - 1).id;
     final List<Message> messageTail = new ArrayList<>(view.getMessages(nextMessageId));
@@ -202,28 +203,26 @@ public final class ClientMessage {
     conversationHead = conversationContext.getConversation(conversation.id);
     if (conversationHead == null) {
       LOG.info("ConversationHead is null");
-    }*/ else {
+    }*/ 
+    else {
       LOG.info("Conversation: Title=\"%s\" UUID=%s first=%s last=%s\n",
           conversation.title, conversation.id/*, conversation.firstMessage,
           conversationHead.lastMessage*/);
-
-      Uuid nextMessageId = getCurrentMessageFetchId(replaceAll);
-
+     // Uuid nextMessageId = getCurrentMessageFetchId(replaceAll);
       //  Stay in loop until all messages read (up to safety limit)
-      while (!nextMessageId.equals(Uuids.NULL) && conversationContents.size() < MESSAGE_MAX_COUNT) {
+   //   while (!nextMessageId.equals(Uuids.NULL) && conversationContents.size() < MESSAGE_MAX_COUNT) {
 
-        for (final Message msg : view.getMessages(nextMessageId, MESSAGE_FETCH_COUNT)) {
+        for (final Message msg : view.getMessages(conversation.id)) {
 
           conversationContents.add(msg);
 
           // Race: message possibly added since conversation fetched.  If that occurs,
           // pretend the newer messages do not exist - they'll get picked up next time).
-          if (msg.next.equals(Uuids.NULL) || msg.id.equals(conversationHead.lastMessage)) {
+     /*     if (msg.next.equals(Uuids.NULL) || msg.id.equals(conversationHead.lastMessage)) {
             msg.next = Uuids.NULL;
             break;
-          }
-        }
-        nextMessageId = conversationContents.get(conversationContents.size() - 1).next;
+          }*/
+        //nextMessageId = conversationContents.get(conversationContents.size() - 1).next;
       }
       LOG.info("Retrieved %d messages for conversation %s (%s).\n",
           conversationContents.size(), conversationHead.id, conversationHead.title);

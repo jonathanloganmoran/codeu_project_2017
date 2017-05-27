@@ -1,7 +1,9 @@
 <?php
 
 $connection = new SQLConnector();
-$conversation = $_REQUEST["c"];
-echo $connection->getMessages();
+$id = $_REQUEST["c"];
+$title = $_REQUEST["n"];
+$useractive = $_REQUEST["d"];
+echo $connection->getMessages($id,$title,$useractive);
 
 ?>

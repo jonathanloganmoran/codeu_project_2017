@@ -1,9 +1,16 @@
 /*
 * Constants used in determining how often to refresh page contents.
 */
-var INTERVAL_TO_REFRESH_USERS = 15000;
-var INTERVAL_TO_REFRESH_CONVERSATIONS = 1000;
-var INTERVAL_TO_REFRESH_MESSAGES = 500;
+// Users will also be refreshed on relevant clicks
+var INTERVAL_TO_REFRESH_USERS = 60000;
+var INTERVAL_TO_REFRESH_CONVERSATIONS = 50000;
+var INTERVAL_TO_REFRESH_MESSAGES = 40000;
+var ACTIVE_CONVERSATION_ID;
+// Current security risk, should be moved to server in PHP sessions once working
+var ACTIVE_UID = -1;
+// Moved to top for faster load
+updateConversationList(true);
+updateUserList();
 
 /**
 * Parse the URL parameter for anything after '?dc='
@@ -81,7 +88,6 @@ function filter(element, div, link) {
 */
 function openNav() {
   document.getElementById("mySidenav").style.width = "250px";
-  //document.getElementById("navbars").style.display ="none";
 }
 
 /**
@@ -89,7 +95,6 @@ function openNav() {
 */
 function closeNav() {
   document.getElementById("mySidenav").style.width = "0";
-  //document.getElementById("navbars").style.display ="block";
 }
 
 /**
@@ -106,8 +111,13 @@ function signIn() {
   usernameInput.value = $(this).attr('keyword');
   msgbox.style.display = "block";
   closeNav();
+  closeCreateIn();
+  closeConversationIn();
 }
 
+/**
+* Opens the create-in-box for the user to enter details
+*/
 function createIn(){
   var msgbox = document.getElementById("create-in-box");
   var usernameInput = document.getElementById("username-create-in-input");
@@ -118,17 +128,23 @@ function createIn(){
   passwordInput.value = "";
   msgbox.style.display = "block";
   closeNav();
+  closeSignIn();
+  closeConversationIn();
 }
 
 /**
-* Makes user links clickable by full username, not shortened display
+* Opens the conversation-in-box for the user to enter details
 */
-function addUNLinks(){
-  allUNLinks = document.getElementsByClassName("username-link");
-  for (i = 0; i < allUNLinks.length; i++) {
-    var fullUsername = $(allUNLinks[i]).attr('keyword');
-    allUNLinks[i].addEventListener("click", signIn);
-  }
+function conversationIn(){
+  var msgbox = document.getElementById("conversation-in-box");
+  var titleInput = document.getElementById("conversation-in-input");
+  var message = document.getElementById("message-to-conversation-in");
+  message.innerHTML = "Please enter your new topic:";
+  titleInput.value = "";
+  msgbox.style.display = "block";
+  closeNav();
+  closeSignIn();
+  closeCreateIn();
 }
 
 /**
@@ -136,10 +152,56 @@ function addUNLinks(){
 */
 function checkForEnableSubmit(){
   // Can add more text validation here if necessary
-  if(document.getElementById("message-input").value.length > 0) {
+  var size = document.getElementById("message-input").value.length;
+  if(size > 0 && size <= 2000 && ACTIVE_UID != -1) {
     document.getElementById("message-input-button").disabled = false;
   } else {
     document.getElementById("message-input-button").disabled = true;
+  }
+}
+
+/**
+*  Only allow user to press the create account button if
+*  the appropriate fields are filled out.
+*/
+function checkForCreateAccountSubmit(){
+  // Can add more text validation here if necessary
+  var userLength = document.getElementById("username-create-in-input").value.length;
+  var passLength = document.getElementById("password-create-in-input").value.length;
+  if(userLength > 0 && userLength <= 32 && passLength >= 4 && passLength <= 32) {
+    document.getElementById("create-in-button").disabled = false;
+  } else {
+    document.getElementById("create-in-button").disabled = true;
+  }
+}
+
+/**
+*  Only allow user to press the create conversation button if
+*  the appropriate fields are filled out.
+*/
+function checkForCreateConversationSubmit(){
+  // Can add more text validation here if necessary
+  var convLength = document.getElementById("conversation-in-input").value.length;
+  if(convLength >= 2 && convLength <= 32) {
+    document.getElementById("conversation-in-button").disabled = false;
+  } else {
+    document.getElementById("conversation-in-button").disabled = true;
+  }
+}
+
+/**
+*  Only allow user to press the sign-in button if
+*  the appropriate fields are filled out.
+*/
+function checkForSignInSubmit(){
+  // Can add more text validation here if necessary
+  var userLength = document.getElementById("username-sign-in-input").value.length;
+  var passLength = document.getElementById("password-sign-in-input").value.length;
+
+  if(userLength > 0 && passLength >= 4) {
+    document.getElementById("sign-in-button").disabled = false;
+  } else {
+    document.getElementById("sign-in-button").disabled = true;
   }
 }
 
@@ -158,7 +220,7 @@ window.setInterval(function(){
 *  seeing the expected change.
 */
 window.setInterval(function(){
-  updateConversationList();
+  updateConversationList(false);
 }, INTERVAL_TO_REFRESH_CONVERSATIONS);
 
 /**
@@ -174,25 +236,34 @@ window.setInterval(function(){
 * Attempts to validate an account
 */
 function attemptSignIn() {
+  var message = document.getElementById("message-to-sign-in");
+  message.innerHTML = "<img class='loading' src='img/loading.gif'></img>";
   var msgbox = document.getElementById("sign-in-box");
   var usernameInput = document.getElementById("username-sign-in-input");
+  var usernameStorage = usernameInput.value;
   var passwordInput = document.getElementById("password-sign-in-input");
   var xmlhttp = new XMLHttpRequest();
   xmlhttp.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
       if(this.responseText == "valid"){
-        document.getElementById("welcome-message").innerHTML = "Hello,<br>" + shorten(usernameInput.value, 10);
+        document.getElementById("navbars").innerHTML = "&#9776; " + shorten(usernameStorage, 10);
+        ACTIVE_UID = usernameStorage;
         usernameInput.value = '';
         passwordInput.value = '';
         msgbox.style.display = "none";
+        document.getElementById("create-conversation-link").style.display = "block";
+        toggleSignOutCreateLinks(true);
+        updateMessageList();
+        checkForEnableSubmit();
       } else {
         passwordInput.value = '';
-        var message = document.getElementById("message-to-sign-in");
         message.innerHTML = "Invalid account details!";
+        checkForSignInSubmit();
+        toggleSignOutCreateLinks(false);
       }
     }
   };
-  xmlhttp.open("GET", "authenticateAccountHandler.php?u=" + usernameInput.value +"&p=" + passwordInput.value , true);
+  xmlhttp.open("GET", "authenticateAccountHandler.php?u=" + usernameStorage +"&p=" + passwordInput.value , true);
   xmlhttp.send();
 }
 
@@ -201,27 +272,77 @@ function attemptSignIn() {
 * Attempts to create an account
 */
 function attemptCreate() {
+  var message = document.getElementById("message-to-create-in");
+  message.innerHTML = "<img class='loading' src='img/loading.gif'></img>";
   var msgbox = document.getElementById("create-in-box");
   var usernameInput = document.getElementById("username-create-in-input");
+  var usernameStorage = usernameInput.value;
   var passwordInput = document.getElementById("password-create-in-input");
   var xmlhttp = new XMLHttpRequest();
   xmlhttp.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
       if(this.responseText == "created"){
         closeNav();
-        document.getElementById("welcome-message").innerHTML = "Hello,<br>" + shorten(usernameInput.value, 10);
+        document.getElementById("navbars").innerHTML = "&#9776; " + shorten(usernameStorage, 10);
+        ACTIVE_UID = usernameStorage;
         usernameInput.value = '';
         passwordInput.value = '';
         msgbox.style.display = "none";
+        updateUserList();
+        document.getElementById("create-conversation-link").style.display = "block";
+        toggleSignOutCreateLinks(true);
+        updateMessageList();
+        checkForEnableSubmit();
       } else {
         passwordInput.value = '';
-        var message = document.getElementById("message-to-create-in");
         message.innerHTML = this.responseText;
+        checkForCreateAccountSubmit();
+        toggleSignOutCreateLinks(false);
       }
     }
   };
   xmlhttp.open("GET", "createAccountHandler.php?u=" + usernameInput.value +"&p=" + passwordInput.value , true);
   xmlhttp.send();
+}
+
+/**
+* Attempts to create a message
+*/
+function attemptCreateMessage() {
+  document.getElementById("message-input-button").disabled = true;
+  var message = document.getElementById("message-input");
+  var content = message.value;
+  var xmlhttp = new XMLHttpRequest();
+  xmlhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      if(this.responseText == "created"){
+        message.value = "";
+        updateMessageList();
+      } else {
+        showErrorMessage(this.responseText);
+      }
+      checkForEnableSubmit();
+    }
+  };
+  var conversation_id = document.getElementById(ACTIVE_CONVERSATION_ID).id;
+  xmlhttp.open("GET","createMessageHandler.php?c="+content+"&u="+ACTIVE_UID+"&i="+conversation_id, true);
+  xmlhttp.send();
+}
+
+/**
+* Display an error message to the user
+*/
+function showErrorMessage(message) {
+  var msgbox = document.getElementById("error-message-box");
+  var msgcontent = document.getElementById("message-to-error-out");
+  message = "Sorry about that. We had an error.<br><br>" + message;
+  var time = message.length*100 + 300;
+  msgcontent.innerHTML = message;
+  msgbox.style.display = "block";
+  window.setTimeout(function(){
+    msgbox.style.display = "none";
+    msgcontent.innerHTML = "";
+  }, time);
 }
 
 /**
@@ -244,33 +365,22 @@ function updateUserList() {
 /**
 * A method that will regenerate the list of conversations.
 */
-function updateConversationList() {
+function updateConversationList(firstLoad) {
   var conv_div = document.getElementById("conversation-list");
   var xmlhttp = new XMLHttpRequest();
   xmlhttp.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
       conv_div.innerHTML = this.responseText;
       filter('conversation-input-box','conversation-list','conversation-link');
-      // Will need to regenerate href paths for convs here
+      addConversationLinks();
+      if(firstLoad){
+        allConversationLinks = document.getElementsByClassName("conversation-link");
+        ACTIVE_CONVERSATION_ID = (allConversationLinks[0].id);
+        updateMessageList();
+      }
     }
   };
   xmlhttp.open("GET", "updateConversationListHandler.php", true);
-  xmlhttp.send();
-}
-
-/**
-* A method that will regenerate the list of messages.
-*/
-function updateMessageList() {
-  var mess_div = document.getElementById("messages-div");
-  var xmlhttp = new XMLHttpRequest();
-  xmlhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-      mess_div.innerHTML = this.responseText;
-      filter('messagebar-input','messages-div','message-link');
-    }
-  };
-  xmlhttp.open("GET", "updateMessagesHandler.php?c="+"testConversation", true);
   xmlhttp.send();
 }
 
@@ -311,6 +421,16 @@ function closeCreateIn() {
 }
 
 /**
+* Closes the conversation-in-box for the user to enter conversation name
+*/
+function closeConversationIn() {
+  var msgbox = document.getElementById("conversation-in-box");
+  var titleInput = document.getElementById("conversation-in-input");
+  titleInput.value = '';
+  msgbox.style.display = "none";
+}
+
+/**
 * Removes CodeU logo upon full page load
 */
 $(window).on('load',function() {
@@ -325,12 +445,153 @@ $(window).on('load',function() {
   }, 1);
 });
 
-// Add listeners
-addUNLinks();
-checkForEnableSubmit();
-document.getElementById("cancel-sign-in-button").addEventListener("click", closeSignIn);
-document.getElementById("cancel-create-in-button").addEventListener("click", closeCreateIn);
-document.getElementById("create-account-link").addEventListener("click", createIn);
-document.getElementById("sign-in-button").addEventListener("click", attemptSignIn);
-document.getElementById("create-in-button").addEventListener("click", attemptCreate);
-$('#message-input').bind('input', checkForEnableSubmit);
+/**
+* Makes user links clickable by full username, not shortened display
+*/
+function addUNLinks(){
+  allUNLinks = document.getElementsByClassName("username-link");
+  for (i = 0; i < allUNLinks.length; i++) {
+    var fullUsername = $(allUNLinks[i]).attr('keyword');
+    allUNLinks[i].addEventListener("click", signIn);
+    allUNLinks[i].addEventListener("click", checkForSignInSubmit);
+  }
+}
+
+/**
+* Makes conversation links clickable by full conversation name, not shortened display
+*/
+function addConversationLinks(){
+  allConversationLinks = document.getElementsByClassName("conversation-link");
+  for (i = 0; i < allConversationLinks.length; i++) {
+    allConversationLinks[i].addEventListener("click", updateMessageList);
+  }
+}
+
+/**
+* A method that will regenerate the list of messages.
+*/
+function updateMessageList() {
+  var mess_div = document.getElementById("messages-div");
+  var title = this.innerHTML;
+  var id = $(this).attr('i');
+  if(!title){
+    id = document.getElementById(ACTIVE_CONVERSATION_ID).id;
+    title = document.getElementById(ACTIVE_CONVERSATION_ID).innerHTML;
+  } else {
+    mess_div.innerHTML = "<img class='loadingbig' src='img/loading.gif'></img>";
+    ACTIVE_CONVERSATION_ID = id;
+  }
+  var xmlhttp = new XMLHttpRequest();
+  xmlhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      mess_div.innerHTML = this.responseText;
+      filter('messagebar-input','messages-div','message-link');
+    }
+  };
+  xmlhttp.open("GET", "updateMessagesHandler.php?c="+ id + "&n=" + title + "&d=" + ACTIVE_UID, true);
+  xmlhttp.send();
+}
+
+/**
+* Attempts to create a conversation
+*/
+function attemptConversationCreate() {
+  var message = document.getElementById("message-to-conversation-in");
+  message.innerHTML = "<img class='loading' src='img/loading.gif'></img>";
+  var msgbox = document.getElementById("conversation-in-box");
+  var titleInput = document.getElementById("conversation-in-input");
+  var xmlhttp = new XMLHttpRequest();
+  xmlhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      if(this.responseText == "created"){
+        closeNav();
+        titleInput.value = '';
+        msgbox.style.display = "none";
+        updateConversationList(false);
+      } else {
+        message.innerHTML = this.responseText;
+        checkForCreateConversationSubmit();
+      }
+    }
+  };
+  xmlhttp.open("GET", "createConversationHandler.php?c=" + titleInput.value +"&u=" + ACTIVE_UID, true);
+  xmlhttp.send();
+}
+
+/**
+* Improves UI by preloading images
+*/
+function preloadImage(url) {
+  var img = new Image();
+  img.src=url;
+}
+
+/*
+* Shows the sign out button if true
+* Shows the create account button if false
+*/
+function toggleSignOutCreateLinks(signout) {
+  var sign = document.getElementById("sign-out-link");
+  var create = document.getElementById("create-account-link");
+  if(signout){
+    sign.style.display = "inline";
+    create.style.display = "none";
+  } else {
+    sign.style.display = "none";
+    create.style.display = "inline";
+  }
+}
+
+/*
+*
+*
+*/
+function signOut(){
+  var mess_div = document.getElementById("messages-div");
+  mess_div.innerHTML = "<img class='loadingbig' src='img/loading.gif'></img>";
+  ACTIVE_UID = -1;
+  updateMessageList();
+  toggleSignOutCreateLinks(false);
+  document.getElementById("navbars").innerHTML = "&#9776; Sign-In";
+  document.getElementById("create-conversation-link").style.display = "none";
+  checkForEnableSubmit();
+  closeNav();
+}
+
+/*
+* Sets up the initial options of the page
+*/
+function setUpListenersAndStartingOptions(){
+  preloadImage('img/loading.gif');
+  document.getElementById("message-to-create-in").innerHTML = "<img class='loading' src='img/loading.gif'></img>";
+  document.getElementById("message-to-conversation-in").innerHTML = "<img class='loading' src='img/loading.gif'></img>";
+  document.getElementById("message-to-sign-in").innerHTML = "<img class='loading' src='img/loading.gif'></img>";
+  addUNLinks();
+  checkForEnableSubmit();
+  checkForCreateAccountSubmit();
+  checkForCreateConversationSubmit();
+  checkForSignInSubmit();
+  addConversationLinks();
+  toggleSignOutCreateLinks(false);
+  document.getElementById("create-conversation-link").style.display = "none";
+  document.getElementById("cancel-sign-in-button").addEventListener("click", closeSignIn);
+  document.getElementById("cancel-create-in-button").addEventListener("click", closeCreateIn);
+  document.getElementById("cancel-conversation-in-button").addEventListener("click", closeConversationIn);
+  document.getElementById("create-conversation-link").addEventListener("click", conversationIn);
+  document.getElementById("create-account-link").addEventListener("click", createIn);
+  document.getElementById("sign-in-button").addEventListener("click", attemptSignIn);
+  document.getElementById("create-in-button").addEventListener("click", attemptCreate);
+  document.getElementById("conversation-in-button").addEventListener("click", attemptConversationCreate);
+  document.getElementById("message-input-button").addEventListener("click", attemptCreateMessage);
+  document.getElementById("create-account-link").addEventListener("click", checkForCreateAccountSubmit);
+  document.getElementById("create-conversation-link").addEventListener("click", checkForCreateConversationSubmit);
+  document.getElementById("navbars").addEventListener("click", updateUserList);
+    document.getElementById("sign-out-link").addEventListener("click", signOut);
+  $('#username-create-in-input').bind('input', checkForCreateAccountSubmit);
+  $('#password-create-in-input').bind('input', checkForCreateAccountSubmit);
+  $('#conversation-in-input').bind('input', checkForCreateConversationSubmit);
+  $('#username-sign-in-input').bind('input', checkForSignInSubmit);
+  $('#password-sign-in-input').bind('input', checkForSignInSubmit);
+  $('#message-input').bind('input', checkForEnableSubmit);
+}
+setUpListenersAndStartingOptions();

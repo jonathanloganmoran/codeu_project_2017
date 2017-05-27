@@ -80,6 +80,46 @@ class SQLConnector {
     return "'" . $connection -> real_escape_string($value) . "'";
   }
 
+  /**
+  * Returns "valid" if account username and password match,
+  * "invalid" otherwise.
+  * Should be completely functional, however SQLI attacks
+  * not yet protected against.
+  */
+  public function authenticateAccount($username, $password) {
+    $SQL_SELECT_PASSWORD = "SELECT password FROM User WHERE username = '" . $username ."'";
+    $salt = $this->acquireSalt($username);
+    $input = $salt . $password;
+    $hash = hash("sha256", utf8_encode($input));
+    $result = $this -> query($SQL_SELECT_PASSWORD);
+    $rows = array();
+    $users = "";
+    if($result === false) {
+      return "invalid";
+    }
+    $row = $result -> fetch_assoc();
+    $passwordEncrypted = $row["password"];
+    if($hash === $passwordEncrypted){
+      return "valid";
+    }
+    return "invalid";
+  }
+
+  /*
+  * Private helper method to acquire salt
+  * to be used in decryption of password.
+  */
+  private function acquireSalt($username) {
+    $SQL_SELECT_SALT = "SELECT salt FROM User WHERE username = '" . $username . "'";
+    $result = $this -> query($SQL_SELECT_SALT);
+    $rows = array();
+    $users = "";
+    if($result === false) {
+      return false;
+    }
+    $row = $result -> fetch_assoc();
+    return $row["salt"];
+  }
 
   /**
   * Returns the formatted usernames of all users.
@@ -94,73 +134,295 @@ class SQLConnector {
     }
     while ($row = $result -> fetch_assoc()) {
       $fullun = $row["username"];
-      $shortun = $fullun;
-      // Truncate username to 18 characters max
-      if(strlen($shortun) > 25){
-        $shortun = substr($shortun,0,22) . "...";
-      }
+      $shortun = $this->shorten($fullun, 17);
       $users .= "<a keyword='" . $fullun . "' class='username-link'>" . $shortun . "</a>";
     }
     return $users;
   }
 
+  /*
+  * Shorten a string to a maximum number of characters
+  */
+  private function shorten($string, $max){
+    if(strlen($string) > $max){
+      return substr($string,0,$max-3) . "...";
+    }
+    return $string;
+  }
+
+  /*
+  * Returns the username of user with UUID $uuid
+  * Returns null if no user was found
+  */
+  private function getUsernameFromUUID($uuid){
+    $SQL_UUID_LOOKUP = "SELECT username FROM User WHERE Uuid = '" . $uuid . "'";
+    $rows = array();
+    $users = "";
+    $result = $this -> query($SQL_UUID_LOOKUP);
+    if($result === false) {
+      return NULL;
+    }
+    $row = $result -> fetch_assoc();
+    return $row["username"];
+  }
+
+  /*
+  * Returns the uuid of user with username $username
+  * Returns null if no user was found
+  */
+  private function getUUIDFromUsername($username){
+    $SQL_USERNAME_LOOKUP = "SELECT * FROM User WHERE username = '" . $username . "'";
+    $rows = array();
+    $users = "";
+    $result = $this -> query($SQL_USERNAME_LOOKUP);
+    if($result === false) {
+      return NULL;
+    }
+    $row = $result -> fetch_assoc();
+    return $row["Uuid"];
+  }
+
   /**
   * Returns the formatted list of all conversations.
-  * Not currently functional -- just for viewing purposes.
+  *
   */
   public function getConversations() {
+    $SQL_SELECT_CONV = "SELECT * FROM Conversation ORDER BY creation_time DESC";
+    $rows = array();
+    $result = $this -> query($SQL_SELECT_CONV);
+    if($result === false) {
+      return false;
+    }
     $conversations = "";
-    for ($x = 0; $x <= 150; $x++) {
-      $convname = "Conversation " . $x . " Test";
+    while ($row = $result -> fetch_assoc()) {
+      $convname = $row["title"];
+      $uuid = $row["Uuid"];
+      $iduser = $row["id_user"];
       $fullconvname = $convname;
-      // Truncate conversation name to 28 characters max
-      if(strlen($convname) > 28){
-        $convname = substr($convname,0,25) . "...";
-      }
-      $conversations .= "<a keyword='" . $fullconvname . "' class='conversation-link'>" . $convname . "</a>";
+      $convname = $this->shorten($convname, 22);
+      $conversations .= "<a i='" . $uuid . "'" . " o='" . $this->getUsernameFromUUID($iduser) . "'" . " keyword='" . $fullconvname . "' class='conversation-link' id='" . $uuid . "'>" . $convname . "</a>";
     }
     return $conversations;
   }
 
   /**
   * Returns the formatted list of all messages.
-  * Not currently functional -- just for viewing purposes.
+  *
   */
-  public function getMessages() {
-    $messages = "";
-    for ($x = 0; $x <= 50; $x++) {
-      if($x & 1) {
-        //can add for profile pictures: <img class='profile-picture' src='img/no-text.png'></img>
-        $messages .= "<div class='message-link bubble'>" . "<span class='author-link'>David:</span> Lorem ipsum dolor sit amet, consectetur adipiscing elit " . $x . ".</div>";
+  public function getMessages($conversationid, $conversationtitle, $currentuser) {
+    $SQL_SELECT_MESS = "SELECT * FROM Message WHERE id_conversation = '" . $conversationid . "' ORDER BY creation_time ASC";
+    $rows = array();
+    $result = $this -> query($SQL_SELECT_MESS);
+    if($result === false) {
+      return false;
+    }
+    $messages = "<div class='more-padded-below'><i class='begin-conversation'>- Beginning of Conversation " . $conversationtitle . " -</i></div>";
+    //can add for profile pictures: <img class='profile-picture' src='img/no-text.png'></img>
+    while ($row = $result -> fetch_assoc()) {
+      $id_user = $row["id_user"];
+      $id_user = $this->getUsernameFromUUID($id_user);
+      $content = $row["content"];
+      if($currentuser === $id_user){
+        $messages .= "<div class='message-link bubble bubble--alt'><span class='author-link'>".$id_user.":</span> ".$content."</div>";
       } else {
-        $messages .= "<div class='message-link bubble bubble--alt'>" . "Ut enim ad minim veniam, quis nostrud " . $x . ".</div>";
+        $messages .= "<div class='message-link bubble'><span class='author-link'>".$id_user.":</span> ".$content."</div>";
       }
     }
     return $messages;
   }
 
   /**
-  * Returns "valid" if account username and password match,
-  * "invalid" otherwise.
-  * Not currently functional.
+  * Method to add a message to a conversation
+  * Returns "valid" if message was added
+  * Returns "invalid" if message was not
   */
-  public function authenticateAccount($username, $password) {
-    if($password === "password"){
-      return "valid";
+  public function addMessage($content, $currentuser, $id_conv){
+    if(strlen($content) > 2000) {
+      return "Message is too long. Please shorten to < 2000 characters.";
     }
-    return "invalid";
+    $uuid = $this->generateUuid();
+    $currentuser = $this->getUUIDFromUsername($currentuser);
+    $SQL_INSERT_MESS = "INSERT INTO Message (Uuid, content, id_user, id_conversation) VALUES";
+    $SQL_INSERT_MESS = $SQL_INSERT_MESS . "('".$uuid."','".$content."','".$currentuser."','".$id_conv."')";
+    $rows = array();
+    $result = $this -> query($SQL_INSERT_MESS);
+    if($result === false) {
+      return $SQL_INSERT_MESS;
+    }
+    return "created";
+  }
+
+
+  /**
+  * Returns "valid" if conversation is valid string format
+  * Returns "invalid" if conversation is not
+  */
+  private function validateConversationFormat($string) {
+    if(!(preg_match("/^[a-zA-Z0-9]+$/", $string) == 1)){
+      return "invalid";
+    }
+    if(strlen($string) < 2 || strlen($string) > 32){
+      return "invalid";
+    }
+    return "valid";
+  }
+
+
+  /**
+  * Returns "valid" if username is valid string format
+  * Returns "invalid" if username is not
+  */
+  private function validateUsernameFormat($string) {
+    if(!(preg_match("/^[a-zA-Z0-9]+$/", $string) == 1)){
+      return "invalid";
+    }
+    if(strlen($string) < 1 || strlen($string) > 32){
+      return "invalid";
+    }
+    return "valid";
+  }
+
+  /**
+  * Returns "valid" if password is valid string format
+  * Returns "invalid" if password is not
+  */
+  private function validatePasswordFormat($string) {
+    if(strlen($string) < 4 || strlen($string) > 32){
+      return "invalid";
+    }
+    return "valid";
+  }
+
+  /**
+  * Returns "present" if username is already in database
+  * Returns "absent" if username is not
+  */
+  private function checkIfUsernameExistsInDB($username) {
+    $SQL_SELECT_USER = "SELECT username FROM User WHERE username = '" . $username . "'";
+    $result = $this -> query($SQL_SELECT_USER);
+    $rows = array();
+    if($result === false) {
+      return "absent";
+    }
+    $row = $result -> fetch_assoc();
+    if($row === NULL){
+      return "absent";
+    }
+    return "present";
+  }
+
+  /**
+  * Adds an account into the database.
+  * Does not check inputs: not to be called directly.
+  * Returns "invalid" if not added
+  * Returns "valid" if added
+  */
+  private function addAccount($username, $password) {
+    $salt = $this->generateSalt();
+    $input = $salt . $password;
+    $encryptedPassword = hash("sha256", utf8_encode($input));
+    $uuid = $this->generateUuid();
+    $SQL_ADD_ACCOUNT = "INSERT INTO User (username, password, salt, Uuid) VALUES ('";
+    $SQL_ADD_ACCOUNT = $SQL_ADD_ACCOUNT . $username . "','" . $encryptedPassword;
+    $SQL_ADD_ACCOUNT = $SQL_ADD_ACCOUNT . "','" . $salt . "','" . $uuid . "')";
+    $result = $this -> query($SQL_ADD_ACCOUNT);
+    if($result === false) {
+      return "invalid";
+    }
+    return "valid";
+  }
+
+  /*
+  * Generates a UUID
+  */
+  private function generateUuid(){
+    $num = "100.101." . $this->randomNumber();
+    // to-do: make sure ID is not already taken
+    $id = "[UUID:" . $num . "]";
+    return $id;
+  }
+
+  /*
+  * Generates a random number of length 9
+  */
+  private function randomNumber() {
+    $length = 9;
+    $result = '';
+    for($i = 0; $i < $length; $i++) {
+      $result .= mt_rand(0, 9);
+    }
+    return $result;
+  }
+
+  /*
+  * Generates a random salt string for encryption
+  */
+  private function generateSalt(){
+    $length = 8;
+    $string = "";
+    for($i=0; $i < $length; $i++){
+      $x = mt_rand(0, 2);
+      switch($x){
+        case 0: $string.= chr(mt_rand(97,122));break;
+        case 1: $string.= chr(mt_rand(65,90));break;
+        case 2: $string.= chr(mt_rand(48,57));break;
+      }
+    }
+    return $string;
+  }
+
+  /**
+  * Adds a conversation into the database.
+  * Does not check inputs: not to be called directly.
+  * Returns "invalid" if not added
+  * Returns "valid" if added
+  */
+  private function addConversation($username, $title){
+    $id_user = $this->getUUIDFromUsername($username);
+    $uuid = $this->generateUuid();
+    $SQL_INSERT_CON = "INSERT INTO Conversation (Uuid, id_user, title) VALUES";
+    $SQL_INSERT_CON = $SQL_INSERT_CON . "('" . $uuid . "','" . $id_user . "','" . $title . "')";
+    $result = $this -> query($SQL_INSERT_CON);
+    if($result === false) {
+      return "invalid";
+    }
+    return "valid";
+  }
+
+  /**
+  * Returns "created" if conversation was able to be created,
+  * "Conversation not created: <REASON>" otherwise.
+  */
+  public function createConversation($conversation, $user){
+    if($this->validateConversationFormat($conversation) === "invalid"){
+      return "Conversation not created. Format of title invalid.";
+    }
+    $results = $this->addConversation($user,$conversation);
+    if($results === "valid"){
+      return "created";
+    }
+    return "Conversation already exists. Please try a new title.";
   }
 
   /**
   * Returns "created" if account was able to be created,
   * "Account not created: <REASON>" otherwise.
-  * Not currently functional.
   */
   public function createAccount($username, $password) {
-    if($password === "password"){
+    if($this->validateUsernameFormat($username) === "invalid"){
+      return "Account not created. Format of username invalid.";
+    }
+    if($this->validatePasswordFormat($password) === "invalid"){
+      return "Account not created. Format of password invalid.";
+    }
+    if($this->checkIfUsernameExistsInDB($username) === "present"){
+      return "Account not created. Username already in use.";
+    }
+    $results =  $this->addAccount($username, $password);
+    if($results === "valid"){
       return "created";
     }
-    return "Account not created: method not yet implemented.";
+    return "Account not created. Please try again later.";
   }
 }
 

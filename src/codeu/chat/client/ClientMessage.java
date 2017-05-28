@@ -14,34 +14,29 @@
 
 package codeu.chat.client;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import database.Connector;
+import java.util.*;
+
+import codeu.chat.database.Connector;
 import codeu.chat.common.Conversation;
-import codeu.chat.common.ConversationSummary;
 import codeu.chat.common.Message;
 import codeu.chat.common.Uuid;
 import codeu.chat.common.Uuids;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Method;
+import codeu.chat.util.TextValidator;
 
 public final class ClientMessage {
 
   private final static Logger.Log LOG = Logger.newLog(ClientMessage.class);
-
   private final static int MESSAGE_MAX_COUNT = 100;
   private final static int MESSAGE_FETCH_COUNT = 5;
-  private static final Connector connector = new Connector();
 
   private final Controller controller;
   private final View view;
 
   private Message current = null;
 
-  private final Map<Uuid, Message> messageByUuid = new HashMap<>();
-
+ // private final Map<Uuid, Message> messageByUuid = new HashMap<>();
   private Conversation conversationHead;
   private final List<Message> conversationContents = new ArrayList<>();
 
@@ -62,11 +57,12 @@ public final class ClientMessage {
     boolean clean = true;
     if ((body.length() <= 0) || (body.length() > 1024)) {
       clean = false;
-    } else {
-
-      // TODO: check for invalid characters
-
     }
+    else {
+      if (!TextValidator.isValidMessage(body)) {
+        clean = false;
+      }
+    } // TODO: check for invalid characters
     return clean;
   }
 
@@ -86,11 +82,19 @@ public final class ClientMessage {
     updateMessages(replaceAll);
   }
 
-  public int currentMessageCount() {
+  /*public int currentMessageCount() {
     return (conversationContents == null) ? 0 : conversationContents.size();
   }
-
-  public List<Message> getConversationContents(ConversationSummary summary) {
+*/
+  public List<Message> getConversationContents(Conversation summary){
+      
+      if(summary == null) {return conversationContents;}
+      Collection<Message> messageList = view.getMessages(summary.id);
+    if(messageList != null) {
+      for (Message message : messageList) {
+        conversationContents.add(message);
+      }
+    }
     if (conversationHead == null || summary == null || !conversationHead.id.equals(summary.id)) {
       updateMessages(summary, true);
     }
@@ -98,20 +102,20 @@ public final class ClientMessage {
   }
 
   // For m-add command.
-  public void addMessage(Uuid author, Uuid conversation, String body) {
+  public Message addMessage(Uuid author, Uuid conversation, String body) {
     final boolean validInputs = isValidBody(body) && (author != null) && (conversation != null);
-
     final Message message = (validInputs) ? controller.newMessage(author, conversation, body) : null;
-
     if (message == null) {
       System.out.format("Error: message not created - %s.\n",
           (validInputs) ? "server error" : "bad input value");
     } else {
       LOG.info("New message:, Author= %s UUID= %s", author, message.id);
-      connector.addMessage(message.id.toString(), author.toString(), conversation.toString(), message.content);
-      current = message;
+      // add to the display list first
+     // connector.addMessage(message.id.toString(), author.toString(), conversation.toString(), message.content);
+      //current = message;
     }
-    updateMessages(false);
+    return message;
+    //updateMessages(false);
   }
 
   // For m-list-all command.
@@ -143,7 +147,7 @@ public final class ClientMessage {
       printMessage(m, userContext);
     }
   }
-
+/*
   private void showNextMessages(int count) {
     Method.notImplemented();
   }
@@ -166,10 +170,10 @@ public final class ClientMessage {
       return getCurrentTailMessageId();
     }
   }
-
+ // todo:need to understand the tail
   private Uuid getCurrentTailMessageId() {
     Uuid nextMessageId = conversationContents.get(conversationContents.size() - 1).id;
-    final List<Message> messageTail = new ArrayList<>(view.getMessages(nextMessageId, 1));
+    final List<Message> messageTail = new ArrayList<>(view.getMessages(nextMessageId));
     if (messageTail.size() > 0) {
       final Message msg = messageTail.get(0);
       nextMessageId = msg.next;
@@ -181,7 +185,7 @@ public final class ClientMessage {
     }
     return nextMessageId;
   }
-
+*/
   // Update the list of messages for the current conversation.
   // Currently rereads the entire message chain.
   public void updateMessages(boolean replaceAll) {
@@ -190,36 +194,35 @@ public final class ClientMessage {
 
   // Update the list of messages for the given conversation.
   // Currently rereads the entire message chain.
-  public void updateMessages(ConversationSummary conversation, boolean replaceAll) {
+  public void updateMessages(Conversation conversation, boolean replaceAll) {
     if (conversation == null) {
       LOG.error("conversation argument is null - do nothing.");
       return;
     }
+    /*
     conversationHead = conversationContext.getConversation(conversation.id);
     if (conversationHead == null) {
       LOG.info("ConversationHead is null");
-    } else {
-      LOG.info("ConversationHead: Title=\"%s\" UUID=%s first=%s last=%s\n",
-          conversationHead.title, conversationHead.id, conversationHead.firstMessage,
-          conversationHead.lastMessage);
-
-      Uuid nextMessageId = getCurrentMessageFetchId(replaceAll);
-
+    }*/ 
+    else {
+      LOG.info("Conversation: Title=\"%s\" UUID=%s first=%s last=%s\n",
+          conversation.title, conversation.id/*, conversation.firstMessage,
+          conversationHead.lastMessage*/);
+     // Uuid nextMessageId = getCurrentMessageFetchId(replaceAll);
       //  Stay in loop until all messages read (up to safety limit)
-      while (!nextMessageId.equals(Uuids.NULL) && conversationContents.size() < MESSAGE_MAX_COUNT) {
+   //   while (!nextMessageId.equals(Uuids.NULL) && conversationContents.size() < MESSAGE_MAX_COUNT) {
 
-        for (final Message msg : view.getMessages(nextMessageId, MESSAGE_FETCH_COUNT)) {
+        for (final Message msg : view.getMessages(conversation.id)) {
 
           conversationContents.add(msg);
 
           // Race: message possibly added since conversation fetched.  If that occurs,
           // pretend the newer messages do not exist - they'll get picked up next time).
-          if (msg.next.equals(Uuids.NULL) || msg.id.equals(conversationHead.lastMessage)) {
+     /*     if (msg.next.equals(Uuids.NULL) || msg.id.equals(conversationHead.lastMessage)) {
             msg.next = Uuids.NULL;
             break;
-          }
-        }
-        nextMessageId = conversationContents.get(conversationContents.size() - 1).next;
+          }*/
+        //nextMessageId = conversationContents.get(conversationContents.size() - 1).next;
       }
       LOG.info("Retrieved %d messages for conversation %s (%s).\n",
           conversationContents.size(), conversationHead.id, conversationHead.title);

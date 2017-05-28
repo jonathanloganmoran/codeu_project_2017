@@ -32,13 +32,13 @@ public final class BasicControllerTest {
   @Before
   public void doBefore() {
     model = new Model();
-    controller = new Controller(Uuids.NULL, model);
+    controller = new Controller(Uuids.NULL);
   }
 
   @Test
   public void testAddUser() {
 
-    final User user = controller.newUser("user");
+    final User user = controller.newUser("user","123");
 
     assertFalse(
         "Check that user has a valid reference",
@@ -48,7 +48,7 @@ public final class BasicControllerTest {
   @Test
   public void testAddConversation() {
 
-    final User user = controller.newUser("user");
+    final User user = controller.newUser("user", "hello");
 
     assertFalse(
         "Check that user has a valid reference",
@@ -66,7 +66,7 @@ public final class BasicControllerTest {
   @Test
   public void testAddMessage() {
 
-    final User user = controller.newUser("user");
+    final User user = controller.newUser("user","2");
 
     assertFalse(
         "Check that user has a valid reference",

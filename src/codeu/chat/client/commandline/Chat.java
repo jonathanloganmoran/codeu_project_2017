@@ -19,6 +19,7 @@ import java.util.Scanner;
 import codeu.chat.client.ClientContext;
 import codeu.chat.client.Controller;
 import codeu.chat.client.View;
+import codeu.chat.common.Conversation;
 import codeu.chat.common.ConversationSummary;
 import codeu.chat.util.Logger;
 
@@ -89,7 +90,7 @@ public final class Chat {
       if (!tokenScanner.hasNext()) {
         System.out.println("ERROR: No user name supplied.");
       } else {
-        signInUser(tokenScanner.nextLine().trim());
+        signInUser(tokenScanner.nextLine().trim(),tokenScanner.nextLine().trim());
       }
 
     } else if (token.equals("sign-out")) {
@@ -106,12 +107,26 @@ public final class Chat {
 
     } else if (token.equals("u-add")) {
 
+      String name="";
+      String password="";
+
       if (!tokenScanner.hasNext()) {
         System.out.println("ERROR: Username not supplied.");
-      } else {
-        addUser(tokenScanner.nextLine().trim());
+      }
+      else{
+        name = tokenScanner.nextLine().trim();
       }
 
+      if(!tokenScanner.hasNext()){
+        System.out.println("ERROR: password not supplied.");
+      }
+      else{
+        password = tokenScanner.nextLine().trim();
+      }
+      if(!name.equals("") && !password.equals("")){
+
+        addUser(name,password);
+      }
     } else if (token.equals("u-list-all")) {
 
       showAllUsers();
@@ -125,7 +140,7 @@ public final class Chat {
           System.out.println("ERROR: Conversation title not supplied.");
         } else {
           final String title = tokenScanner.nextLine().trim();
-          clientContext.conversation.startConversation(title, clientContext.user.getCurrent().id, true);
+          clientContext.conversation.startConversation(title, clientContext.user.getCurrent().id);
         }
       }
 
@@ -133,11 +148,11 @@ public final class Chat {
 
       clientContext.conversation.showAllConversations();
 
-    } else if (token.equals("c-select")) {
+    } /*else if (token.equals("c-select")) {
 
       selectConversation(lineScanner);
 
-    } else if (token.equals("m-add")) {
+    }*/ else if (token.equals("m-add")) {
 
       if (!clientContext.user.hasCurrent()) {
         System.out.println("ERROR: Not signed in.");
@@ -193,8 +208,8 @@ public final class Chat {
   }
 
   // Sign in a user.
-  private void signInUser(String name) {
-    if (!clientContext.user.signInUser(name)) {
+  private void signInUser(String name, String password) {
+    if (!clientContext.user.signInUser(name,password)) {
       System.out.println("Error: sign in failed (invalid name?)");
     }
   }
@@ -208,18 +223,19 @@ public final class Chat {
 
   // Helper for showCurrent() - show message info.
   private void showCurrentMessage() {
-    if (clientContext.conversation.currentMessageCount() == 0) {
+   /*if (clientContext.conversation.currentMessageCount() == 0) {
       System.out.println(" -- no messages in conversation --");
     } else {
       System.out.format(" conversation has %d messages.\n",
                         clientContext.conversation.currentMessageCount());
+      */
       if (!clientContext.message.hasCurrent()) {
         System.out.println(" -- no current message --");
       } else {
         System.out.println("\nCurrent Message:");
         clientContext.message.showCurrent();
       }
-    }
+    //}
   }
 
   // Show current user, conversation, message, if any
@@ -266,8 +282,8 @@ public final class Chat {
   }
 
   // Add a new user.
-  private void addUser(String name) {
-    clientContext.user.addUser(name);
+  private void addUser(String name, String password) {
+    clientContext.user.addUser(name,password);
   }
 
   // Display all users known to server.
@@ -290,22 +306,21 @@ public final class Chat {
 
     return alive;
   }
-
+/*
   public void selectConversation(Scanner lineScanner) {
 
     clientContext.conversation.updateAllConversations(false);
-    final int selectionSize = clientContext.conversation.conversationsCount();
-    System.out.format("Selection contains %d entries.\n", selectionSize);
+   // final int selectionSize = clientContext.conversation.conversationsCount();
+   // System.out.format("Selection contains %d entries.\n", selectionSize);
 
-    final ConversationSummary previous = clientContext.conversation.getCurrent();
-    ConversationSummary newCurrent = null;
+    final Conversation previous = clientContext.conversation.getCurrent();
+    Conversation newCurrent = null;
 
     if (selectionSize == 0) {
       System.out.println("Nothing to select.");
     } else {
-      final ListNavigator<ConversationSummary> navigator =
-          new ListNavigator<ConversationSummary>(
-              clientContext.conversation.getConversationSummaries(),
+    final ListNavigator<Conversation> navigator = new ListNavigator<>(
+              clientContext.conversation.getConversations(),
               lineScanner, PAGE_SIZE);
       if (navigator.chooseFromList()) {
         newCurrent = navigator.getSelectedChoice();
@@ -320,4 +335,5 @@ public final class Chat {
       clientContext.conversation.updateAllConversations(true);
     }
   }
+  */
 }

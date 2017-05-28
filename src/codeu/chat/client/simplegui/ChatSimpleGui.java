@@ -40,6 +40,7 @@ public final class ChatSimpleGui {
   // Run the GUI client
   public void run() {
     try {
+      LOG.error("=================NOW START BUILDING THE FRAME====================");
       initialize();
       mainFrame.setVisible(true);
 
@@ -65,23 +66,25 @@ public final class ChatSimpleGui {
     mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     mainFrame.setSize(790, 450);
 
+    LOG.error("Main Frame is created");
     // Main View - outermost graphics panel.
     final JPanel mainViewPanel = new JPanel(new GridBagLayout());
     mainViewPanel.setBorder(paneBorder());
-
+    LOG.error("The main view panel is created");
     // Build main panels - Users, Conversations, Messages.
     final JPanel usersViewPanel = new UserPanel(clientContext);
     usersViewPanel.setBorder(paneBorder());
     final GridBagConstraints usersViewC = new GridBagConstraints();
-
+    LOG.error("The user view panel is created");
     final MessagePanel messagesViewPanel = new MessagePanel(clientContext);
     messagesViewPanel.setBorder(paneBorder());
     final GridBagConstraints messagesViewC = new GridBagConstraints();
-
+    LOG.error("The message view panel is created");
     // ConversationsPanel gets access to MessagesPanel
     final JPanel conversationsViewPanel = new ConversationPanel(clientContext, messagesViewPanel);
     conversationsViewPanel.setBorder(paneBorder());
     final GridBagConstraints conversationViewC = new GridBagConstraints();
+    LOG.error("The conversation view panel is created");
 
     // Placement of main panels.
     usersViewC.gridx = 0;
@@ -110,8 +113,9 @@ public final class ChatSimpleGui {
     mainViewPanel.add(usersViewPanel, usersViewC);
     mainViewPanel.add(conversationsViewPanel, conversationViewC);
     mainViewPanel.add(messagesViewPanel, messagesViewC);
-
+    LOG.error("The view panel is done");
     mainFrame.add(mainViewPanel);
     mainFrame.pack();
+    LOG.error("SUCCESS");
   }
 }

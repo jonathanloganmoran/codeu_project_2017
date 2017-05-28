@@ -20,10 +20,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Objects;
 
+import codeu.chat.client.View;
+import codeu.chat.util.Logger;
 import codeu.chat.util.Serializer;
 import codeu.chat.util.Serializers;
 
 public final class Uuids {
+
 
   public static final Uuid NULL = complete(new Uuid() {
 
@@ -174,6 +177,7 @@ public final class Uuids {
     if (current != null) {
       buildString(current.root(), build);
       build.append(".").append(current.id() & mask);
+      //build.append(".").append(current.id());
     }
   }
 
@@ -181,24 +185,42 @@ public final class Uuids {
   //
   // Create a uuid from a sting.
   public static Uuid fromString(String string) {
-    return fromString(null, string.split("\\."), 0);
+    final Logger.Log LOG = Logger.newLog(View.class);
+    LOG.error("THe INPUT STRING IS "+string+" With length: "+ string.length() );
+
+    //return fromString(null, string.split("\\."), 0);
+    if(string.charAt(0) == '[') {
+      return fromString(null, string.substring(14, string.length()-1), 0);
+    }
+    else{
+      return fromString(null,  string.split("\\.")[0], 0);
+    }
   }
 
-  private static Uuid fromString(final Uuid root, String[] tokens, int index) {
+  private static Uuid fromString(final Uuid root, String tokens, int index) {
+    final Logger.Log LOG = Logger.newLog(View.class);
+    LOG.error("THe INPUT STRING IS "+tokens);
+    long id = Long.parseLong(tokens);
+    int newId = (int)(id >> 1);
+    newId = newId << 1;
+    if((id & 1) == 1){ newId = newId | 1;}
 
-    final int id = Integer.parseInt(tokens[index]);
+    final int result = newId;
+    LOG.error("THe INPUT INT IS "+result);
+    LOG.info("SUCCESS");
 
     final Uuid link = complete(new Uuid() {
       @Override
       public Uuid root() { return root; }
       @Override
-      public int id() { return id; }
+      public int id() { return result; }
     });
 
-    final int nextIndex = index + 1;
+   // final int nextIndex = index + 1;
 
-    return nextIndex < tokens.length ?
-        fromString(link, tokens, nextIndex) :
-        link;
+    //return nextIndex < tokens.length ?
+      //  fromString(link, tokens, nextIndex) :
+        //link;
+    return link;
   }
 }

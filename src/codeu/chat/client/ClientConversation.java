@@ -14,16 +14,15 @@
 
 package codeu.chat.client;
 
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import database.Connector;
+import codeu.chat.database.Connector;
 import codeu.chat.common.Conversation;
 import codeu.chat.common.ConversationSummary;
 import codeu.chat.common.Uuid;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Method;
-import codeu.chat.util.store.Store;
 
 public final class ClientConversation {
 
@@ -33,18 +32,17 @@ public final class ClientConversation {
   private final View view;
   private static final Connector connector = new Connector();
 
-  private ConversationSummary currentSummary = null;
   private Conversation currentConversation = null;
 
   private final ClientUser userContext;
   private ClientMessage messageContext = null;
 
   // This is the set of conversations known to the server.
-  private final Map<Uuid, ConversationSummary> summariesByUuid = new HashMap<>();
+  private final Map<Uuid, Conversation> conversationsMap = new HashMap<>();
 
   // This is the set of conversations known to the server, sorted by title.
-  private Store<String, ConversationSummary> summariesSortedByTitle =
-      new Store<>(String.CASE_INSENSITIVE_ORDER);
+  //private Store<String, ConversationSummary> summariesSortedByTitle =
+    //  new Store<>(String.CASE_INSENSITIVE_ORDER);
 
   public ClientConversation(Controller controller, View view, ClientUser userContext) {
     this.controller = controller;
@@ -70,24 +68,24 @@ public final class ClientConversation {
   }
 
   public boolean hasCurrent() {
-    return (currentSummary != null);
+    return (currentConversation != null);
   }
 
-  public ConversationSummary getCurrent() {
-    return currentSummary;
+  public Conversation getCurrent() {
+    return currentConversation;
   }
 
-  public Uuid getCurrentId() { return (currentSummary != null) ? currentSummary.id : null; }
+  public Uuid getCurrentId() { return (currentConversation != null) ? currentConversation.id : null; }
 
-  public int currentMessageCount() {
-    return messageContext.currentMessageCount();
-  }
+  //public int currentMessageCount() {
+    //return messageContext.currentMessageCount();
+  //}
 
   public void showCurrent() {
-    printConversation(currentSummary, userContext);
+    printConversation(currentConversation, userContext);
   }
 
-  public void startConversation(String title, Uuid owner, boolean isInDB) {
+  public Conversation startConversation(String title, Uuid owner) {
     final boolean validInputs = isValidTitle(title);
 
     final Conversation conv = (validInputs) ? controller.newConversation(title, owner) : null;
@@ -95,33 +93,34 @@ public final class ClientConversation {
     if (conv == null) {
       System.out.format("Error: conversation not created - %s.\n",
           (validInputs) ? "server failure" : "bad input value");
+      return conv;
     } else {
+      currentConversation = conv;
       LOG.info("New conversation: Title= \"%s\" UUID= %s", conv.title, conv.id);
-      if (!isInDB){
+      return conv;
+
+      /*if (!isInDB){
         connector.addConversation(conv.id.toString(), conv.owner.toString(), conv.title);
       }
       currentSummary = conv.summary;
 
-      updateAllConversations(currentSummary != null);
+      updateAllConversations(currentSummary != null);*/
     }
   }
 
-  public void setCurrent(ConversationSummary conv) { currentSummary = conv; }
+  public void setCurrent(Conversation conv) { currentConversation = conv; }
 
   public void showAllConversations() {
     updateAllConversations(false);
 
-    for (final ConversationSummary c : summariesByUuid.values()) {
+    for (final Conversation c : view.getConversations()) {
       printConversation(c, userContext);
     }
   }
 
   // Get a single conversation from the server.
   public Conversation getConversation(Uuid conversationId) {
-    for (final Conversation c : view.getConversations(Arrays.asList(conversationId))) {
-      return c;
-    }
-    return null;
+    return view.findConversation(conversationId);
   }
 
   private void joinConversation(String match) {
@@ -131,52 +130,49 @@ public final class ClientConversation {
   private void leaveCurrentConversation() {
     Method.notImplemented();
   }
-
+/*
   private void updateCurrentConversation() {
-    if (currentSummary == null) {
-      currentConversation = null;
-    } else {
-      currentConversation = getConversation(currentSummary.id);
+    if (currentConversation != null) {
+      currentConversation = getConversation(currentConversation.id);
       if (currentConversation == null) {
         LOG.info("GetConversation: current=%s, current.id=%s, but currentConversation == null",
-            currentSummary, currentSummary.id);
+            currentConversation, currentConversation.id);
       } else {
         LOG.info("Get Conversation: Title=\"%s\" UUID=%s first=%s last=%s\n",
             currentConversation.title, currentConversation.id, currentConversation.firstMessage,
             currentConversation.lastMessage);
       }
     }
-  }
-
+  }*/
+/*
   public int conversationsCount() {
    return summariesByUuid.size();
   }
-
-  public Iterable<ConversationSummary> getConversationSummaries() {
-    return summariesSortedByTitle.all();
+*/
+  public Collection<Conversation> getConversations() {
+    return view.getConversations();
   }
 
   // Update the list of known Conversations.
   // If the input currentChanged is true, then re-establish the state of
   // the current Conversation, including its messages.
   public void updateAllConversations(boolean currentChanged) {
+  //  summariesByUuid.clear();
+ //   summariesSortedByTitle = new Store<>(String.CASE_INSENSITIVE_ORDER);
 
-    summariesByUuid.clear();
-    summariesSortedByTitle = new Store<>(String.CASE_INSENSITIVE_ORDER);
-
-    for (final ConversationSummary cs : view.getAllConversations()) {
-      summariesByUuid.put(cs.id, cs);
-      summariesSortedByTitle.insert(cs.title, cs);
+    for (final Conversation cs : view.getConversations()) {
+      conversationsMap.put(cs.id,cs);
+  //    summariesSortedByTitle.insert(cs.title, cs);
     }
-
+/*
     if (currentChanged) {
       updateCurrentConversation();
       messageContext.resetCurrent(true);
-    }
+    }*/
   }
 
   // Print Conversation.  User context is used to map from owner UUID to name.
-  public static void printConversation(ConversationSummary c, ClientUser userContext) {
+  public static void printConversation(Conversation c, ClientUser userContext) {
     if (c == null) {
       System.out.println("Null conversation");
     } else {
@@ -188,7 +184,7 @@ public final class ClientConversation {
   }
 
   // Print Conversation outside of User context.
-  public static void printConversation(ConversationSummary c) {
+  public static void printConversation(Conversation c) {
     printConversation(c, null);
   }
 }

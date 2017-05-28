@@ -51,6 +51,10 @@ final class RandomUuidGenerator implements Uuid.Generator {
 
   @Override
   public Uuid make() {
-    return Uuids.complete(new BasicUuid(commonRoot, random.nextInt()));
+    int newID = random.nextInt();
+    while(newID > Math.pow(2,31)){
+      newID = random.nextInt();
+    }
+    return Uuids.complete(new BasicUuid(commonRoot, newID));
   }
 }

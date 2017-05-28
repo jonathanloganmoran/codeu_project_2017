@@ -14,13 +14,15 @@
 
 package codeu.chat.client.simplegui;
 
+import codeu.chat.common.Conversation;
+import codeu.chat.database.ConversationFromDB;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.*;
-import codeu.chat.common.Uuid;
+
 import codeu.chat.common.Uuids;
-import database.Connector;
+import codeu.chat.database.Connector;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.util.List;
@@ -34,8 +36,6 @@ public final class ConversationPanel extends JPanel {
 
   private final ClientContext clientContext;
   private final MessagePanel messagePanel;
-  private static final Connector connector = new Connector();
-  private static final Uuid STARTUP_UID = Uuids.fromString("00000000");
 
   public ConversationPanel(ClientContext clientContext, MessagePanel messagePanel) {
     super(new GridBagLayout());
@@ -113,11 +113,8 @@ public final class ConversationPanel extends JPanel {
     this.add(listShowPanel, listPanelC);
     this.add(buttonPanel, buttonPanelC);
 
-    // Load existing conversations from database.
-    List<String> convsToAdd = connector.getConversations();
-    for(String s : convsToAdd) {
-      clientContext.conversation.startConversation(s, STARTUP_UID, true);
-    }
+    //present the existing conversation to the user
+    ConversationPanel.this.getAllConversations(listModel);
 
     // User clicks Conversations Update button.
     updateButton.addActionListener(new ActionListener() {
@@ -136,11 +133,18 @@ public final class ConversationPanel extends JPanel {
               ConversationPanel.this, "Enter title:", "Add Conversation", JOptionPane.PLAIN_MESSAGE,
               null, null, "");
           if (s != null && s.length() > 0) {
-            clientContext.conversation.startConversation(s, clientContext.user.getCurrent().id, false);
-            ConversationPanel.this.getAllConversations(listModel);
+            //add the conversation to the database and to teh shown list, at the meantime enter the conversation
+            Conversation returnedConv = clientContext.conversation.startConversation(s, clientContext.user.getCurrent().id);
+            if( returnedConv!= null){
+              //update the shown list
+              listModel.addElement(s);
+              //enter the newly added conv
+              clientContext.conversation.setCurrent(returnedConv);
+            }
           }
-        } else {
-          JOptionPane.showMessageDialog(ConversationPanel.this, "You are not signed in.");
+          else {
+            JOptionPane.showMessageDialog(ConversationPanel.this, "You are not signed in.");
+          }
         }
       }
     });
@@ -150,18 +154,15 @@ public final class ConversationPanel extends JPanel {
       @Override
       public void valueChanged(ListSelectionEvent e) {
         if (objectList.getSelectedIndex() != -1) {
-          final int index = objectList.getSelectedIndex();
-          final String data = objectList.getSelectedValue();
-          final ConversationSummary cs = ConversationPanel.this.lookupByTitle(data, index);
-
+          final String title = objectList.getSelectedValue();
+          final Conversation cs = ConversationPanel.this.lookupByTitle(title);
           clientContext.conversation.setCurrent(cs);
-
           messagePanel.update(cs);
         }
       }
     });
 
-    getAllConversations(listModel);
+    //getAllConversations(listModel);
   }
 
   // Populate ListModel - updates display objects.
@@ -170,21 +171,20 @@ public final class ConversationPanel extends JPanel {
     clientContext.conversation.updateAllConversations(false);
     convDisplayList.clear();
 
-    for (final ConversationSummary conv : clientContext.conversation.getConversationSummaries()) {
+    for (final Conversation conv : clientContext.conversation.getConversations()) {
       convDisplayList.addElement(conv.title);
     }
   }
 
   // Locate the Conversation object for a selected title string.
   // index handles possible duplicate titles.
-  private ConversationSummary lookupByTitle(String title, int index) {
-
-    int localIndex = 0;
-    for (final ConversationSummary cs : clientContext.conversation.getConversationSummaries()) {
-      if ((localIndex >= index) && cs.title.equals(title)) {
+  // here we do not allow duplicate of the same title
+  private Conversation lookupByTitle(String title) {
+    todo://set up database for locating conversation by title
+    for (final Conversation cs : clientContext.conversation.getConversations()) {
+      if ( cs.title.equals(title)) {
         return cs;
       }
-      localIndex++;
     }
     return null;
   }

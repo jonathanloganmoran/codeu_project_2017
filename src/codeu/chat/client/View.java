@@ -17,16 +17,7 @@ package codeu.chat.client;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import codeu.chat.common.BasicView;
-import codeu.chat.common.Conversation;
-import codeu.chat.common.ConversationSummary;
-import codeu.chat.common.LogicalView;
-import codeu.chat.common.Message;
-import codeu.chat.common.NetworkCode;
-import codeu.chat.common.Time;
-import codeu.chat.common.User;
-import codeu.chat.common.Uuid;
-import codeu.chat.common.Uuids;
+import codeu.chat.common.*;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializers;
 import codeu.chat.util.connections.Connection;
@@ -37,7 +28,7 @@ import codeu.chat.util.connections.ConnectionSource;
 // This is the view component of the Model-View-Controller pattern used by the
 // the client to reterive readonly data from the server. All methods are blocking
 // calls.
-public final class View implements BasicView, LogicalView{
+public final class View implements BasicView, LogicalView, SinglesView {
 
   private final static Logger.Log LOG = Logger.newLog(View.class);
 
@@ -47,17 +38,15 @@ public final class View implements BasicView, LogicalView{
     this.source = source;
   }
 
+  /* Get all the users from the codeu.chat.database*/
   @Override
-  public Collection<User> getUsers(Collection<Uuid> ids) {
+  public Collection<User> getUsers() {
 
     final Collection<User> users = new ArrayList<>();
-
     try (final Connection connection = source.connect()) {
-
-      Serializers.INTEGER.write(connection.out(), NetworkCode.GET_USERS_BY_ID_REQUEST);
-      Serializers.collection(Uuids.SERIALIZER).write(connection.out(), ids);
-
-      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_USERS_BY_ID_RESPONSE) {
+      Serializers.INTEGER.write(connection.out(), NetworkCode.GET_ALL_USERS_REQUEST);
+     // Serializers.collection(Uuids.SERIALIZER).write(connection.out(), ids);
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_ALL_USERS_RESPONSE) {
         users.addAll(Serializers.collection(User.SERIALIZER).read(connection.in()));
       } else {
         LOG.error("Response from server failed.");
@@ -71,31 +60,33 @@ public final class View implements BasicView, LogicalView{
     return users;
   }
 
-  @Override
-  public Collection<ConversationSummary> getAllConversations() {
-
-    final Collection<ConversationSummary> summaries = new ArrayList<>();
-
+  /* getAll Conversation*/
+  public Collection<Conversation> getConversations() {
+    final Collection<Conversation> conversations = new ArrayList<>();
     try (final Connection connection = source.connect()) {
 
-      Serializers.INTEGER.write(connection.out(), NetworkCode.GET_ALL_CONVERSATIONS_REQUEST);
+      Serializers.INTEGER.write(connection.out(), NetworkCode.GET_CONVERSATIONS_REQUEST);
 
-      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_ALL_CONVERSATIONS_RESPONSE) {
-        summaries.addAll(Serializers.collection(ConversationSummary.SERIALIZER).read(connection.in()));
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_CONVERSATIONS_RESPONSE) {
+        conversations.addAll(Serializers.collection(Conversation.SERIALIZER).read(connection.in()));
       } else {
         LOG.error("Response from server failed.");
       }
-
     } catch (Exception ex) {
       System.out.println("ERROR: Exception during call on server. Check log for details.");
       LOG.error(ex, "Exception during call on server.");
     }
-
-    return summaries;
+    return conversations;
   }
-
+/*
   @Override
-  public Collection<Conversation> getConversations(Collection<Uuid> ids) {
+  public Collection<Message> getMessages() {
+    return null;
+  }
+  */
+/*
+  @Override
+  public Collection<Conversation> getConversations() {
 
     final Collection<Conversation> conversations = new ArrayList<>();
 
@@ -116,22 +107,72 @@ public final class View implements BasicView, LogicalView{
 
     return conversations;
   }
+*/
+  @Override
+  public Collection<Conversation> getConversations(Time start, Time end) {
+
+    final Collection<Conversation> conversations = new ArrayList<>();
+
+    try (final Connection connection = source.connect()) {
+
+      Serializers.INTEGER.write(connection.out(), NetworkCode.GET_CONVERSATIONS_BY_TIME_REQUEST);
+      Time.SERIALIZER.write(connection.out(), start);
+      Time.SERIALIZER.write(connection.out(), end);
+
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_CONVERSATIONS_BY_TIME_RESPONSE) {
+        conversations.addAll(Serializers.collection(Conversation.SERIALIZER).read(connection.in()));
+      } else {
+        LOG.error("Response from server failed.");
+      }
+    } catch (Exception ex) {
+      System.out.println("ERROR: Exception during call on server. Check log for details.");
+      LOG.error(ex, "Exception during call on server.");
+    }
+
+    return conversations;
+  }
+
 
   @Override
-  public Collection<Message> getMessages(Collection<Uuid> ids) {
+  public Collection<Message> getMessages(Uuid id) {
 
     final Collection<Message> messages = new ArrayList<>();
 
     try (final Connection connection = source.connect()) {
 
-      Serializers.INTEGER.write(connection.out(), NetworkCode.GET_MESSAGES_BY_ID_REQUEST);
-      Serializers.collection(Uuids.SERIALIZER).write(connection.out(), ids);
+      Serializers.INTEGER.write(connection.out(), NetworkCode.GET_MESSAGES_BY_CONVERSATION_REQUEST);
+      Serializers.STRING.write(connection.out(), Uuids.toString(id));
 
-      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_CONVERSATIONS_BY_ID_RESPONSE) {
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_MESSAGES_BY_CONVERSATION_RESPONSE) {
         messages.addAll(Serializers.collection(Message.SERIALIZER).read(connection.in()));
       } else {
         LOG.error("Response from server failed.");
       }
+    } catch (Exception ex) {
+      System.out.println("ERROR: Exception during call on server. Check log for details.");
+      LOG.error(ex, "Exception during call on server.");
+    }
+
+    return messages;
+  }
+
+  @Override
+  public Collection<Message> getMessages(Uuid conversation, Time start, Time end) {
+
+    final Collection<Message> messages = new ArrayList<>();
+
+    try (final Connection connection = source.connect()) {
+
+      Serializers.INTEGER.write(connection.out(), NetworkCode.GET_MESSAGES_BY_TIME_REQUEST);
+      Time.SERIALIZER.write(connection.out(), start);
+      Time.SERIALIZER.write(connection.out(), end);
+
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_MESSAGES_BY_TIME_RESPONSE) {
+        messages.addAll(Serializers.collection(Message.SERIALIZER).read(connection.in()));
+      } else {
+        LOG.error("Response from server failed.");
+      }
+
     } catch (Exception ex) {
       System.out.println("ERROR: Exception during call on server. Check log for details.");
       LOG.error(ex, "Exception during call on server.");
@@ -163,20 +204,147 @@ public final class View implements BasicView, LogicalView{
   }
 
   @Override
-  public Collection<User> getUsersExcluding(Collection<Uuid> ids) {
+  public User findUser(Uuid id) {
+    User response = null;
+
+    try (final Connection connection = source.connect()) {
+
+      Serializers.INTEGER.write(connection.out(), NetworkCode.GET_USER_BY_ID_REQUEST);
+      Uuids.SERIALIZER.write(connection.out(), id);
+
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_USER_BY_ID_RESPONSE) {
+        response  = User.SERIALIZER.read(connection.in());
+      } else {
+        LOG.error("Response from server failed.");
+      }
+
+    } catch (Exception ex) {
+      System.out.println("ERROR: Exception during call on server. Check log for details.");
+      LOG.error(ex, "Exception during call on server.");
+    }
+    return response;
+  }
+
+  public User getUserByName(String name) {
+    User response = null;
+    try (final Connection connection = source.connect()) {
+
+      Serializers.INTEGER.write(connection.out(), NetworkCode.GET_USER_BY_NAME_REQUEST);
+      Serializers.STRING.write(connection.out(), name);
+
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_USER_BY_NAME_RESPONSE) {
+        response  = User.SERIALIZER.read(connection.in());
+      } else {
+        LOG.error("Response from server failed.");
+      }
+
+    } catch (Exception ex) {
+      System.out.println("ERROR: Exception during call on server. Check log for details.");
+      LOG.error(ex, "Exception during call on server.");
+    }
+    return response;
+  }
+
+  @Override
+  public Conversation findConversation(Uuid id) {
+    Conversation response = null;
+
+    try (final Connection connection = source.connect()) {
+
+      Serializers.INTEGER.write(connection.out(), NetworkCode.GET_CONVERSATION_BY_ID_REQUEST);
+      Uuids.SERIALIZER.write(connection.out(), id);
+
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_CONVERSATION_BY_ID_RESPONSE) {
+        response  = Conversation.SERIALIZER.read(connection.in());
+      } else {
+        LOG.error("Response from server failed.");
+      }
+
+    } catch (Exception ex) {
+      System.out.println("ERROR: Exception during call on server. Check log for details.");
+      LOG.error(ex, "Exception during call on server.");
+    }
+    return response;
+  }
+
+  public Conversation getConversationByTitle(String title){
+    Conversation response = null;
+    try (final Connection connection = source.connect()) {
+
+      Serializers.INTEGER.write(connection.out(), NetworkCode.GET_CONVERSATION_BY_TITLE_REQUEST);
+      Serializers.STRING.write(connection.out(), title);
+
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_CONVERSATION_BY_TITLE_RESPONSE) {
+        response  = Conversation.SERIALIZER.read(connection.in());
+      } else {
+        LOG.error("Response from server failed.");
+      }
+
+    } catch (Exception ex) {
+      System.out.println("ERROR: Exception during call on server. Check log for details.");
+      LOG.error(ex, "Exception during call on server.");
+    }
+    return response;
+  }
+
+  @Override
+  public Message findMessage(Uuid id) {
+    Message response = null;
+
+    try (final Connection connection = source.connect()) {
+
+      Serializers.INTEGER.write(connection.out(), NetworkCode.GET_MESSAGE_BY_ID_REQUEST);
+      Uuids.SERIALIZER.write(connection.out(), id);
+
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_MESSAGE_BY_ID_RESPONSE) {
+        response  = Message.SERIALIZER.read(connection.in());
+      } else {
+        LOG.error("Response from server failed.");
+      }
+
+    } catch (Exception ex) {
+      System.out.println("ERROR: Exception during call on server. Check log for details.");
+      LOG.error(ex, "Exception during call on server.");
+    }
+    return response;
+  }
+  public User AccountExists(String name, String password){
+    try (final Connection connection = source.connect()) {
+
+      Serializers.INTEGER.write(connection.out(), NetworkCode.VERIFY_ACCOUNT_REQUEST);
+      Serializers.STRING.write(connection.out(), name);
+      Serializers.STRING.write(connection.out(), password);
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.VERIFY_ACCOUNT_RESPONSE) {
+        return User.SERIALIZER.read(connection.in());
+      } else {
+        LOG.error("Response from server failed.");
+        return null;
+      }
+
+    } catch (Exception ex) {
+      System.out.println("ERROR: Exception during call on server. Check log for details.");
+      LOG.error(ex, "Exception during call on server.");
+      return null;
+    }
+  }
+
+/*
+  @Override
+  public Collection<User> getUsers(Collection<Uuid> ids) {
 
     final Collection<User> users = new ArrayList<>();
 
     try (final Connection connection = source.connect()) {
 
-      Serializers.INTEGER.write(connection.out(), NetworkCode.GET_USERS_EXCLUDING_REQUEST);
+      Serializers.INTEGER.write(connection.out(), NetworkCode.GET_USERS_BY_ID_REQUEST);
       Serializers.collection(Uuids.SERIALIZER).write(connection.out(), ids);
 
-      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_USERS_EXCLUDING_RESPONSE) {
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_USERS_BY_ID_RESPONSE) {
         users.addAll(Serializers.collection(User.SERIALIZER).read(connection.in()));
       } else {
         LOG.error("Response from server failed.");
       }
+
     } catch (Exception ex) {
       System.out.println("ERROR: Exception during call on server. Check log for details.");
       LOG.error(ex, "Exception during call on server.");
@@ -184,19 +352,17 @@ public final class View implements BasicView, LogicalView{
 
     return users;
   }
-
-  @Override
-  public Collection<Conversation> getConversations(Time start, Time end) {
+*/
+ /* public Collection<Conversation> getConversations(Collection<Uuid> ids) {
 
     final Collection<Conversation> conversations = new ArrayList<>();
 
     try (final Connection connection = source.connect()) {
 
-      Serializers.INTEGER.write(connection.out(), NetworkCode.GET_CONVERSATIONS_BY_TIME_REQUEST);
-      Time.SERIALIZER.write(connection.out(), start);
-      Time.SERIALIZER.write(connection.out(), end);
+      Serializers.INTEGER.write(connection.out(), NetworkCode.GET_CONVERSATIONS_BY_ID_REQUEST);
+      Serializers.collection(Uuids.SERIALIZER).write(connection.out(), ids);
 
-      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_CONVERSATIONS_BY_TIME_RESPONSE) {
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_CONVERSATIONS_BY_ID_RESPONSE) {
         conversations.addAll(Serializers.collection(Conversation.SERIALIZER).read(connection.in()));
       } else {
         LOG.error("Response from server failed.");
@@ -207,8 +373,9 @@ public final class View implements BasicView, LogicalView{
     }
 
     return conversations;
-  }
+  }*/
 
+/*
   @Override
   public Collection<Conversation> getConversations(String filter) {
 
@@ -231,32 +398,33 @@ public final class View implements BasicView, LogicalView{
 
     return conversations;
   }
+*/
 
-  @Override
-  public Collection<Message> getMessages(Uuid conversation, Time start, Time end) {
+
+  /*@Override
+  public Collection<Message> getMessages(Collection<Uuid> ids) {
 
     final Collection<Message> messages = new ArrayList<>();
 
     try (final Connection connection = source.connect()) {
 
-      Serializers.INTEGER.write(connection.out(), NetworkCode.GET_MESSAGES_BY_TIME_REQUEST);
-      Time.SERIALIZER.write(connection.out(), start);
-      Time.SERIALIZER.write(connection.out(), end);
+      Serializers.INTEGER.write(connection.out(), NetworkCode.GET_MESSAGES_BY_ID_REQUEST);
+      Serializers.collection(Uuids.SERIALIZER).write(connection.out(), ids);
 
-      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_MESSAGES_BY_TIME_RESPONSE) {
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_CONVERSATIONS_BY_ID_RESPONSE) {
         messages.addAll(Serializers.collection(Message.SERIALIZER).read(connection.in()));
       } else {
         LOG.error("Response from server failed.");
       }
-
     } catch (Exception ex) {
       System.out.println("ERROR: Exception during call on server. Check log for details.");
       LOG.error(ex, "Exception during call on server.");
     }
 
     return messages;
-  }
+  }*/
 
+/*
   @Override
   public Collection<Message> getMessages(Uuid rootMessage, int range) {
 
@@ -281,4 +449,31 @@ public final class View implements BasicView, LogicalView{
 
     return messages;
   }
+*/
+
+/*
+  @Override
+  public Collection<User> getUsersExcluding(Collection<Uuid> ids) {
+
+    final Collection<User> users = new ArrayList<>();
+
+    try (final Connection connection = source.connect()) {
+
+      Serializers.INTEGER.write(connection.out(), NetworkCode.GET_USERS_EXCLUDING_REQUEST);
+      Serializers.collection(Uuids.SERIALIZER).write(connection.out(), ids);
+
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_USERS_EXCLUDING_RESPONSE) {
+        users.addAll(Serializers.collection(User.SERIALIZER).read(connection.in()));
+      } else {
+        LOG.error("Response from server failed.");
+      }
+    } catch (Exception ex) {
+      System.out.println("ERROR: Exception during call on server. Check log for details.");
+      LOG.error(ex, "Exception during call on server.");
+    }
+
+    return users;
+  }
+  */
 }
+

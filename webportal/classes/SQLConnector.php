@@ -8,12 +8,12 @@ class SQLConnector {
   }
 
   /**
-  * Connect to the database
+  * Connect to the codeu.chat.database
   *
   * @return bool false on failure / mysqli MySQLi object instance on success
   */
   public function connect() {
-    // Try and connect to the database
+    // Try and connect to the codeu.chat.database
     if(!isset(self::$connection)) {
       // Load configuration as an array.
       $config = parse_ini_file('config.ini');
@@ -28,21 +28,21 @@ class SQLConnector {
   }
 
   /**
-  * Query the database
+  * Query the codeu.chat.database
   *
   * @param $query The query string
   * @return mixed The result of the mysqli::query() function
   */
   public function query($query) {
-    // Connect to the database
+    // Connect to the codeu.chat.database
     $connection = $this -> connect();
-    // Query the database
+    // Query the codeu.chat.database
     $result = $connection -> query($query);
     return $result;
   }
 
   /**
-  * Fetch rows from the database (SELECT query)
+  * Fetch rows from the codeu.chat.database (SELECT query)
   *
   * @param $query The query string
   * @return bool False on failure / array Database rows on success
@@ -60,7 +60,7 @@ class SQLConnector {
   }
 
   /**
-  * Fetch the last error from the database
+  * Fetch the last error from the codeu.chat.database
   *
   * @return string Database error message
   */
@@ -70,7 +70,7 @@ class SQLConnector {
   }
 
   /**
-  * Quote and escape value for use in a database query
+  * Quote and escape value for use in a codeu.chat.database query
   *
   * @param string $value The value to be quoted and escaped
   * @return string The quoted and escaped string

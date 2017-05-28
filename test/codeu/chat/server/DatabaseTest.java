@@ -1,18 +1,16 @@
 package codeu.chat.server;
 
 import static org.junit.Assert.*;
-import codeu.chat.common.Uuid;
+
 import codeu.chat.common.Uuids;
-import database.Connector;
-import database.ConversationFromDB;
-import database.MessageFromDB;
-import database.UserFromDB;
-import java.util.Random;
+import codeu.chat.database.Connector;
+import codeu.chat.database.ConversationFromDB;
+import codeu.chat.database.MessageFromDB;
+
 import java.util.UUID;
-import javax.jws.soap.SOAPBinding.Use;
+
 import org.junit.Test;
-import java.util.Collection;
-import java.util.LinkedList;
+
 import java.util.List;
 
 /*
@@ -23,7 +21,7 @@ import java.util.List;
 
 public final class DatabaseTest {
 
-  private static final Connector con = new database.Connector();
+  private static final Connector con = new codeu.chat.database.Connector();
   private static final RandomUuidGenerator uuidGenerator = new RandomUuidGenerator(
       Uuids.NULL, System.currentTimeMillis());
   private static final String UUID_USER = "987654321";

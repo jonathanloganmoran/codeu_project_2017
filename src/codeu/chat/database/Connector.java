@@ -1,4 +1,6 @@
-package database;
+package codeu.chat.database;
+import codeu.chat.common.Conversation;
+import codeu.chat.common.Time;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.security.MessageDigest;
@@ -8,18 +10,21 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import codeu.chat.common.Uuids;
 import org.apache.commons.dbcp2.BasicDataSource;
 
 /**
- * JDBC connector is needed to connects java program to the database.
+ * JDBC connector is needed to connects java program to the codeu.chat.database.
  * Description:
- * this is the database connector you will need to use to communicate with
+ * this is the codeu.chat.database connector you will need to use to communicate with
  * the databased hosted on a remote machine.
  */
 
@@ -41,7 +46,8 @@ public class Connector {
   private static final String DB_NAME = "CodeU_2017DB";
 
   /* SQL User Queries */
-  private static final String SQL_SELECT_USER = String.format("SELECT * FROM %s", USER);
+  private static final String SQL_SELECT_USERS = String.format("SELECT * FROM %s", USER);
+  private static final String SQL_SELECT_USER = String.format("SELECT * FROM %s WHERE Uuid = ?", USER);
   private static final String SQL_INSERT_ACCOUNT = String
       .format("INSERT INTO %s (username, password, salt, Uuid) VALUES(?,?,?,?)", USER);
   private static final String SQL_DROP_USER = String.format("TRUNCATE TABLE %s", USER);
@@ -55,24 +61,38 @@ public class Connector {
       .format("SELECT salt FROM %s WHERE username = ?", USER);
   private static final String SQL_SELECT_ID = String
       .format("SELECT Uuid FROM %s WHERE username = ?", USER);
+  private static final String SQL_SELECT_USER_CREATION_TIME = String.
+      format("SELECT creation_time FROM %s WHERE Uuid = ?", USER);
+  private static final String SQL_SELECT_USER_BY_NAME= String.format("SELECT * FROM %s WHERE username = ?", USER);
 
   /* SQL Conversation Queries */
   private static final String SQL_INSERT_CONVERSATON = String
       .format("INSERT INTO %s (Uuid, id_user, title) VALUES(?,?,?)", CONVERSATION);
-  private static final String SQL_SELECT_CONVERSATION = String.
+  private static final String SQL_SELECT_CONVERSATIONS = String.
       format("SELECT * FROM %s ORDER BY creation_time ASC", CONVERSATION);
+  private static final String SQL_SELECT_CONVERSATION = String.format("SELECT * FROM %s WHERE Uuid = ?", CONVERSATION);
   private static final String SQL_DELETE_CONVERSATION_BY_ID = String
       .format("DELETE FROM %s WHERE id_user= ?", CONVERSATION);
   private static final String SQL_DROP_CONVERSATION = String.format("TRUNCATE TABLE %s", CONVERSATION);
+  private static final String SQL_SELECT_CONVERSATION_CREATION_TIME = String.
+          format("SELECT creation_time FROM %s WHERE Uuid = ?", CONVERSATION);
+  private static final String SQL_SELECT_CONVERSATION_BY_TITLE = String
+          .format("SELECT * FROM %s WHERE title = ?", CONVERSATION);
+
 
   /* SQL Message Queries */
+  private static final String SQL_SELECT_MESSAGE_CREATION_TIME = String.
+          format("SELECT creation_time FROM %s WHERE Uuid = ?", MESSAGE);
   private static final String SQL_INSERT_MESSAGE = String
       .format("INSERT INTO %s (Uuid, content, id_user, id_conversation) VALUES(?,?,?,?)", MESSAGE);
   private static final String SQL_SELECT_MESSAGES = String.format(
       "SELECT * FROM %s WHERE id_conversation = ? ORDER BY creation_time ASC", MESSAGE);
+  private static final String SQL_SELECT_MESSAGE = String.format(
+          "SELECT * FROM %s WHERE id_conversation = ?", MESSAGE);
   private static final String SQL_DELETE_MESSGES_BY_ID = String
       .format("DELETE FROM %s WHERE id_user = ?", MESSAGE);
   private static final String SQL_DROP_MESSAGE = String.format("TRUNCATE TABLE %s", MESSAGE);
+
 
   /* Encryption */
   private static final Random rand = new SecureRandom();
@@ -114,7 +134,7 @@ public class Connector {
   }
 
   /**
-   * Add conversation into the table in database
+   * Add conversation into the table in codeu.chat.database
    * @param uuid id of the conversation
    * @param user_id user who owns the conversation
    * @param title the name of the conversation, unique
@@ -192,7 +212,7 @@ public class Connector {
   }
 
   /**
-   * AddAccount is to add the new account to the database.
+   * AddAccount is to add the new account to the codeu.chat.database.
    * @param username name of the account that is being added
    * @param password password of the account made by user
    * @param uuid id assigned to each user
@@ -226,19 +246,20 @@ public class Connector {
   }
 
   /**
-   * Acquire all the conversations ordered by creation time from database
+   * Acquire all the conversations ordered by creation time from codeu.chat.database
    * @return List<String> a list of conversations
    */
   public synchronized List<ConversationFromDB> getConversations(){
     List<ConversationFromDB> conversationList = new ArrayList<>();
     try (Connection conn = dataSource.getConnection()) {
-      try (PreparedStatement getConversation = conn.prepareStatement(SQL_SELECT_CONVERSATION)) {
+      try (PreparedStatement getConversation = conn.prepareStatement(SQL_SELECT_CONVERSATIONS)) {
         ResultSet conversation = getConversation.executeQuery();
         while (conversation.next()) {
           String title = conversation.getString("title");
           String uuid = conversation.getString("Uuid");
           String author = conversation.getString("id_user");
-          conversationList.add(new ConversationFromDB(uuid, author,title));
+          Timestamp time = conversation.getTimestamp("creation_time");
+          conversationList.add(new ConversationFromDB(uuid, author,title,Time.fromMs(time.getTime())));
         }
         return conversationList;
       }
@@ -264,7 +285,8 @@ public class Connector {
           String user = messages.getString("id_user");
           String conversation = messages.getString("id_conversation");
           String conetnt = messages.getString("content");
-          messageList.add(new MessageFromDB(uuid,conversation,user,conetnt));
+          Timestamp time = messages.getTimestamp("creation_time");
+          messageList.add(new MessageFromDB(uuid,conversation,user,conetnt,Time.fromMs(time.getTime())));
         }
         return messageList;
       }
@@ -283,12 +305,13 @@ public class Connector {
     List<UserFromDB> userNames = new ArrayList<>();
 
     try (Connection conn = dataSource.getConnection()) {
-      try (PreparedStatement getUsers = conn.prepareStatement(SQL_SELECT_USER)) {
+      try (PreparedStatement getUsers = conn.prepareStatement(SQL_SELECT_USERS)) {
         try (ResultSet users = getUsers.executeQuery()) {
           while (users.next()) {
             String username = users.getString("username");
             String uuid = users.getString("Uuid");
-            userNames.add(new UserFromDB(uuid,username));
+            Timestamp time = users.getTimestamp("creation_time");
+            userNames.add(new UserFromDB(uuid,username,Time.fromMs(time.getTime())));
           }
           return userNames;
         }
@@ -347,7 +370,7 @@ public class Connector {
   }
 
   /**
-   * Clean all the data inside the database
+   * Clean all the data inside the codeu.chat.database
    * @return true if the data has been cleaned
    */
   public synchronized boolean dropAllAccounts() {
@@ -407,7 +430,7 @@ public class Connector {
         selectSalt.setString(1, username);
         try (ResultSet resultSalt = selectSalt.executeQuery()) {
           if (resultSalt.next()) {
-            // Get the stored salt from database
+            // Get the stored salt from codeu.chat.database
             return resultSalt.getString(1);
           }
           else{
@@ -424,9 +447,9 @@ public class Connector {
 
   /**
    * Verify if the account username and password input by users match what has been recorded in
-   * database
+   * codeu.chat.database
    * @param username the username that is being verified
-   * @param password the password that is used to compare to the one in database
+   * @param password the password that is used to compare to the one in codeu.chat.database
    * @return true if the account is verified, else, false, if the account is not valid
    */
   public synchronized boolean verifyAccount(String username, String password) {
@@ -437,7 +460,7 @@ public class Connector {
         selectPassword.setString(1, username);
         try (ResultSet resultPassword = selectPassword.executeQuery()) {
           if (resultPassword.next()) {
-            // Get the stored password from database.
+            // Get the stored password from codeu.chat.database.
             String passwordInDB = resultPassword.getString(1);
             // Encrypt password:
             try {
@@ -471,7 +494,7 @@ public class Connector {
     return false;
   }
   
-  /** Verify if the account username is in the database
+  /** Verify if the account username is in the codeu.chat.database
    *
    * @param username the username that is being verified
    * @return true if the account is valid, if the account is not valid
@@ -605,8 +628,150 @@ public class Connector {
     }
   }
 
+  public Time getConv_creationTime(String id){
+      try (Connection conn = dataSource.getConnection()) {
+        PreparedStatement time = conn.prepareStatement(
+            SQL_SELECT_CONVERSATION_CREATION_TIME);
+        time.setString(1,id);
+        ResultSet result = time.executeQuery();
+        while (result.next()) {
+          return Time.fromMs(result.getTimestamp("creation_time").getTime());
+        }
+      }
+      catch (SQLException e) {
+        LOGGER.log( Level.FINE, "error occurred when converting the time");
+      }
+      return null;
+    }
+
+  public Time getMessage_creationTime(String id){
+      try (Connection conn = dataSource.getConnection()) {
+        PreparedStatement time = conn.prepareStatement(
+            SQL_SELECT_MESSAGE_CREATION_TIME);
+        time.setString(1,id);
+        ResultSet result = time.executeQuery();
+        while (result.next()) {
+          return Time.fromMs(result.getTimestamp("creation_time").getTime());
+        }
+      }
+      catch (SQLException e) {
+        LOGGER.log( Level.FINE, "error occurred when converting the time");
+      }
+      return null;
+    }
+
+  public Time getUser_creationTime(String id){
+      try (Connection conn = dataSource.getConnection()) {
+        PreparedStatement time = conn.prepareStatement(
+            SQL_SELECT_CONVERSATION_CREATION_TIME);
+        time.setString(1,id);
+        ResultSet result = time.executeQuery();
+        while (result.next()) {
+          return Time.fromMs(result.getTimestamp("creation_time").getTime());
+        }
+      }
+      catch (SQLException e) {
+        LOGGER.log( Level.FINE, "error occurred when converting the time");
+      }
+      return null;
+  }
+
+  public UserFromDB getUser(String uuid){
+      try (Connection conn = dataSource.getConnection()) {
+        try (PreparedStatement getConversation = conn.prepareStatement(SQL_SELECT_USER)) {
+          getConversation.setString(1,uuid);
+          ResultSet user = getConversation.executeQuery();
+          while (user.next()) {
+            String username = user.getString("username");
+            Timestamp time = user.getTimestamp("creation_time");
+            return new UserFromDB(uuid,username,Time.fromMs(time.getTime()));
+          }
+        }
+      }
+      catch (SQLException e) {
+        return null;
+      }
+      return null;
+  }
+
+  public ConversationFromDB getConversation(String uuid){
+      try (Connection conn = dataSource.getConnection()) {
+        try (PreparedStatement getConversation = conn.prepareStatement(SQL_SELECT_CONVERSATION)) {
+          getConversation.setString(1,uuid);
+          ResultSet conversation = getConversation.executeQuery();
+          while (conversation.next()) {
+            String title = conversation.getString("title");
+            String author = conversation.getString("id_user");
+            Timestamp time = conversation.getTimestamp("creation_time");
+            return new ConversationFromDB(uuid, author, title, Time.fromMs(time.getTime()));
+          }
+          return null;
+        }
+      }
+      catch (SQLException e) {
+        return null;
+      }
+  }
+
+  public MessageFromDB getMessage(String uuid){
+      try (Connection conn = dataSource.getConnection()) {
+        try (PreparedStatement message = conn.prepareStatement(SQL_SELECT_CONVERSATION)) {
+          message.setString(1,uuid);
+          ResultSet getMessage = message.executeQuery();
+          while (getMessage.next()) {
+            String content = getMessage.getString("content");
+            String author = getMessage.getString("id_user");
+            String conversation = getMessage.getString("id_conversation");
+            Timestamp time = getMessage.getTimestamp("creation_time");
+            return new MessageFromDB(uuid,conversation, author, content, Time.fromMs(time.getTime()));
+          }
+        }
+      }
+      catch (SQLException e) {
+        return null;
+      }
+      return null;
+  }
+
+  public UserFromDB getUserByName(String username){
+    try (Connection conn = dataSource.getConnection()) {
+      try (PreparedStatement getUser = conn.prepareStatement(SQL_SELECT_USER_BY_NAME)) {
+        getUser.setString(1,username);
+        ResultSet user = getUser.executeQuery();
+        while (user.next()) {
+          String userid = user.getString("Uuid");
+          String name = user.getString("username");
+          Timestamp time = user.getTimestamp("creation_time");
+          return new UserFromDB(userid,name, Time.fromMs(time.getTime()));
+        }
+        return null;
+      }
+    }
+    catch (SQLException e) {
+      return null;
+    }
+  }
+
+  public ConversationFromDB getConversationByTitle(String title){
+    try (Connection conn = dataSource.getConnection()) {
+      try (PreparedStatement getConversation = conn.prepareStatement(SQL_SELECT_CONVERSATION_BY_TITLE)) {
+        getConversation.setString(1,title);
+        ResultSet conversation = getConversation.executeQuery();
+        while (conversation.next()) {
+          String conId = conversation.getString("Uuid");
+          String author = conversation.getString("id_user");
+          Timestamp time = conversation.getTimestamp("creation_time");
+          return new ConversationFromDB(conId, author, title, Time.fromMs(time.getTime()));
+        }
+        return null;
+      }
+    }
+    catch (SQLException e) {
+      return null;
+    }
+  }
   /**
-   * When all has been done with database, call close to end the connection.
+   * When all has been done with codeu.chat.database, call close to end the connection.
    * can restart by creating a new instance of connector
    */
   public synchronized void closeConnection() {

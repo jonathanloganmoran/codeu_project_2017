@@ -1,3 +1,7 @@
+## To Use, Visit: `codeu.dgarry.com`
+
+## To Run Locally:
+
 ## To Install
 Install composer, a package manager for PHP.
 

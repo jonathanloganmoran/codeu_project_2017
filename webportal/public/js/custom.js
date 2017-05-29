@@ -336,7 +336,7 @@ function showErrorMessage(message) {
   var msgbox = document.getElementById("error-message-box");
   var msgcontent = document.getElementById("message-to-error-out");
   message = "Sorry about that. We had an error.<br><br>" + message;
-  var time = message.length*100 + 300;
+  var time = message.length*20 + 300;
   msgcontent.innerHTML = message;
   msgbox.style.display = "block";
   window.setTimeout(function(){

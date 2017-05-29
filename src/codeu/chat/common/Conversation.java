@@ -66,7 +66,7 @@ public final class Conversation {
 
   public final Uuid id;
   public final Uuid owner;
-  public final Time creation;
+  public Time creation;
   public final String title;
   public final Collection<Uuid> users = new HashSet<>();
   public Uuid firstMessage = Uuids.NULL;
@@ -77,6 +77,9 @@ public final class Conversation {
     this.id = id;
     this.owner = owner;
     this.creation = creation;
+    if(creation == null){
+      System.out.println("SEVERE: Time is NULL in Conversation construction");
+    }
     this.title = title;
 
     //this.summary = new ConversationSummary(id, owner, creation, title);

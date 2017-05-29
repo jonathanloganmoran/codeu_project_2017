@@ -29,16 +29,17 @@ public final class Time implements Comparable<Time> {
 
     @Override
     public void write(OutputStream out, Time value) throws IOException {
-
+      if(value == null){
+        value = Time.now();
+      }
+      System.out.println("value" + value);
+      System.out.println("value.totalMS " + value.totalMs);
       Serializers.LONG.write(out, value.totalMs);
-
     }
 
     @Override
     public Time read(InputStream in) throws IOException {
-
       return Time.fromMs(Serializers.LONG.read(in));
-
     }
   };
 

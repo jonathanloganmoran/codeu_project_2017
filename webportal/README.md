@@ -1,4 +1,6 @@
-## To Install
+## To Use, Visit: <a href="http://codeu.dgarry.com" target="_blank">codeu.dgarry.com</a>
+
+## To Run Locally:
 Install composer, a package manager for PHP.
 
 ```
@@ -6,7 +8,7 @@ brew update
 brew install homebrew/php/composer
 ```
 
-Then navigate to the root of this project and install dependencies.
+Then **navigate to the root of the webportal folder** and install dependencies.
 
 `composer install`
 
@@ -14,21 +16,7 @@ Run the server.
 
 `composer start`
 
-Navigate to localhost:8080.
-## Testing
-```
-composer install
-brew update
-brew install selenium-server-standalone
-brew install chromedriver
-```
-
-in one tab of terminal, type in `selenium-server -port 4444` to run the selenium browser process
-
-in another tab, navigate to lyricloud folder and enter `vendor/bin/behat features/` to run the tests
-##### Useful Documentation
-- [Behat Quick Start](http://behat.org/en/latest/quick_start.html)
-- [Behat Mink Guide](http://docs.behat.org/en/v2.5/cookbook/behat_and_mink.html)
+Navigate to **localhost:8080** in your browser.
 
 ## PHP versioning
 We use PHP7.

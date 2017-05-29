@@ -9,10 +9,51 @@ engineers. This project is not an offical Google Product. This project is a
 playground for those looking to develop their coding and software engineering
 skills.
 
+## WEB ENVIRONMENT
 
-## ENVIRONMENT
+### To Use, Visit: <a href="http://codeu.dgarry.com" target="_blank">codeu.dgarry.com</a>
 
-All instructions here are relative to a LINUX environment. There will be some
+### To Run Locally:
+Install composer, a package manager for PHP.
+
+```
+brew update
+brew install homebrew/php/composer
+```
+
+Then **navigate to the root of the webportal folder** and install dependencies.
+
+`composer install`
+
+Run the server.
+
+`composer start`
+
+Navigate to **localhost:8080** in your browser.
+
+#### PHP versioning
+We use PHP7.
+```
+brew update
+brew tap homebrew/dupes
+brew tap homebrew/versions
+brew tap homebrew/homebrew-php
+
+# unlink previous php70 if you have it installed
+brew unlink php70
+brew install php71
+
+# check if php is now version 7.1.0
+php --version
+
+# should result in terminal output similar to:
+PHP 7.1.2 (cli) (built: MONTH DAY YEAR HOURS:MINUTES:SECONDS) ( NTS )
+Copyright (c) 1997-2017 The PHP Group
+```
+
+## JAVA ENVIRONMENT
+
+All instructions below here are relative to a LINUX environment. There will be some
 differences if you are working on a non-LINUX system. We will not support any
 other development environment.
 
@@ -20,7 +61,7 @@ This project was built using JAVA 7. It is recommended that you install
 JAVA&nbsp;7 when working with this project.
 
 
-## GETTING STARTED
+## JAVA GETTING STARTED
 
   1. To build the project:
        ```
@@ -59,7 +100,7 @@ Relay Server and a script that runs it (`run_relay.sh`).
 This is not needed to get started with the project.
 
 
-## Finding your way around the project
+## Java: Finding your way around the project
 
 All the source files (except test-related source files) are in
 `./src/codeu/chat`.  The test source files are in `./test/codeu/chat`. If you
@@ -72,29 +113,29 @@ Finally, there are some high-level design documents in the project Wiki. Please
 review them as they can help you find your way around the sources.
 
 
-## Source Directories
+## Java: Source Directories
 
 The major project components have been separated into their own packages. The
 main packages/directories under `src/codeu/chat` are:
 
-### codeu.chat.client
+### Java: codeu.chat.client
 
 Classes for building the two clients (`codeu.chat.ClientMain` and
 `codeu.chat.SimpleGuiClientMain`).
 
-### codeu.chat.server
+### Java: codeu.chat.server
 
 Classes for building the server (`codeu.chat.ServerMain`).
 
-### codeu.chat.relay
+### Java: codeu.chat.relay
 
 Classes for building the Relay Server (`codeu.chat.RelayMain`). The Relay Server
 is not needed to get started.
 
-### codeu.chat.common
+### Java: codeu.chat.common
 
 Classes that are shared by the clients and servers.
 
-### codeu.chat.util
+### Java: codeu.chat.util
 
 Some basic infrastructure classes used throughout the project.

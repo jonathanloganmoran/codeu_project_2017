@@ -17,7 +17,7 @@ package codeu.chat.client.simplegui;
 import codeu.chat.client.ClientContext;
 import codeu.chat.common.User;
 import codeu.chat.util.TextValidator;
-
+import codeu.chat.util.Logger;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -45,7 +45,7 @@ import javax.swing.JPasswordField;
 public final class UserPanel extends JPanel {
 
   private final ClientContext clientContext;
-  //private static Connector con;
+  final Logger.Log LOG = Logger.newLog(UserPanel.class);
 
   public UserPanel(ClientContext clientContext) {
     super(new GridBagLayout());
@@ -156,14 +156,6 @@ public final class UserPanel extends JPanel {
     this.add(buttonPanel, buttonPanelC);
     this.add(currentPanel, currentPanelC);
 
-  /*  // Load existing users from codeu.chat.database.
-    con = new Connector();
-    List<UserFromDB> usersToAdd = con.getAllUsers();
-    for(UserFromDB s : usersToAdd) {
-      //repopulate the model
-      clientContext.user.addUser(s.getUsername());
-    }
-    */
     // populate listModel with a list of users: done
     UserPanel.this.getAllUsers(listModel);
     userUpdateButton.addActionListener(new ActionListener() {
@@ -209,13 +201,22 @@ public final class UserPanel extends JPanel {
       public void actionPerformed(ActionEvent e) {
         String[] response = getInput("Sign-In","");
         if (response != null) {
+
+          System.out.println("Response Not Null");
           if (TextValidator.isValidUserName(response[0]) && TextValidator.isValidPassword(response[1])) {
             // Account added to program and to codeu.chat.database in clientContext.user.
+            System.out.println("Boolean not yet run");
             boolean added = clientContext.user.addUser(response[0], response[1]);
-            if(added){
+
+            System.out.println("Boolean run");
+            if (added) {
+
+              System.out.println("Added Boolean True");
               listModel.addElement(response[0]);
+
+              System.out.println("addElement Complete");
+              UserPanel.this.getAllUsers(listModel);
             }
-            //UserPanel.this.getAllUsers(listModel);
             else {
               JOptionPane.showMessageDialog(UserPanel.this,
                   "User not created. User already exists. Please choose different name.",
@@ -242,14 +243,13 @@ public final class UserPanel extends JPanel {
         }
       }
     });
-    //todo: //is this needed?
-    //getAllUsers(listModel);
+    getAllUsers(listModel);
   }
 
   // Swing UI: populate ListModel object - updates display objects.
   private void getAllUsers(DefaultListModel<String> usersList) {
     //clientContext.user.updateUsers();
-    //usersList.clear();
+    usersList.clear();
     for (final User u : clientContext.user.getUsers()) {
       usersList.addElement(u.name);
     }

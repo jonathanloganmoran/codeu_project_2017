@@ -22,6 +22,7 @@ import codeu.chat.util.Serializer;
 import codeu.chat.util.Serializers;
 import codeu.chat.common.Uuid;
 import codeu.chat.common.Uuids;
+import codeu.chat.common.Time;
 
 public final class User {
 
@@ -29,34 +30,31 @@ public final class User {
 
     @Override
     public void write(OutputStream out, User value) throws IOException {
-
       Uuids.SERIALIZER.write(out, value.id);
       Serializers.STRING.write(out, value.name);
       Time.SERIALIZER.write(out, value.creation);
-
     }
 
     @Override
     public User read(InputStream in) throws IOException {
-
       return new User(
           Uuids.SERIALIZER.read(in),
           Serializers.STRING.read(in),
           Time.SERIALIZER.read(in)
       );
-
     }
   };
 
   public final Uuid id;
   public final String name;
-  public final Time creation;
+  public Time creation;
 
   public User(Uuid id, String name, Time creation) {
-
     this.id = id;
     this.name = name;
+    if(creation == null){
+      System.out.println("SEVERE: Time is NULL in User construction");
+    }
     this.creation = creation;
-
   }
 }

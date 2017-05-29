@@ -68,6 +68,7 @@ public final class Uuids {
       // "input.read" can only return one by of data so there is no need
       // to check that the bounds of 0 to 255 is respected.
       final int length = in.read();
+      //System.out.println("UUIDS LINE 71: "+length);
       final int[] chain = new int[length];
 
       for (int i = 0; i < length; i++) {
@@ -186,7 +187,7 @@ public final class Uuids {
   // Create a uuid from a sting.
   public static Uuid fromString(String string) {
     final Logger.Log LOG = Logger.newLog(View.class);
-    LOG.error("THe INPUT STRING IS "+string+" With length: "+ string.length() );
+    //LOG.info("190: THE INPUT STRING IS "+string+" With length: "+ string.length() );
 
     //return fromString(null, string.split("\\."), 0);
     if(string.charAt(0) == '[') {
@@ -199,15 +200,15 @@ public final class Uuids {
 
   private static Uuid fromString(final Uuid root, String tokens, int index) {
     final Logger.Log LOG = Logger.newLog(View.class);
-    LOG.error("THe INPUT STRING IS "+tokens);
+    //LOG.info("203: THE INPUT STRING IS "+tokens);
     long id = Long.parseLong(tokens);
     int newId = (int)(id >> 1);
     newId = newId << 1;
     if((id & 1) == 1){ newId = newId | 1;}
 
     final int result = newId;
-    LOG.error("THe INPUT INT IS "+result);
-    LOG.info("SUCCESS");
+    //LOG.info("210: THE INPUT INT IS "+result);
+    LOG.info("211: SUCCESS");
 
     final Uuid link = complete(new Uuid() {
       @Override

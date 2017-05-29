@@ -242,12 +242,12 @@ class SQLConnector {
     }
     $uuid = $this->generateUuid();
     $currentuser = $this->getUUIDFromUsername($currentuser);
-    $SQL_INSERT_MESS = "INSERT INTO Message (Uuid, content, id_user, id_conversation) VALUES";
-    $SQL_INSERT_MESS = $SQL_INSERT_MESS . "('".$uuid."','".$content."','".$currentuser."','".$id_conv."')";
-    $rows = array();
-    $result = $this -> query($SQL_INSERT_MESS);
+    $connection = $this -> connect();
+    $stmt = $connection->prepare("INSERT INTO Message (Uuid, content, id_user, id_conversation) VALUES (?,?,?,?)");
+    $stmt->bind_param("ssss", $uuid, $content, $currentuser, $id_conv);
+    $result = $stmt->execute();
     if($result === false) {
-      return $SQL_INSERT_MESS;
+      return "SQL Error";
     }
     return "created";
   }
@@ -336,7 +336,7 @@ class SQLConnector {
   * Generates a UUID
   */
   private function generateUuid(){
-    $num = "100.101." . $this->randomNumber();
+    $num = "100." . $this->randomNumber();
     // to-do: make sure ID is not already taken
     $id = "[UUID:" . $num . "]";
     return $id;
@@ -346,7 +346,7 @@ class SQLConnector {
   * Generates a random number of length 9
   */
   private function randomNumber() {
-    $length = 9;
+    $length = 10;
     $result = '';
     for($i = 0; $i < $length; $i++) {
       $result .= mt_rand(0, 9);

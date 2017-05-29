@@ -8,7 +8,7 @@ brew update
 brew install homebrew/php/composer
 ```
 
-Then navigate to the root of this project and install dependencies.
+Then **navigate to the root of the webportal folder** and install dependencies.
 
 `composer install`
 
@@ -16,7 +16,7 @@ Run the server.
 
 `composer start`
 
-Navigate to localhost:8080 in your browser.
+Navigate to **localhost:8080** in your browser.
 
 ## PHP versioning
 We use PHP7.

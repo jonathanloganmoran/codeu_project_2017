@@ -1,4 +1,4 @@
-## To Use, Visit: `codeu.dgarry.com`
+## To Use, Visit: <a href="http://codeu.dgarry.com" target="_blank">codeu.dgarry.com</a>
 
 ## To Run Locally:
 Install composer, a package manager for PHP.

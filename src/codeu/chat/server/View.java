@@ -320,10 +320,13 @@ public final class View implements BasicView, LogicalView, SinglesView {
   }
 
   public User getUserByName(String name){
+    System.out.println("VIEW LINE 323: ENTERED");
     UserFromDB userFromDB = connector.getUserByName(name);
     if(userFromDB != null){
+      System.out.println("VIEW LINE 326: USER IS NOT NULL");
       return new User(Uuids.fromString(userFromDB.getUuid()), userFromDB.getUsername(), userFromDB.getTime());
     }
+    System.out.println("VIEW LINE 329: USER IS NULL");
     return null;
   }
 

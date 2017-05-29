@@ -141,7 +141,7 @@ public class Connector {
    * @return true if the conversation is added to the table
    */
   public synchronized boolean addConversation(String uuid, String user_id, String title){
-
+    LOGGER.log(Level.WARNING, "Arguments: " + uuid + ", "+user_id+", "+title);
     try (Connection conn = dataSource.getConnection()) {
       try (PreparedStatement addConversation = conn.prepareStatement(SQL_INSERT_CONVERSATON)) {
         addConversation.setString(1,uuid);
@@ -418,6 +418,13 @@ public class Connector {
     catch (SQLException e) {
       return false;
     }
+  }
+
+  /*
+   * Drop all database content
+   */
+  private synchronized boolean dropEverything() {
+    return dropAllAccounts() && dropAllConversation() && dropAllMessage();
   }
 
   /*
@@ -742,12 +749,15 @@ public class Connector {
           String userid = user.getString("Uuid");
           String name = user.getString("username");
           Timestamp time = user.getTimestamp("creation_time");
+          System.out.println("CONNECTOR 745: Found User: "+name);
           return new UserFromDB(userid,name, Time.fromMs(time.getTime()));
         }
+        System.out.println("CONNECTOR 748: RETURNING NULL");
         return null;
       }
     }
     catch (SQLException e) {
+      System.out.println("CONNECTOR 753: RETURNING NULL");
       return null;
     }
   }

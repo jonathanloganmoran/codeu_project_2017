@@ -89,8 +89,9 @@ public final class ClientConversation {
     final boolean validInputs = isValidTitle(title);
 
     final Conversation conv = (validInputs) ? controller.newConversation(title, owner) : null;
-
+    System.out.println("CC92: Conversation tried");
     if (conv == null) {
+      System.out.println("CC94: Conversation is null");
       System.out.format("Error: conversation not created - %s.\n",
           (validInputs) ? "server failure" : "bad input value");
       return conv;

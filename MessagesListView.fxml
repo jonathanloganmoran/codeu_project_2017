@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.jfoenix.controls.JFXListView?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.Pane?>
+
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="360.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <ScrollPane fitToHeight="true" fitToWidth="true" layoutX="6.0" layoutY="14.0" prefHeight="342.0" prefWidth="390.0" vbarPolicy="NEVER" vmax="390.0">
+         <content>
+            <JFXListView fx:id="messagesPane" accessibleText="messagesListView" nodeOrientation="LEFT_TO_RIGHT" onDragDetected="#limitToVerticalScroll" onDragDropped="#setMessageElements" onRotate="#rotateElements" onRotationFinished="#lockMessageElementstoPane" onScroll="#moveElementsVertical" onScrollFinished="#setElementsStatic" onSwipeDown="#None" onSwipeLeft="#DetermineMessageAction" onSwipeRight="#fuckThatsGoing2beHardcosIWantIndivActions" onSwipeUp="#None" onTouchPressed="#indivMessageOptions" onTouchReleased="#aWildStaticContextMenuAppears" onTouchStationary="#hoverContextMenuMaybeAddSumGlow" onZoom="#disable" prefHeight="340.0" prefWidth="387.0" verticalGap="2.0" />
+         </content>
+      </ScrollPane>
+   </children>
+</Pane>

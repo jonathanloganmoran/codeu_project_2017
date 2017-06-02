@@ -1,7 +1,8 @@
 ## To Use, Visit: <a href="http://codeu.dgarry.com" target="_blank">codeu.dgarry.com</a>
 
 ## To Run Locally:
-Install composer, a package manager for PHP.
+If you don't already have <a href="https://brew.sh/" target="_blank">brew.sh</a>installed, you will need to download that.
+Then, install composer, a package manager for PHP.
 
 ```
 brew update

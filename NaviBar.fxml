@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.jfoenix.controls.JFXBadge?>
+<?import com.jfoenix.controls.JFXListView?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.effect.Shadow?>
+<?import javafx.scene.layout.Pane?>
+
+
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="206.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <JFXListView layoutY="80.0" prefHeight="320.0" prefWidth="206.0">
+         <padding>
+            <Insets top="50.0" />
+         </padding>
+      </JFXListView>
+      <JFXBadge layoutX="125.0" layoutY="-1.0" prefHeight="82.0" prefWidth="81.0" style="-fx-border-width: 1; -fx-border-color: fffffff;">
+         <effect>
+            <Shadow />
+         </effect>
+      </JFXBadge>
+   </children>
+</Pane>

@@ -1,0 +1,23 @@
+
+.mainFxmlClass {
+
+}
+
+.jfx-list-cell:selected {
+    -fx-background-opacity: 0.75;
+}
+
+.jfx-list-cell .jfx-rippler{
+    -fx-rippler-fill: #1e90ff;
+}
+
+.jfx-list-cell:hover {
+    -fx-background-opacity: 0.85;
+}
+
+.jfx-list-view {
+    -fx-background-insets: 0;
+    -fx-cell-vertical-margin: 50;
+    -fx-pref-width: 206;
+    -fx-pref-height: 320;
+}

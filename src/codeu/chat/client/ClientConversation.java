@@ -40,9 +40,6 @@ public final class ClientConversation {
   // This is the set of conversations known to the server.
   private final Map<Uuid, Conversation> conversationsMap = new HashMap<>();
 
-  // This is the set of conversations known to the server, sorted by title.
-  //private Store<String, ConversationSummary> summariesSortedByTitle =
-    //  new Store<>(String.CASE_INSENSITIVE_ORDER);
 
   public ClientConversation(Controller controller, View view, ClientUser userContext) {
     this.controller = controller;
@@ -77,10 +74,6 @@ public final class ClientConversation {
 
   public Uuid getCurrentId() { return (currentConversation != null) ? currentConversation.id : null; }
 
-  //public int currentMessageCount() {
-    //return messageContext.currentMessageCount();
-  //}
-
   public void showCurrent() {
     printConversation(currentConversation, userContext);
   }
@@ -100,12 +93,6 @@ public final class ClientConversation {
       LOG.info("New conversation: Title= \"%s\" UUID= %s", conv.title, conv.id);
       return conv;
 
-      /*if (!isInDB){
-        connector.addConversation(conv.id.toString(), conv.owner.toString(), conv.title);
-      }
-      currentSummary = conv.summary;
-
-      updateAllConversations(currentSummary != null);*/
     }
   }
 
@@ -131,25 +118,7 @@ public final class ClientConversation {
   private void leaveCurrentConversation() {
     Method.notImplemented();
   }
-/*
-  private void updateCurrentConversation() {
-    if (currentConversation != null) {
-      currentConversation = getConversation(currentConversation.id);
-      if (currentConversation == null) {
-        LOG.info("GetConversation: current=%s, current.id=%s, but currentConversation == null",
-            currentConversation, currentConversation.id);
-      } else {
-        LOG.info("Get Conversation: Title=\"%s\" UUID=%s first=%s last=%s\n",
-            currentConversation.title, currentConversation.id, currentConversation.firstMessage,
-            currentConversation.lastMessage);
-      }
-    }
-  }*/
-/*
-  public int conversationsCount() {
-   return summariesByUuid.size();
-  }
-*/
+
   public Collection<Conversation> getConversations() {
     return view.getConversations();
   }
@@ -158,18 +127,11 @@ public final class ClientConversation {
   // If the input currentChanged is true, then re-establish the state of
   // the current Conversation, including its messages.
   public void updateAllConversations(boolean currentChanged) {
-  //  summariesByUuid.clear();
- //   summariesSortedByTitle = new Store<>(String.CASE_INSENSITIVE_ORDER);
 
     for (final Conversation cs : view.getConversations()) {
       conversationsMap.put(cs.id,cs);
-  //    summariesSortedByTitle.insert(cs.title, cs);
     }
-/*
-    if (currentChanged) {
-      updateCurrentConversation();
-      messageContext.resetCurrent(true);
-    }*/
+
   }
 
   // Print Conversation.  User context is used to map from owner UUID to name.

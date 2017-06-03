@@ -45,8 +45,6 @@ public final class Message {
 
       return new Message(
           Uuids.SERIALIZER.read(in),
-          //Uuids.SERIALIZER.read(in),
-          //Uuids.SERIALIZER.read(in),
           Time.SERIALIZER.read(in),
           Uuids.SERIALIZER.read(in),
           Serializers.STRING.read(in),
@@ -57,29 +55,14 @@ public final class Message {
   };
 
   public final Uuid id;
-  //public final Uuid previous;
   public final Time creation;
   public final Uuid author;
   public final String content;
   public final Uuid conversation;
-  //public Uuid next;
-/*
-  public Message(Uuid id, Uuid next, Uuid previous, Time creation, Uuid author, String content) {
 
-    this.id = id;
-    //this.next = next;
-    //this.previous = previous;
-    this.creation = creation;
-    this.author = author;
-    this.content = content;
-
-  }
-  */
   public Message(Uuid id, Time creation, Uuid author, String content, Uuid conversation) {
 
     this.id = id;
-    //this.next = next;
-    //this.previous = previous;
     this.creation = creation;
     this.author = author;
     this.content = content;

@@ -35,8 +35,7 @@ public final class ClientMessage {
   private final View view;
 
   private Message current = null;
-
- // private final Map<Uuid, Message> messageByUuid = new HashMap<>();
+    
   private Conversation conversationHead;
   private final List<Message> conversationContents = new ArrayList<>();
 
@@ -81,11 +80,7 @@ public final class ClientMessage {
   public void resetCurrent(boolean replaceAll) {
     updateMessages(replaceAll);
   }
-
-  /*public int currentMessageCount() {
-    return (conversationContents == null) ? 0 : conversationContents.size();
-  }
-*/
+    
   public List<Message> getConversationContents(Conversation summary){
       
       if(summary == null) {return conversationContents;}
@@ -110,12 +105,8 @@ public final class ClientMessage {
           (validInputs) ? "server error" : "bad input value");
     } else {
       LOG.info("New message:, Author= %s UUID= %s", author, message.id);
-      // add to the display list first
-     // connector.addMessage(message.id.toString(), author.toString(), conversation.toString(), message.content);
-      //current = message;
     }
     return message;
-    //updateMessages(false);
   }
 
   // For m-list-all command.
@@ -147,47 +138,7 @@ public final class ClientMessage {
       printMessage(m, userContext);
     }
   }
-/*
-  private void showNextMessages(int count) {
-    Method.notImplemented();
-  }
 
-  private void showPreviousMessages(int count) {
-    Method.notImplemented();
-  }
-
-  // Determine the next message ID of the current conversation to start pulling.
-  // This requires a read of the last read message to determine if the chain has been extended.
-  private Uuid getCurrentMessageFetchId(boolean replaceAll) {
-    if (replaceAll || conversationContents.isEmpty()) {
-      // Fetch/refetch all the messages.
-      conversationContents.clear();
-      LOG.info("Refetch all messages: replaceAll=%s firstMessage=%s", replaceAll,
-               conversationHead.firstMessage);
-      return conversationHead.firstMessage;
-    } else {
-      // Locate last known message. Its next, if any, becomes our starting point.
-      return getCurrentTailMessageId();
-    }
-  }
- // todo:need to understand the tail
-  private Uuid getCurrentTailMessageId() {
-    Uuid nextMessageId = conversationContents.get(conversationContents.size() - 1).id;
-    final List<Message> messageTail = new ArrayList<>(view.getMessages(nextMessageId));
-    if (messageTail.size() > 0) {
-      final Message msg = messageTail.get(0);
-      nextMessageId = msg.next;
-    } else {
-      // fall back.
-      LOG.warning("Failed to get tail of messages, starting from %s", nextMessageId);
-      conversationContents.clear();
-      nextMessageId = conversationHead.firstMessage;
-    }
-    return nextMessageId;
-  }
-*/
-  // Update the list of messages for the current conversation.
-  // Currently rereads the entire message chain.
   public void updateMessages(boolean replaceAll) {
     updateMessages(conversationContext.getCurrent(), replaceAll);
   }
@@ -199,30 +150,12 @@ public final class ClientMessage {
       LOG.error("conversation argument is null - do nothing.");
       return;
     }
-    /*
-    conversationHead = conversationContext.getConversation(conversation.id);
-    if (conversationHead == null) {
-      LOG.info("ConversationHead is null");
-    }*/ 
     else {
       LOG.info("Conversation: Title=\"%s\" UUID=%s first=%s last=%s\n",
-          conversation.title, conversation.id/*, conversation.firstMessage,
-          conversationHead.lastMessage*/);
-     // Uuid nextMessageId = getCurrentMessageFetchId(replaceAll);
-      //  Stay in loop until all messages read (up to safety limit)
-   //   while (!nextMessageId.equals(Uuids.NULL) && conversationContents.size() < MESSAGE_MAX_COUNT) {
-
+          conversation.title, conversation.id);
+ 
         for (final Message msg : view.getMessages(conversation.id)) {
-
           conversationContents.add(msg);
-
-          // Race: message possibly added since conversation fetched.  If that occurs,
-          // pretend the newer messages do not exist - they'll get picked up next time).
-     /*     if (msg.next.equals(Uuids.NULL) || msg.id.equals(conversationHead.lastMessage)) {
-            msg.next = Uuids.NULL;
-            break;
-          }*/
-        //nextMessageId = conversationContents.get(conversationContents.size() - 1).next;
       }
       LOG.info("Retrieved %d messages for conversation %s (%s).\n",
           conversationContents.size(), conversationHead.id, conversationHead.title);

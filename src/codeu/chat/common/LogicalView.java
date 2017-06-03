@@ -32,11 +32,6 @@ public interface LogicalView {
   Uuid getUserGeneration();
 
 
-  // GET USERS EXCLUDING
-  //
-  //   Get all users whose ID are not found in the given set of ids.
-  //Collection<User> getUsersExcluding(Collection<Uuid> ids);
-
   // GET CONVERSATIONS
   //
   //   Get a collection of conversations given the start and end of a time series.
@@ -44,12 +39,6 @@ public interface LogicalView {
   //   and end time will be returned.
   Collection<Conversation> getConversations(Time start, Time end);
 
-  // GET CONVERSATIONS
-  //
-  //   Get a collection of conversations given a regex expression that will be
-  //   used against every conversation's title. All conversations whose title
-  //   matches the given regex expression will be returned.
-  //Collection<Conversation> getConversations(String filter);
 
   // GET MESSAGES
   //

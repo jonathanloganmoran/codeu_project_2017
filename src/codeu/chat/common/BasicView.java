@@ -39,21 +39,11 @@ public interface BasicView {
 */
 Collection<User> getUsers();
 
-/*
-  // GET ALL CONVERSATIONS
-  //
-  //   Return a summary of each converation.
-  Collection<ConversationSummary> getAllConversations();
-*/
   // GET CONVERSATIONS
   //
   //   Return all conversations whose id is found in the given collection.
   //Collection<Conversation> getConversations(Collection<Uuid> ids);
   Collection<Conversation> getConversations();
 
-  // GET MESSAGES
-  //
-  //   Return all messages whose id is found in the given collection.
-  //Collection<Message> getMessages(Collection<Uuid> ids);
-  //Collection<Message> getMessages();
+
 }

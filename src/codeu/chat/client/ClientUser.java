@@ -30,18 +30,10 @@ public final class ClientUser {
 
   private final static Logger.Log LOG = Logger.newLog(ClientUser.class);
 
-  //private static final Collection<Uuid> EMPTY = Arrays.asList(new Uuid[0]);
   private final Controller controller;
   private final View view;
 
   private User current = null;
-
-  //private final Map<Uuid, User> usersById = new HashMap<>();
- // private static final codeu.chat.database.Connector con = new codeu.chat.database.Connector();
-
-  // This is the set of users known to the server, sorted by name.
- //private Store<String, User> usersByName = new Store<>(String.CASE_INSENSITIVE_ORDER);
-
   public ClientUser(Controller controller, View view) {
     this.controller = controller;
     this.view = view;
@@ -81,21 +73,7 @@ public final class ClientUser {
   public void showCurrent() {
     printUser(current);
   }
-/*
-  public void addUser(String name, String password) {
-    final boolean validInputs = isValidName(name);
 
-    final User user = (validInputs) ? controller.newUser(name,password) : null;
-
-    if (user == null) {
-      System.out.format("Error: user not created - %s.\n",
-          (validInputs) ? "server failure" : "bad input value");
-    } else {
-      LOG.info("New user complete, Name= \"%s\" UUID=%s", user.name, user.id);
-      updateUsers();
-    }
-  }
-*/
   public boolean addUser(String name, String password) {
       final boolean validInputs = isValidName(name);
       final User user = (validInputs) ? controller.newUser(name, password) : null;
@@ -106,20 +84,11 @@ public final class ClientUser {
           return false;
       } else {
           LOG.info("New user complete, Name= \"%s\" UUID=%s", user.name, user.id);
-         // updateUsers();
           return true;
       }
   }
 
-/*
-  public void populateList(List<UserFromDB> list){
-   Collection<User>collection =  view.getUsersExcluding(null);
-
-  }
-*/
-
   public void showAllUsers() {
-    //updateUsers();
     for (final User u : getUsers()) {
       printUser(u);
     }
@@ -140,19 +109,9 @@ public final class ClientUser {
   }
 
   public Collection<User> getUsers() {
-    return view.getUsers(); //usersByName.all();
+    return view.getUsers();
   }
-/*
-  public void updateUsers() {
-    usersById.clear();
-    //usersByName = new Store<>(String.CASE_INSENSITIVE_ORDER);
 
-    for (final User user : view.getUsers()) {
-      usersById.put(user.id, user);
-      //usersByName.insert(user.name, user);
-    }
-  }
-*/
   public static String getUserInfoString(User user) {
     return (user == null) ? "Null user" :
         String.format(" User: %s\n   Id: %s\n", user.name, user.id); // removed "    created: %s"
@@ -162,7 +121,6 @@ public final class ClientUser {
     return getUserInfoString(view.getUserByName(username));
   }
 
-  // Move to User's toString()
   public static void printUser(User user) {
     System.out.println(getUserInfoString(user));
   }

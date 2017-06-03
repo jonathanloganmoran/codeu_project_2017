@@ -3,7 +3,7 @@ package codeu.chat.database;
 import codeu.chat.common.Time;
 
 /**
- * Created by shuai9532 on 4/30/17.
+ * construct a message using the info retrieved from database
  */
 public class MessageFromDB {
 

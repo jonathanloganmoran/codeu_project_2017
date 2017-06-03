@@ -63,7 +63,6 @@ public final class Conversation {
   };
 
 //  public final ConversationSummary summary;
-
   public final Uuid id;
   public final Uuid owner;
   public Time creation;
@@ -81,8 +80,6 @@ public final class Conversation {
       System.out.println("SEVERE: Time is NULL in Conversation construction");
     }
     this.title = title;
-
-    //this.summary = new ConversationSummary(id, owner, creation, title);
 
   }
 }

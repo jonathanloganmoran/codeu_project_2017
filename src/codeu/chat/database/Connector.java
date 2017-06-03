@@ -1,5 +1,5 @@
 package codeu.chat.database;
-import codeu.chat.common.Conversation;
+
 import codeu.chat.common.Time;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -17,8 +17,7 @@ import java.util.Random;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import codeu.chat.common.Uuids;
+import codeu.chat.server.View;
 import org.apache.commons.dbcp2.BasicDataSource;
 
 /**
@@ -79,7 +78,6 @@ public class Connector {
   private static final String SQL_SELECT_CONVERSATION_BY_TITLE = String
           .format("SELECT * FROM %s WHERE title = ?", CONVERSATION);
 
-
   /* SQL Message Queries */
   private static final String SQL_SELECT_MESSAGE_CREATION_TIME = String.
           format("SELECT creation_time FROM %s WHERE Uuid = ?", MESSAGE);
@@ -92,7 +90,6 @@ public class Connector {
   private static final String SQL_DELETE_MESSGES_BY_ID = String
       .format("DELETE FROM %s WHERE id_user = ?", MESSAGE);
   private static final String SQL_DROP_MESSAGE = String.format("TRUNCATE TABLE %s", MESSAGE);
-
 
   /* Encryption */
   private static final Random rand = new SecureRandom();
@@ -113,23 +110,6 @@ public class Connector {
     }
     catch (FileNotFoundException e) {
       LOGGER.log( Level.SEVERE, "the file that contains account of datavase does not exist");
-    }
-  }
-
-  /**
-   * For testing the time, trying to sort the time and conversation.
-   */
-  public void time() {
-    try (Connection conn = dataSource.getConnection()) {
-      PreparedStatement time = conn.prepareStatement(
-          "SELECT creation_time FROM Message");
-      ResultSet result = time.executeQuery();
-      while (result.next()) {
-        System.out.println(result.getTimestamp("creation_time").getTime());
-      }
-    }
-    catch (SQLException e) {
-      LOGGER.log( Level.FINE, "error occurred when converting the time");
     }
   }
 
@@ -180,34 +160,6 @@ public class Connector {
     catch (SQLException e) {
       LOGGER.log( Level.FINE, "something wrong with the connection");
       return false;
-    }
-  }
-
-  /**
-   * A method to help me during testing. Will not need to be used in final version, but
-   * please leave it in for now since it is extremely helpful.
-  */
-  public synchronized void addTestAccounts(){
-    dropAllAccounts();
-    String[] usernames = {"unweaving", "deepfreeze", "inability", "nicotinize", "unmaterial",
-        "grandniece", "crappie", "moulmein", "trilithon", "reformulating", "rudimentary",
-        "exhibitioner", "theorist", "favored", "rheumatically", "shakers", "screwhead",
-        "preobviated", "nonerudite", "pharmacolite", "sidereal", "mycobacteria", "apartmental",
-        "repurchase", "gypseous", "excitable", "dolphinfish", "unfertilisable", "unperished",
-        "acardiac", "presubordination", "tobacco", "archipenko", "circumvolved", "geminiflorous",
-        "dermatomic", "playday", "tenderised", "microminiature", "unitarianism", "begrimed",
-        "antibilious", "deglamorized", "toughen", "fearsomeness", "diadochic", "lignification",
-        "budlike", "halterlike", "macrocephalia", "dramatise", "interpretership", "loaning",
-        "barkentine", "millennially", "bouzouki", "uninterpleaded", "terroriser", "legendizing",
-        "mudcapped", "speedway", "dioestrous", "overderiding", "peisistratus", "heterochthonous",
-        "satyric", "premodern", "dipteran", "bromeliaceous", "warrenton", "accusation", "cotangent",
-        "apurimac", "gwendolin", "hyetograph", "dialectologist", "gladbeck", "unpeppered",
-        "hypermegasoma", "undiscomfited", "chesterbed", "polarizing", "oenopides",
-        "psychopathological", "evocatively", "unequatorial", "secretly", "nymwegen", "kinglier",
-        "zaddikim", "pseudamphora", "antonym", "superimpersonal", "grilses", "mesodermal",
-        "pacifically", "libertine", "cystolith", "misbuild", "pseudohemal"};
-    for(int i=0; i<usernames.length; i++){
-      addAccount(usernames[i],"password","000000-000000-000"+i);
     }
   }
 
@@ -348,18 +300,14 @@ public class Connector {
     String formattedPassword = salt + password;
     StringBuilder code = new StringBuilder();
     try {
+
       MessageDigest sha = MessageDigest.getInstance("SHA-256");
-      // Mess up the byte converted from formattedPassword.
       byte[] hashedBytes = sha.digest(formattedPassword.getBytes());
 
       for (int i = 0; i < hashedBytes.length; i++) {
-        // Get each byte from input string.
         byte b = hashedBytes[i];
-        // First half byte is mapped into char c in the hash table.
         char c = DIGITS[(b & 0xf0) >> 4];
-        // Add the code to the string.
         code.append(c);
-        // Second half is also mapped into hash table and value appends to the code.
         code.append(DIGITS[b & 0x0f]);
       }
       return code.toString();
@@ -404,6 +352,7 @@ public class Connector {
       return false;
     }
   }
+
   /*
    * Drop all messages
    */
@@ -463,19 +412,15 @@ public class Connector {
 
     try (Connection conn = dataSource.getConnection()) {
       try (PreparedStatement selectPassword = conn.prepareStatement(SQL_SELECT_PASSWORD)) {
-        // The account exists, check password.
+
         selectPassword.setString(1, username);
         try (ResultSet resultPassword = selectPassword.executeQuery()) {
           if (resultPassword.next()) {
-            // Get the stored password from codeu.chat.database.
             String passwordInDB = resultPassword.getString(1);
-            // Encrypt password:
             try {
               String salt = acquireSalt(username);
               String codedPassword = encryptPassword(password, salt);
-              // Verify;
               if (!passwordInDB.equals(codedPassword)) {
-                //the password does not match
                 LOGGER.log( Level.SEVERE, "the password does not match" );
                 return false;
               }
@@ -501,8 +446,8 @@ public class Connector {
     return false;
   }
   
-  /** Verify if the account username is in the codeu.chat.database
-   *
+  /**
+   * Verify if the account username is in the codeu.chat.database
    * @param username the username that is being verified
    * @return true if the account is valid, if the account is not valid
    */
@@ -566,21 +511,6 @@ public class Connector {
   public synchronized boolean deleteAccount(String username) {
 
     try (Connection conn = dataSource.getConnection()) {
-      /*String user_id = "";
-      try(PreparedStatement getUserId = conn.prepareStatement(SQL_SELECT_ID)){
-        getUserId.setString(1,username);
-        ResultSet id = getUserId.executeQuery();
-        if(id.next())
-          user_id = id.getString(1);
-        else
-          return false;
-
-      }
-      // now the account does exit
-      // that means in the table of conversation and messages, the there is either has/no messge/con
-      if(!(deleteMessage(user_id) && deleteConversation(user_id)))
-        return false;
-      */
       try (PreparedStatement deleteAccount = conn.prepareStatement(SQL_DELETE_USER)) {
         deleteAccount.setString(1, username);
         if(deleteAccount.executeUpdate() > 0)
@@ -635,6 +565,11 @@ public class Connector {
     }
   }
 
+  /**
+   * find the creation time of the conversation
+   * @param id pass in conversation id to retrieve the time
+   * @return time created
+   */
   public Time getConv_creationTime(String id){
       try (Connection conn = dataSource.getConnection()) {
         PreparedStatement time = conn.prepareStatement(
@@ -651,6 +586,11 @@ public class Connector {
       return null;
     }
 
+  /**
+   * find the creation time of the message
+   * @param id pass in message id to retrieve the time
+   * @return time created
+   */
   public Time getMessage_creationTime(String id){
       try (Connection conn = dataSource.getConnection()) {
         PreparedStatement time = conn.prepareStatement(
@@ -667,6 +607,11 @@ public class Connector {
       return null;
     }
 
+  /**
+   * find the creation time for user
+   * @param id pass in user id to retrieve time
+   * @return time created
+   */
   public Time getUser_creationTime(String id){
       try (Connection conn = dataSource.getConnection()) {
         PreparedStatement time = conn.prepareStatement(
@@ -674,6 +619,7 @@ public class Connector {
         time.setString(1,id);
         ResultSet result = time.executeQuery();
         while (result.next()) {
+          LOGGER.log(Level.WARNING, "THE TIME SHOULD NOT BE NULL");
           return Time.fromMs(result.getTimestamp("creation_time").getTime());
         }
       }
@@ -683,6 +629,11 @@ public class Connector {
       return null;
   }
 
+  /**
+   * return an UserFromDB object
+   * @param uuid get user info from DB through user id
+   * @return UserFromDB
+   */
   public UserFromDB getUser(String uuid){
       try (Connection conn = dataSource.getConnection()) {
         try (PreparedStatement getConversation = conn.prepareStatement(SQL_SELECT_USER)) {
@@ -701,6 +652,11 @@ public class Connector {
       return null;
   }
 
+  /**
+   * return an ConversationFromDB object
+   * @param uuid get convo info from DB through convo id
+   * @return ConversationFromDB
+   */
   public ConversationFromDB getConversation(String uuid){
       try (Connection conn = dataSource.getConnection()) {
         try (PreparedStatement getConversation = conn.prepareStatement(SQL_SELECT_CONVERSATION)) {
@@ -720,6 +676,11 @@ public class Connector {
       }
   }
 
+  /**
+   * return an MessageFromDB object
+   * @param uuid get message info from DB through message id
+   * @return MessageFromDB
+   */
   public MessageFromDB getMessage(String uuid){
       try (Connection conn = dataSource.getConnection()) {
         try (PreparedStatement message = conn.prepareStatement(SQL_SELECT_CONVERSATION)) {
@@ -740,6 +701,11 @@ public class Connector {
       return null;
   }
 
+  /**
+   * return an UserFromDB object
+   * @param username get user info from DB through username
+   * @return UserFromDB
+   */
   public UserFromDB getUserByName(String username){
     try (Connection conn = dataSource.getConnection()) {
       try (PreparedStatement getUser = conn.prepareStatement(SQL_SELECT_USER_BY_NAME)) {
@@ -762,6 +728,11 @@ public class Connector {
     }
   }
 
+  /**
+   * return an ConversationFromDB object
+   * @param title get convo info from DB through convo title
+   * @return ConversationFromDB
+   */
   public ConversationFromDB getConversationByTitle(String title){
     try (Connection conn = dataSource.getConnection()) {
       try (PreparedStatement getConversation = conn.prepareStatement(SQL_SELECT_CONVERSATION_BY_TITLE)) {
@@ -780,6 +751,7 @@ public class Connector {
       return null;
     }
   }
+
   /**
    * When all has been done with codeu.chat.database, call close to end the connection.
    * can restart by creating a new instance of connector

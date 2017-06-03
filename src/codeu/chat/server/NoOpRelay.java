@@ -26,7 +26,7 @@ import codeu.chat.common.Uuid;
 //
 // The no op relay is an empty implementation of the relay interface
 // that will always return positive values for calls so that a server
-// can use this relay when other relays are not available.
+// can use this relay when other relay are not available.
 public final class NoOpRelay implements Relay {
 
   @Override

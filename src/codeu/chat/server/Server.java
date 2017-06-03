@@ -182,10 +182,9 @@ public final class Server {
 
     else if (type == NetworkCode.GET_ALL_USERS_REQUEST) {
 
-      //final Collection<Uuid> ids = Serializers.collection(Uuids.SERIALIZER).read(in);
       final Collection<User> users = view.getUsers();
-
       Serializers.INTEGER.write(out, NetworkCode.GET_ALL_USERS_RESPONSE);
+
       Serializers.collection(User.SERIALIZER).write(out, users);
     }
 
@@ -215,22 +214,10 @@ public final class Server {
       Serializers.collection(Conversation.SERIALIZER).write(out, conversations);
 
     }
-    /*
-    else if (type == NetworkCode.GET_MESSAGES_BY_RANGE_REQUEST) {
-
-      final Uuid rootMessage = Uuids.SERIALIZER.read(in);
-      final int range = Serializers.INTEGER.read(in);
-
-      final Collection<Message> messages = view.getMessages(rootMessage, range);
-
-      Serializers.INTEGER.write(out, NetworkCode.GET_MESSAGES_BY_RANGE_RESPONSE);
-      Serializers.collection(Message.SERIALIZER).write(out, messages);
-
-    } */else {
+    else {
 
       // In the case that the message was not handled make a dummy message with
       // the type "NO_MESSAGE" so that the client still gets something.
-
       Serializers.INTEGER.write(out, NetworkCode.NO_MESSAGE);
 
     }
@@ -251,7 +238,6 @@ public final class Server {
     }
 
     Conversation conversation = view.findConversation(relayConversation.id());
-    //model.conversationById().first(relayConversation.id());
 
     if (conversation == null) {
 
@@ -263,8 +249,6 @@ public final class Server {
                                                 user.id
                                                 );
     }
-
-    //Message message = model.messageById().first(relayMessage.id());
     Message message = view.findMessage(relayMessage.id());
     if (message == null) {
       message = controller.newMessage(relayMessage.id(),

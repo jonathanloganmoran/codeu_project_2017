@@ -36,26 +36,13 @@ import codeu.chat.util.Logger;
 public final class View implements BasicView, LogicalView, SinglesView {
 
   private final static Logger.Log LOG = Logger.newLog(View.class);
-
-  //in this case, we have codeu.chat.database
-  //private final Model model;
-
-  //codeu.chat.database:
   Connector connector= new Connector();
 
-  public View(/*Model model*/) {
-   // this.model = model;
-  }
-
-/*
-  public Collection<User> getUsers(Collection<Uuid> ids) {
-    return intersect(model.userById(), ids);
-  }
-*/
+  public View() {}
 
   /**
    * Get all the users from the codeu.chat.database
-   * @return
+   * @return collection of users
    */
   @Override
   public Collection<User> getUsers() {
@@ -68,20 +55,6 @@ public final class View implements BasicView, LogicalView, SinglesView {
     LOG.info("All the users have been retrieved");
     return userCollection;
   }
-/*
-  @Override
-  public Collection<ConversationSummary> getAllConversations() {
-
-    final Collection<ConversationSummary> summaries = new ArrayList<>();
-
-    for (final Conversation conversation : model.conversationById().all()) {
-        summaries.add(conversation.summary);
-    }
-
-    return summaries;
-
-  }
-*/
 
   /**
    * Get all the conversations from the codeu.chat.database
@@ -102,7 +75,6 @@ public final class View implements BasicView, LogicalView, SinglesView {
     LOG.info("All the conversations have retrieved");
     return conversationCollection;
   }
-
 
   @Override
   public Uuid getUserGeneration() {
@@ -169,121 +141,12 @@ public final class View implements BasicView, LogicalView, SinglesView {
     LOG.info("All the messages start from  %s to %s in conversation %s has been retrieved ", start, end, conversation.id());
     return target;
   }
-/*
-  @Override
-  public Collection<Conversation> getConversations(Collection<Uuid> ids) {
-    return intersect(model.conversationById(), ids);
-  }
 
-  @Override
-  public Collection<Message> getMessages(Collection<Uuid> ids) {
-    return intersect(model.messageById(), ids);
-  }
-
-  @Override
-  public Uuid getUserGeneration() {
-    return model.userGeneration();
-  }
-
-  @Override
-  public Collection<User> getUsersExcluding(Collection<Uuid> ids) {
-
-    final Set<User> blacklist = new HashSet<>(intersect(model.userById(), ids));
-    final Set<User> users = new HashSet<>();
-
-    for (final User user : model.userById().all()) {
-      if (!blacklist.contains(user)) {
-        users.add(user);
-      }
-    }
-
-    return users;
-  }
-
-  @Override
-  public Collection<Conversation> getConversations(Time start, Time end) {
-
-    final Collection<Conversation> conversations = new ArrayList<>();
-
-    for (final Conversation conversation : model.conversationByTime().range(start, end)) {
-      conversations.add(conversation);
-    }
-
-    return conversations;
-
-  }
-
-  @Override
-  public Collection<Conversation> getConversations(String filter) {
-
-    final Collection<Conversation> found = new ArrayList<>();
-
-    for (final Conversation conversation : model.conversationByText().all()) {
-      if (Pattern.matches(filter, conversation.title)) {
-        found.add(conversation);
-      }
-    }
-
-    return found;
-  }
-
-  @Override
-  public Collection<Message> getMessages(Uuid conversation, Time start, Time end) {
-
-    final Conversation foundConversation = model.conversationById().first(conversation);
-
-    final List<Message> foundMessages = new ArrayList<>();
-
-    Message current = (foundConversation == null) ?
-        null :
-        model.messageById().first(foundConversation.firstMessage);
-
-    while (current != null && current.creation.compareTo(start) < 0) {
-      current = model.messageById().first(current.next);
-    }
-
-    while (current != null && current.creation.compareTo(end) <= 0) {
-      foundMessages.add(current);
-      current = model.messageById().first(current.next);
-    }
-
-    return foundMessages;
-  }
-
-  @Override
-  public Collection<Message> getMessages(Uuid rootMessage, int range) {
-
-    int remaining = Math.abs(range);
-    LOG.info("in getMessage: UUID=%s range=%d", rootMessage, range);
-
-    // We want to return the messages in order. If the range was negative
-    // the messages would be backwards. Use a linked list as it supports
-    // adding at the front and adding at the end.
-
-    final LinkedList<Message> found = new LinkedList<>();
-
-    // i <= remaining : must be "<=" and not just "<" or else "range = 0" would
-    // return nothing and we want it to return just the root because the description
-    // is that the function will return "range" around the root. Zero messages
-    // around the root means that it should just return the root.
-
-    Message current = model.messageById().first(rootMessage);
-
-    if (range > 0) {
-      for (int i = 0; i <= remaining && current != null; i++) {
-        found.addLast(current);
-        current = model.messageById().first(current.next);
-      }
-    } else {
-      for (int i = 0; i <= remaining && current != null; i++) {
-        found.addFirst(current);
-        current = model.messageById().first(current.previous);
-      }
-    }
-
-    return found;
-  }
-*/
+  /**
+   * Find  user through ID
+   * @param id userid
+   * @return User
+   */
   @Override
   public User findUser(Uuid id) {
     UserFromDB user = connector.getUser(Uuids.toString(id));
@@ -293,6 +156,11 @@ public final class View implements BasicView, LogicalView, SinglesView {
     return null;
   }
 
+  /**
+   * Find conversation through id
+   * @param id conversation id
+   * @return conversation
+   */
   @Override
   public Conversation findConversation(Uuid id) {
     ConversationFromDB  conversation= connector.getConversation(Uuids.toString(id));
@@ -306,6 +174,11 @@ public final class View implements BasicView, LogicalView, SinglesView {
     return null;
   }
 
+  /**
+   * Find message through id
+   * @param id message id
+   * @return message
+   */
   @Override
   public Message findMessage(Uuid id) {
     MessageFromDB message = connector.getMessage(Uuids.toString(id));
@@ -319,6 +192,11 @@ public final class View implements BasicView, LogicalView, SinglesView {
     return null;
   }
 
+  /**
+   *  Get user by username
+   * @param name name of the user
+   * @return user
+   */
   public User getUserByName(String name){
     System.out.println("VIEW LINE 323: ENTERED");
     UserFromDB userFromDB = connector.getUserByName(name);
@@ -330,6 +208,11 @@ public final class View implements BasicView, LogicalView, SinglesView {
     return null;
   }
 
+  /**
+   * Get conversation by title
+   * @param title conversation title
+   * @return conversation
+   */
   public Conversation getConversationByTitle(String title){
     ConversationFromDB conversationFromDB = connector.getConversationByTitle(title);
     if(conversationFromDB != null){
@@ -342,35 +225,16 @@ public final class View implements BasicView, LogicalView, SinglesView {
     return  null;
   }
 
+  /**
+   * Verify the account
+   * @param name user name
+   * @param password user password
+   * @return user the provided info is correct
+   */
   public User verifyAccount(String name, String password){
     if(connector.verifyAccount(name,password)){
      return getUserByName(name);
     }
     return null;
   }
-
-/*
-  private static <T> Collection<T> intersect(StoreAccessor<Uuid, T> store, Collection<Uuid> ids) {
-
-    // Use a set to hold the found users as this will prevent duplicate ids from
-    // yielding duplicates in the result.
-
-    final Collection<T> found = new HashSet<>();
-
-    for (final Uuid id : ids) {
-
-      final T t = store.first(id);
-
-      if (t == null) {
-        LOG.warning("Unmapped id %s", id);
-      } else if (found.add(t)) {
-        // do nothing
-      } else {
-        LOG.warning("Duplicate id %s", id);
-      }
-    }
-
-    return found;
-  }
- */
 }

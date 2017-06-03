@@ -178,7 +178,6 @@ public final class Uuids {
     if (current != null) {
       buildString(current.root(), build);
       build.append(".").append(current.id() & mask);
-      //build.append(".").append(current.id());
     }
   }
 
@@ -187,11 +186,8 @@ public final class Uuids {
   // Create a uuid from a sting.
   public static Uuid fromString(String string) {
     final Logger.Log LOG = Logger.newLog(View.class);
-    //LOG.info("190: THE INPUT STRING IS "+string+" With length: "+ string.length() );
-
-    //return fromString(null, string.split("\\."), 0);
     if(string.charAt(0) == '[') {
-      return fromString(null, string.substring(14, string.length()-1), 0);
+      return fromString(null, string.substring(10, string.length()-1), 0);
     }
     else{
       return fromString(null,  string.split("\\.")[0], 0);
@@ -200,16 +196,11 @@ public final class Uuids {
 
   private static Uuid fromString(final Uuid root, String tokens, int index) {
     final Logger.Log LOG = Logger.newLog(View.class);
-    //LOG.info("203: THE INPUT STRING IS "+tokens);
     long id = Long.parseLong(tokens);
     int newId = (int)(id >> 1);
     newId = newId << 1;
     if((id & 1) == 1){ newId = newId | 1;}
-
     final int result = newId;
-    //LOG.info("210: THE INPUT INT IS "+result);
-    LOG.info("211: SUCCESS");
-
     final Uuid link = complete(new Uuid() {
       @Override
       public Uuid root() { return root; }
@@ -217,11 +208,6 @@ public final class Uuids {
       public int id() { return result; }
     });
 
-   // final int nextIndex = index + 1;
-
-    //return nextIndex < tokens.length ?
-      //  fromString(link, tokens, nextIndex) :
-        //link;
     return link;
   }
 }

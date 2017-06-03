@@ -18,12 +18,13 @@ import java.util.Random;
 
 import codeu.chat.common.Uuid;
 import codeu.chat.common.Uuids;
+import codeu.chat.util.Logger;
 
 // Create a new random uuid. Uuids from this generator are random
 // but are not guaranteed to be unique. Checking uniqueness is left
 // to the caller.
 final class RandomUuidGenerator implements Uuid.Generator {
-
+  private final static Logger.Log LOG = Logger.newLog(View.class);
   private static final class BasicUuid implements Uuid {
 
     private final Uuid root;
@@ -52,9 +53,6 @@ final class RandomUuidGenerator implements Uuid.Generator {
   @Override
   public Uuid make() {
     int newID = random.nextInt();
-    while(newID > Math.pow(2,31)){
-      newID = random.nextInt();
-    }
     return Uuids.complete(new BasicUuid(commonRoot, newID));
   }
 }
